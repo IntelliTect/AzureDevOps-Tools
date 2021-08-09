@@ -47,11 +47,17 @@ function Start-ADOAreaPathsMigration {
             -OrgName $SourceOrgName `
             -Headers $SourceHeaders
 
-        Push-AreaPaths `
+        if ($areaPaths) {
+            Push-AreaPaths `
             -ProjectName $TargetProjectName `
             -OrgName $TargetOrgName `
             -AreaPaths $areaPaths `
             -Headers $TargetHeaders
+
+        }
+        else {
+            Write-Log -Message "No area paths to migrate in project $SourceProjectName"
+        }
     }
 }
 

@@ -99,10 +99,10 @@ foreach ($project in $projects) {
     Start-ADOTeamsMigration `
         -SourceHeaders $sourceHeaders `
         -SourceOrgName $configuration.SourceProject.OrgName `
-        -SourceProjectName $projects.SourceProject `
+        -SourceProjectName $project.SourceProject `
         -TargetHeaders $targetHeaders `
         -TargetOrgName $configuration.TargetProject.OrgName `
-        -TargetProjectName $projects.TargetProject `
+        -TargetProjectName $project.TargetProject `
         -WhatIf:$SKIP_MigrateTeams
     #endregion
 
@@ -112,10 +112,10 @@ foreach ($project in $projects) {
     Start-ADOGroupsMigration `
         -SourcePAT $configuration.SourceProject.PAT `
         -SourceOrgName $configuration.SourceProject.OrgName `
-        -SourceProjectName $projects.SourceProject `
+        -SourceProjectName $project.SourceProject `
         -TargetPAT $configuration.TargetProject.PAT `
         -TargetOrgName $configuration.TargetProject.OrgName `
-        -TargetProjectName $projects.TargetProject `
+        -TargetProjectName $project.TargetProject `
         -WhatIf:$SKIP_MigrateGroups
     #endregion
 

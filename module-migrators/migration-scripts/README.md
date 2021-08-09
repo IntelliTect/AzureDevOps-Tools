@@ -69,3 +69,13 @@ The script starts importing the `Projects.csv` and setting a migration run date,
 Each migration defined under `Projects.csv` gets it's own folder where a copy of `base-configuration.json` is created and configured specifically for that migration. All of the migrations are nested under a folder dated with the migration run date set above.
 
 After the project directories are created for each project, the script preforms a migration for each project.
+
+
+# Migration Notes
+- default iteration path is not set a team
+- default area path is not set for a team
+
+# Set source to read only
+- set repos isDisabled flag to true (manually via UI this pass)
+- Move all members of Contributors to Readers. members of groups such as Project Admins, Build Admins, project Collection admins are not affected. Additionally, any specific user assignments will still be valid
+

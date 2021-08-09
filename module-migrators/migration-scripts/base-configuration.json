@@ -11,7 +11,7 @@
                             "access-token":  "",
                             "use-integrated-auth":  "false"
                         },
-  "query":  "",
+  "query":  "My Queries/All Items",
   "heartbeat-frequency-in-seconds":  30,
   "query-page-size":  20000,
   "parallelism":  1,
