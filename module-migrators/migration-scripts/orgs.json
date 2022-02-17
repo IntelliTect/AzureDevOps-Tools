@@ -1,0 +1,10 @@
+[
+    {
+        "OrganizationName" : "IntelliTect",
+        "PipelinesServiceConnectionID" : ""
+    },
+    {
+        "OrganizationName": "IntelliTect-Samples",
+        "PipelinesServiceConnectionID" : ""
+    }
+]
