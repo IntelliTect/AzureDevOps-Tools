@@ -68,10 +68,5 @@ function Create-GHTeams() {
 
 }
 
-$sourceOrg = "Intellitect-Samples"
-$sourceProjectName = "SampleCRM" 
-$targetOrg = "IntelliTect-Samples" 
-$targetProjectName = "SampleCRM"
-
 $r = Migrate-Repos
 $r.name
