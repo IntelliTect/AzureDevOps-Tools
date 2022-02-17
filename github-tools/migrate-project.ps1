@@ -18,7 +18,7 @@ if ([string]::IsNullOrEmpty($env:GH_PAT)) {
     "GH_PAT not set!"
 }
 
-$sourceHeaders = New-HTTPHeaders -pat $env:ADO_PAT
+$sourceHeaders = New-HTTPHeaders -PersonalAccessToken $env:ADO_PAT
 
 function Exec {
     param (
@@ -43,8 +43,8 @@ function Get-ServiceConnectionID() {
 function Migrate-Repos() {
     #todo get repos
     # for each $repo
-    $repos = Get-Repos($sourceProjectName, $sourceOrg, $sourceHeaders)
-    $repos
+    $repos = Get-Repos -ProjectName $sourceProjectName -OrgName $sourceOrg -Headers $sourceHeaders
+    return $repos
 }
 
 function Migrate-Single-Repo($repoName) {
@@ -73,4 +73,5 @@ $sourceProjectName = "SampleCRM"
 $targetOrg = "IntelliTect-Samples" 
 $targetProjectName = "SampleCRM"
 
-Migrate-Repos
+$r = Migrate-Repos
+$r.name
