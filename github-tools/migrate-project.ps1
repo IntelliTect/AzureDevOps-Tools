@@ -30,8 +30,9 @@ function Verify-TeamADGroups($targetProjectName) {
     return $false
 }
 
-function Get-ServiceConnection() {
+function Get-ServiceConnectionID() {
     #todo get the service connection for this org
+    #add a map of service connections by org and return the correct one
     # return it
 }
 
