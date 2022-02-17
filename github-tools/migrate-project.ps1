@@ -8,13 +8,17 @@ param(
     [int]$BatchSize = 50
 )
 
-if (string.IsEmpty($env:ADO_PAT)) {
+Import-Module Migrate-ADO -Force
+
+if ([string]::IsNullOrEmpty($env:ADO_PAT)) {
     "ADO_PAT not set!"
     return
 }
-if (string.Empty($env:GH_PAT)) {
+if ([string]::IsNullOrEmpty($env:GH_PAT)) {
     "GH_PAT not set!"
 }
+
+$sourceHeaders = New-HTTPHeaders -PersonalAccessToken $env:ADO_PAT
 
 function Exec {
     param (
@@ -39,6 +43,8 @@ function Get-ServiceConnectionID() {
 function Migrate-Repos() {
     #todo get repos
     # for each $repo
+    $repos = Get-Repos -ProjectName $sourceProjectName -OrgName $sourceOrg -Headers $sourceHeaders
+    return $repos
 }
 
 function Migrate-Single-Repo($repoName) {
@@ -62,4 +68,5 @@ function Create-GHTeams() {
 
 }
 
-
+$r = Migrate-Repos
+$r.name

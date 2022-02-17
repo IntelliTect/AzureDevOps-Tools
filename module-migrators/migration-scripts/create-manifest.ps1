@@ -15,12 +15,12 @@ $validPath = Test-Path $IncludedModules[0]
 
 if(!$validPath){
     throw "The file paths appear to be incorrect... `n
-    Make sure you are in the repos root directory when running this script."
+    Make sure you are in the repo root directory when running this script."
 }
 
 $Version = '1.0.0.0'
 $Description = 'Azure Devops Migration classes, functions and enums.'
-$Path = "$([Environment]::GetFolderPath('MyDocuments'))\WindowsPowerShell\Modules\Migrate-ADO"
+$Path = "$($env:PSModulePath.Split(";")[0])\Migrate-ADO"
 $FileName = "Migrate-ADO.psd1"
 
 New-Item -Path $Path -ItemType Directory -Force
