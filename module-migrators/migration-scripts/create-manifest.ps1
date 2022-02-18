@@ -7,7 +7,8 @@ $IncludedModules = @(
     "$(Get-Location)\Supporting-Modules\Migrate-ADO-Groups.psm1",
     "$(Get-Location)\Supporting-Modules\Migrate-ADO-BuildQueues.psm1",
     "$(Get-Location)\supporting-modules\Migrate-ADO-Repos.psm1",
-    "$(Get-Location)\Supporting-Modules\Migrate-ADO-Common.psm1"
+    "$(Get-Location)\Supporting-Modules\Migrate-ADO-Common.psm1",
+    "$(Get-Location)\Supporting-Modules\Migrate-ADO-Pipelines.psm1"
 )
 
 # Make sure files are the correct paths
