@@ -35,11 +35,12 @@ function Verify-TeamADGroups($targetProjectName) {
 }
 
 function Get-ServiceConnectionID($sourceOrg) {
-    #todo get the service connection for this org
-    #add a map of service connections by org and return the correct one
-    # return it
-    $serviceConnection = Get-Content ".\orgs.json" | ConvertFrom-Json
-    return $serviceConnection[$sourceOrg]
+    $serviceConnection = Get-Content ".\orgs.json" | ConvertFrom-Json -AsHashtable
+    $id = $serviceConnection[$sourceOrg]
+    if ([string]::IsNullOrEmpty($id)) {
+        throw "Service connection for $sourceOrg not found"
+    }
+    return $id
 }
 
 function Migrate-Repos() {
@@ -53,7 +54,7 @@ function Migrate-Repos() {
     return $repos
 }
 
-function Migrate-Single-Repo($repoName) {
+function Migrate-Repo($repoName) {
     "Migrating repo: $repoName"
     #Exec { ado2gh lock-ado-repo --ado-org $sourceOrg --ado-team-project $sourceProject --ado-repo $repoName }
     Exec { ado2gh migrate-repo --ado-org $sourceOrg --ado-team-project $sourceProjectName --ado-repo $repoName --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" }
@@ -63,7 +64,7 @@ function Migrate-Single-Repo($repoName) {
     #Exec { ado2gh rewire-pipeline --ado-org $sourceOrg  --ado-team-project $sourceProject --ado-pipeline "Utilities - CI" --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" --service-connection-id "f14ae16a-0d41-48b7-934c-4a4e30be71e1" }
 }
 
-function Create-GHTeams() {
+function Create-GitHubTeams() {
     "Creating teams"
     Exec { ado2gh create-team --github-org $targetOrg --team-name "$targetProjectName" --idp-group "GL-OGH-$targetProjectName" }
     Exec { ado2gh create-team --github-org $targetOrg --team-name "$targetProjectName-Admins" --idp-group "GL-OGH-$targetProjectName-Admins" }
@@ -72,10 +73,9 @@ function Create-GHTeams() {
     Exec { ado2gh create-team --github-org $targetOrg --team-name "$targetProjectName-Managers" --idp-group "GL-OGH-$targetProjectName-Managers" }
     Exec { ado2gh create-team --github-org $targetOrg --team-name "$targetProjectName-BuildAdmins" --idp-group "GL-OGH-$targetProjectName-BuildAdmins" }
     Exec { ado2gh create-team --github-org $targetOrg --team-name "$targetProjectName-ReleaseApprovers" --idp-group "GL-OGH-$targetProjectName-ReleaseApprovers" }
-
 }
 
-function AddTeamToRepo($gitHubRepoName){
+function Add-TeamToRepo($gitHubRepoName){
     "Adding teams to repo: $gitHubRepoName"
     Exec { ado2gh add-team-to-repo --github-org $targetOrg --github-repo $gitHubRepoName --team "$targetProjectName" --role "read" }
     Exec { ado2gh add-team-to-repo --github-org $targetOrg --github-repo $gitHubRepoName --team "$targetProjectName-Admins" --role "admin" }
