@@ -7,18 +7,7 @@ param(
     [string]$OutFile, 
     [int]$BatchSize = 50
 )
-
 Import-Module Migrate-ADO -Force
-
-if ([string]::IsNullOrEmpty($env:ADO_PAT)) {
-    "ADO_PAT not set!"
-    return
-}
-if ([string]::IsNullOrEmpty($env:GH_PAT)) {
-    "GH_PAT not set!"
-}
-
-$sourceHeaders = New-HTTPHeaders -PersonalAccessToken $env:ADO_PAT
 
 function Exec {
     param (
@@ -35,7 +24,7 @@ function Verify-TeamADGroups($targetProjectName) {
 }
 
 function Get-ServiceConnectionID($sourceOrg) {
-    $serviceConnection = Get-Content ".\orgs.json" | ConvertFrom-Json -AsHashtable
+    $serviceConnection = Get-Content "$PSScriptRoot\orgs.json" | ConvertFrom-Json -AsHashtable
     $id = $serviceConnection[$sourceOrg]
     if ([string]::IsNullOrEmpty($id)) {
         throw "Service connection for $sourceOrg not found"
@@ -45,22 +34,34 @@ function Get-ServiceConnectionID($sourceOrg) {
 
 function Migrate-Repos() {
 
+    # todo filter the repos
+
     $repos = Get-Repos -ProjectName $sourceProjectName -OrgName $sourceOrg -Headers $sourceHeaders
     foreach ($repo in $repos) {
-        Migrate-Single-Repo($repo.Name)
+        if($repo.isDisabled){
+            "$($repo.Name) is disabled. Skipping..."
+        }
+        else {
+            "Migrating $($repo.Name) ..."
+            Migrate-Single-Repo($repo)
+        }
         #AddTeamToRepo($targetProjectName-$($repo.Name))
     }
     return $repos
 }
 
-function Migrate-Repo($repoName) {
-    "Migrating repo: $repoName"
+function Migrate-Repo($repo) {
+    "Migrating repo: $($repo.Name)"
     #Exec { ado2gh lock-ado-repo --ado-org $sourceOrg --ado-team-project $sourceProject --ado-repo $repoName }
-    Exec { ado2gh migrate-repo --ado-org $sourceOrg --ado-team-project $sourceProjectName --ado-repo $repoName --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" }
+    Exec { ado2gh migrate-repo --ado-org $sourceOrg --ado-team-project $sourceProjectName --ado-repo $($repo.Name) --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" }
+    #Exec { ado2gh disable-ado-repo --ado-org $sourceOrg --ado-team-project $sourceProjectName --ado-repo $($repo.Name) }
     #Exec { ado2gh configure-autolink --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" --ado-org $sourceOrg --ado-team-project $sourceProject }
-    #AddTeamsToRepo($repoName)
     Exec { ado2gh integrate-boards --ado-org $sourceOrg  --ado-team-project $sourceProjectName --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" }
-    #Exec { ado2gh rewire-pipeline --ado-org $sourceOrg  --ado-team-project $sourceProject --ado-pipeline "Utilities - CI" --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" --service-connection-id "f14ae16a-0d41-48b7-934c-4a4e30be71e1" }
+   
+    $pipelines = Get-Pipelines -ProjectName $sourceProjectName -OrgName $sourceOrg -Headers $sourceHeaders -RepoId $repo.Id
+    foreach ($pipeline in $pipelines) {
+        Exec { ado2gh rewire-pipeline --ado-org $sourceOrg  --ado-team-project $sourceProjectName --ado-pipeline $pipeline.Name --github-org $targetOrg --github-repo "$targetProjectName-$($repo.Name)" --service-connection-id $ServiceConnectionId }
+    }
 }
 
 function Create-GitHubTeams() {
@@ -86,5 +87,19 @@ function Add-TeamToRepo($gitHubRepoName){
 
 }
 
-$r = Migrate-Repos
-$r.name
+### Migrate a project 
+
+if ([string]::IsNullOrEmpty($env:ADO_PAT)) {
+    "ADO_PAT not set!"
+    return
+}
+if ([string]::IsNullOrEmpty($env:GH_PAT)) {
+    "GH_PAT not set!"
+}
+$sourceHeaders = New-HTTPHeaders -PersonalAccessToken $env:ADO_PAT
+$ServiceConnectionId = Get-ServiceConnectionID($sourceOrg)
+
+Create-GitHubTeams
+
+Migrate-Repos
+
