@@ -8,10 +8,17 @@ function Get-Pipelines {
         [String]$OrgName,
 
         [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$RepoId = $NULL
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
+
         $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/build/definitions?api-version=5.1"
+        if ($RepoId) {
+            $url = "https://dev.azure.com//$OrgName/$ProjectName/_apis/build/definitions?repositoryId=$RepoId&repositoryType=TfsGit";
+        }
     
         $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
 

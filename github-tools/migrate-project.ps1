@@ -47,7 +47,6 @@ function Migrate-Repos() {
 
     $repos = Get-Repos -ProjectName $sourceProjectName -OrgName $sourceOrg -Headers $sourceHeaders
     foreach ($repo in $repos) {
-        "Migrating $($repo.Name) ..."
         Migrate-Single-Repo($repo.Name)
         #AddTeamToRepo($targetProjectName-$($repo.Name))
     }
