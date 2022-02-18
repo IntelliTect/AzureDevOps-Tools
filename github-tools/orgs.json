@@ -1,9 +1,4 @@
 {
-    "IntelliTect" : "123",
-    "Intellitect-Samples" : "456"
-}
-
-{
-    "OrganizationName": "IntelliTect-Samples",
-    "PipelinesServiceConnectionID" : ""
+    "IntelliTect-Samples": "456",
+    "Intellitect": "123"
 }
