@@ -35,9 +35,18 @@ function Verify-TeamADGroups($targetProjectName) {
 }
 
 function Get-ServiceConnectionID() {
+
     #todo get the service connection for this org
     #add a map of service connections by org and return the correct one
-    # return it
+    # # return it
+    # $orgs = Get-Content ".\orgs.json" | ConvertFrom-Json
+    # return $orgs
+
+    # $orgs = @{
+    #     "IntelliTect" = "123"
+    #     "Intellitect-Samples" = "456"
+    # }
+
 }
 
 function Migrate-Repos() {
