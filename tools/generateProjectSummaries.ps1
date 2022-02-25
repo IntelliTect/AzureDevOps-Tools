@@ -3,9 +3,10 @@ param(
     [string]$sourceOrg, 
     [string]$sourceProjectName, 
     [string]$OutFile, 
-    [int]$BatchSize = 50
+    [int]$BatchSize = 50,
+    [string]$LogLocation = $PSScriptRoot
 )
-. .\AzureDevOps-Helpers.ps1
+. .\AzureDevOps-Helpers.ps1 -LogLocation $LogLocation
 . .\AzureDevOps-ProjectHelpers.ps1
 
 $final = @()
@@ -14,6 +15,8 @@ $projectHelpers = "$(Get-Location)\AzureDevOps-ProjectHelpers.ps1"
 $helpers = "$(Get-Location)\AzureDevOps-Helpers.ps1"
 
 $projects = (Get-ADOProjects -Headers $sourceHeaders -Org $sourceOrg -ProjectName $sourceProjectName)
+
+$WorkingDir = $PSScriptRoot
 
 Write-Log -msg "Found $($projects.Count) projects.."
 Write-Log -msg "Processing projects in batches of $BatchSize.."

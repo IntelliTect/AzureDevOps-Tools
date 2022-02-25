@@ -1,4 +1,9 @@
-
+[CmdletBinding()]
+param (
+    [Parameter()]
+    [String]
+    $LogLocation = $PSScriptRoot
+)
 #todo help
 
 function New-HTTPHeaders([string]$pat) {
@@ -224,8 +229,8 @@ function ConvertTo-Object {
 
 function Write-Log([string]$msg, [string]$logLevel = "INFO", $ForegroundColor = $null ) {
     $currentColor = [System.Console]::ForegroundColor
-    $path = "$WorkingDir\migration-$($logLevel.ToLower()).log"
-    $masterpath = "$WorkingDir\migration.log" 
+    $path = "$LogLocation\migration-$($logLevel.ToLower()).log"
+    $masterpath = "$LogLocation\migration.log" 
 
     if ($null -eq $ForegroundColor) {
         $ForegroundColor = $currentColor
