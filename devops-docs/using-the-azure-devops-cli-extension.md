@@ -6,6 +6,17 @@ The [Auzre CLI](), Azure's Command Line Intepreter, supports an extension for De
 
 The CLI will return results as JSON by default. Use the ConvertFrom-Json function to convert the results into an object that can be easily manipulated by PowerShell.
 
+## Authorizing
+```
+az devops login --organization https://dev.azure.com/<orgname>
+```
+
+Defaults for commands can be set with
+```
+az devops configure --defaults organization=https://dev.azure.com/<orgname> -project <projectname>
+```
+The defaults can be overridden 
+
 # Projects
 
 ## Get a list of Projects
@@ -41,7 +52,28 @@ Uses the ```--output table``` format for easy reading.
 
 # Security Groups
 
+```
+$groups = $(az devops security group list --scope organization | convertfrom-json).graphGroups
+```
+The above command lists all groups in an organization, converts the resulve to a PowerShell object and selectes the graphGroups property from the result.
 
+$groups can then be used to perform operations on groups or members. For example, use
+```
+$groups | select displayName, origin
+```
+to display all group names and their origin which may be ADO groups (identified as vsts) or Azure Active Directory (aad)
+
+## Group Members
+
+```
+az devops security group membership list --id <id>
+```
+The group membership command can be used to display or manage group memmbership. The above command displays the members based on id.
+
+If the group is an AD group, use az ad command to list members:
+```
+az ad group member list --group BusDev
+```
 
 # Add users to a team with the Azure CLI Azure DevOps extension and PowerShell
 Basic process as follows:
