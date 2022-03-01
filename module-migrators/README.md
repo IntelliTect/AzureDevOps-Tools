@@ -1,84 +1,45 @@
-
-  
-
 # Introduction
-
-  
 
 DevOps Migrator modules and driver script to migrate multiple projects in bulk. Read through the documentation below to learn how to get started with your first migration!
 
-  
-
 The modules provided support the following migration options:
 - Migrate Users (On the ORG level)
-
 - Migrate Teams (On the project level)
-
 - Migrate Team Members (On the project level)
-
 - Migrate Area Paths
-
 - Migrate Iterations
-
 - Migrate Repos
-
 - Migrate Build Queues
-
-  
 
 Migrating work items is not supported in this tool, see dependencies for additional options.
 
-  
-
 # Dependencies
-
 - You will need the [Microsoft VSTS Work Item Migrator](https://github.com/microsoft/vsts-work-item-migrator) or something comparable to migrate work items.
-
 - PowerShell 5.1.0 or later
-
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 	- [Azure CLI DevOps Extension](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
 
-  
-
 # Getting Started
-
 There is some simple set up that needs to be done before you can run any of the migration modules. Included in the repo are two directories...
-
 - 📂 Migration-Scripts
-
 - 📂 Supporting-Modules
 
-  
-
-The `migration-scripts` directory holds scripts, configuration files and a list of projects in the form of a `.csv`. The `supporting-modules` directory holds `psm1` module files that do the heavy lifting in the migration. Theoretically, a migration can be run completely from the command-line, the items nested under the `migration-scripts` directory are not technically required, but rather act as a centralized place to run repeat migrations in bulk.
-
-  
+The `migration-scripts` directory holds scripts, configuration files and a list of projects in the form of a `.csv`. 
+The `supporting-modules` directory holds `psm1` module files that do the heavy lifting in the migration. Theoretically, a migration can be run completely from the command-line, the items nested under the `migration-scripts` directory are not technically required, but rather act as a centralized place to run repeat migrations in bulk.
 
 ---
-
 ### STEP 1: Installing the modules manifest
-
 The first step to running a migration will be installing the modules manifest. There is also a pre-defined script provided under the `migration-scripts` directory that will automatically do this for you.
 
 ##### STEPS:
-
 - Open the PowerShell script `migration-scripts/create-manifest.ps1`
-
 - Run the script
-
 - The script will create a manifest of all the required modules in your `WindowsPowerShell/Modules` directory. This will allow you to use `Import-Module` to load all of the required modules.
-
-  
 
 You should only have to run this script the first time cloning this repo or when the `migration-scripts/create-manifest.ps1` file is changed. Read more about the [`create-manifest.ps1` script here](migration-scripts/README.md#create-manifest.ps1)
 
-  
-
 ---
-
 ### All steps listed below are only required if you plan on using the `migration-scripts/AllProjects.ps1` script, which is recommended.
-
 ---
 
   
