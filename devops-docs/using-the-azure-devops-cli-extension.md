@@ -110,17 +110,17 @@ $team = $groups.graphGroups | Where-Object {$_.displayName -like "*team*"}
 
 ## Add a list of users to a security group
 
-For readability, and to veriy the list is correct, import the csv into a PowerShell variable
+For readability, and to verify the list is correct, import the csv into a PowerShell variable
 ```
 $users = Import-CSV users.csv
 ```
 
-You can filter or remove users you no longer need by editing the users.csv.
+You can filter or remove users you no longer need by editing the users.csv prior to importing it, or, by removing members from the $users collection directly.
 
-Add users by piping to a the membership add command 
+Add users by piping $users to a the membership add command 
 ```
 $users | ForEach-Object {az devops security group membership add --group-id $team.descriptor --member-id $_.descriptor} 
 ```
 
-Users will be added to the group.
+The result is all members of $users are added to the to the group specified by $team.
 
