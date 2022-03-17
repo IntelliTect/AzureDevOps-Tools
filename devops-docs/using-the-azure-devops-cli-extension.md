@@ -55,9 +55,9 @@ Uses the ```--output table``` format for easy reading.
 ```
 $groups = $(az devops security group list --scope organization | convertfrom-json).graphGroups
 ```
-The above command lists all groups in an organization, converts the resulve to a PowerShell object and selectes the graphGroups property from the result.
+The above command lists all groups in an organization, converts the result to a PowerShell object and selects the graphGroups property from the result.
 
-$groups can then be used to perform operations on groups or members. For example, use
+The $groups variable we set can then be used to perform operations on groups or members. For example, use
 ```
 $groups | select displayName, origin
 ```
