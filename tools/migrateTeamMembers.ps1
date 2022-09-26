@@ -5,7 +5,7 @@ Param(
 
     [string]$SourcePat = $sourcePat,
     [string]$SourceOrg = $sourceOrg,
-    [string]$SourceProjectName = $sourceProjectName,
+    [string]$SourceProjectName = $sourceProjectName
 )
 
 #-sourcePat $sourcePat -sourceOrg $sourceOrg -sourceProjectName "SampleCRM" -targetPat $targetPat
