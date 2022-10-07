@@ -15,6 +15,12 @@ function New-HTTPHeaders([string]$pat) {
     return $headers
 }
 
+function Get-ADOAgents ($Headers, [string]$Org) {
+    $url = "$org/_apis/distributedtask/pools?api-version=5.0"
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    return $results.value
+}
+
 function Get-ADOProcesses($Headers, [string]$Org, [string]$ProcessName)  {
 
     $url = "$org/_apis/work/processes?api-version=5.0-preview.2"
