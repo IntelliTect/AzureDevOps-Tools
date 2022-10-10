@@ -62,8 +62,8 @@ function Get-ADOPools ($Headers, [string]$Org) {
     return $results.value
 }
 
-function Get-ADOPools ($Headers, [string]$Org, [string]$poolType) {
-    $url = "$org/_apis/distributedtask/pools?poolType=$poolType&api-version=5.0"
+function Get-ADODeploymentPools ($Headers, [string]$Org) {
+    $url = "$org/_apis/distributedtask/pools?poolType=deployment&api-version=5.0"
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     return $results.value
 }
@@ -75,8 +75,8 @@ function Get-ADOPoolAgents($Headers, [string]$Org, [int]$PoolId) {
 }
 
 function Get-ADOPoolsWithAgents($Headers, [string]$Org, [string]$poolType) {
-    if($poolType == "automation" -or $poolType == "deployment" -or $poolType == "a" -or $poolType == "d"){
-        $pools = Get-ADOPools $Headers $Org $poolType
+    if($poolType -eq "deployment" -or $poolType -eq "d"){
+        $pools = Get-ADODeploymentPools $Headers $Org
     }else{
         $pools = Get-ADOPools $Headers $Org
     }
