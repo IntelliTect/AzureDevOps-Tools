@@ -1,19 +1,3 @@
-[CmdletBinding()]
-param (
-    [Parameter()]
-    [String]
-    $LogLocation = $PSScriptRoot
-)
-#todo help
-
-function New-HTTPHeaders([string]$pat) {
-    if (!($pat)) {
-        throw "Azure DevOps PAT must be provided"
-    }
-    $authToken = [System.Convert]::ToBase64String([System.Text.ASCIIEncoding]::ASCII.GetBytes([string]::Format("{0}:{1}", "", $pat)))
-    $headers = @{'Authorization' = "Basic $authToken"}
-    return $headers
-}
 
 class poolAndAgent {
     #pool info
