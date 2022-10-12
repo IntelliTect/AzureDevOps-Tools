@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$sourcePat,
     [string]$sourceOrg, 
     [string]$poolType, 
@@ -53,7 +53,7 @@ foreach ($poolAgent in $poolAgents) {
                     "poolIsLegacy"                   = $poolAgent.poolIsLegacy
                     "agentId"                        = $poolAgent.agentId
                     "agentName"                      = $poolAgent.agentName
-                    "agentstatusChangedOn"           = $poolAgent.statusChangedOn
+                    #"agentstatusChangedOn"           = $poolAgent.statusChangedOn
                     "agentVersion"                   = $poolAgent.version
                     "agentOsDescription"             = $poolAgent.osDescription
                     "agentEnabled"                   = $poolAgent.enabled
