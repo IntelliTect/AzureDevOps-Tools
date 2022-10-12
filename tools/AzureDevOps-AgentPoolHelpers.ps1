@@ -11,7 +11,7 @@ class poolAndAgent {
     [string]$statusChangedOn
     [int]$agentId
     [string]$agentName
-    #[string]$computerName
+    [string]$computerName
     [string]$machineName
     [string]$version
     [string]$osDescription
@@ -39,8 +39,8 @@ class poolAndAgent {
         $this.status = $agent.status
         $this.provisioningState = $agent.provisioningState
         $this.accessPoint = $agent.accessPoint
-        #$this.computerName = $agent.computerName
-        $this.machineName = $agent.MachineName
+        $this.computerName = $agent.systemCapabilities.COMPUTERNAME
+        $this.machineName = $agent.systemCapabilities.MACHINENAME
     }
 }
 
@@ -57,7 +57,7 @@ function Get-ADODeploymentPools ($Headers, [string]$Org) {
 }
 
 function Get-ADOPoolAgents($Headers, [string]$Org, [int]$PoolId) {
-    $url = "$org/_apis/distributedtask/pools/$PoolId/agents?api-version=5.0"
+    $url = "$org/_apis/distributedtask/pools/$PoolId/agents?includeCapabilities=true&api-version=5.0"
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     return $results.value
 }

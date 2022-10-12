@@ -60,8 +60,8 @@ foreach ($poolAgent in $poolAgents) {
                     "agentStatus"                    = $poolAgent.status
                     "agentProvisioningState"         = $poolAgent.provisioningState
                     "agentAccessPoint"               = $poolAgent.accessPoint
-                    #"computerName"                   = $poolAgent.computerName
-                    "machineName"                    = $poolAgent.machineName
+                    "computerName"                   = $poolAgent.computerName
+                    #"machineName"                    = $poolAgent.machineName
                 }) | ConvertTo-Json
         }
         catch {
