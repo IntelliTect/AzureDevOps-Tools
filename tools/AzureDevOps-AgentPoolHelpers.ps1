@@ -19,6 +19,9 @@ class poolAndAgent {
     [string]$status
     [string]$provisioningState
     [string]$accessPoint
+    [string]$lastCompleatedTaskFinishedTime
+    [int]$lastCompleatedTaskId
+    [string]$lastCompleatedTaskResult
     poolAndAgent() {
     }
     poolAndAgent([object]$pool, [object]$agent) {
@@ -41,6 +44,9 @@ class poolAndAgent {
         $this.accessPoint = $agent.accessPoint
         $this.computerName = $agent.systemCapabilities.COMPUTERNAME
         $this.machineName = $agent.systemCapabilities.MACHINENAME
+        $this.lastCompleatedTaskFinishedTime = $agent.lastCompletedRequest.finishTime
+        $this.lastCompleatedTaskId = $agent.lastCompletedRequest.requestId
+        $this.lastCompleatedTaskResult = $agent.lastCompletedRequest.result
     }
 }
 
@@ -57,7 +63,7 @@ function Get-ADODeploymentPools ($Headers, [string]$Org) {
 }
 
 function Get-ADOPoolAgents($Headers, [string]$Org, [int]$PoolId) {
-    $url = "$org/_apis/distributedtask/pools/$PoolId/agents?includeCapabilities=true&api-version=5.0"
+    $url = "$org/_apis/distributedtask/pools/$PoolId/agents?includeCapabilities=true&includeLastCompletedRequest=true&api-version=5.0"
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     return $results.value
 }

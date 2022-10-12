@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$sourcePat,
     [string]$sourceOrg, 
     [string]$poolType, 
@@ -62,6 +62,9 @@ foreach ($poolAgent in $poolAgents) {
                     "agentAccessPoint"               = $poolAgent.accessPoint
                     "computerName"                   = $poolAgent.computerName
                     #"machineName"                    = $poolAgent.machineName
+                    "lastCompleatedTaskFinishedTime" = $poolAgent.lastCompleatedTaskFinishedTime
+                    "lastCompleatedTaskId"           =$poolAgent.lastCompleatedTaskId
+                    "lastCompleatedTaskResult"       =$poolAgent.lastCompleatedTaskResult
                 }) | ConvertTo-Json
         }
         catch {
