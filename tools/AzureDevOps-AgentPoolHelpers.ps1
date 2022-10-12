@@ -69,22 +69,28 @@ function Get-ADOPoolAgents($Headers, [string]$Org, [int]$PoolId) {
 }
 
 function Get-ADOPoolsWithAgents($Headers, [string]$Org, [string]$poolType) {
+    
+    $poolAndAgents = New-Object System.Collections.ArrayList
+    
     if ($poolType -eq "all" -or $poolType -eq "a") {
         $pools = Get-ADOPools $Headers $Org
-        $poolAndAgents = New-Object System.Collections.ArrayList
         
         foreach ($pool in $pools) {
-            $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
-            foreach ($agent in $poolAgents) {
-                $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
+            if(-not $pool.IsHosted){
+                $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
+                foreach ($agent in $poolAgents) {
+                    $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
+                }
             }
         }
 
         $pools = Get-ADODeploymentPools $Headers $Org
         foreach ($pool in $pools) {
-            $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
-            foreach ($agent in $poolAgents) {
-                $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
+            if(-not $pool.IsHosted){
+                $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
+                foreach ($agent in $poolAgents) {
+                    $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
+                }
             }
         }
     }
@@ -96,11 +102,12 @@ function Get-ADOPoolsWithAgents($Headers, [string]$Org, [string]$poolType) {
             $pools = Get-ADOPools $Headers $Org
         }
     
-        $poolAndAgents = New-Object System.Collections.ArrayList
         foreach ($pool in $pools) {
-            $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
-            foreach ($agent in $poolAgents) {
-                $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
+            if(-not $pool.IsHosted){
+                $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
+                foreach ($agent in $poolAgents) {
+                    $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
+                }
             }
         }
     }
