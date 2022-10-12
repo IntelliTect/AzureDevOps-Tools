@@ -11,6 +11,8 @@ class poolAndAgent {
     [string]$statusChangedOn
     [int]$agentId
     [string]$agentName
+    #[string]$computerName
+    [string]$machineName
     [string]$version
     [string]$osDescription
     [bool]$enabled
@@ -37,6 +39,8 @@ class poolAndAgent {
         $this.status = $agent.status
         $this.provisioningState = $agent.provisioningState
         $this.accessPoint = $agent.accessPoint
+        #$this.computerName = $agent.computerName
+        $this.machineName = $agent.MachineName
     }
 }
 

@@ -48,8 +48,20 @@ foreach ($poolAgent in $poolAgents) {
             return (@{
                     "poolId"                         = $poolAgent.poolId
                     "poolName"                       = $poolAgent.poolName
+                    "poolIsHosted"                   = $poolAgent.poolIsHosted
+                    "poolType"                       = $poolAgent.poolType
+                    "poolIsLegacy"                   = $poolAgent.poolIsLegacy
                     "agentId"                        = $poolAgent.agentId
                     "agentName"                      = $poolAgent.agentName
+                    "agentstatusChangedOn"           = $poolAgent.statusChangedOn
+                    "agentVersion"                   = $poolAgent.version
+                    "agentOsDescription"             = $poolAgent.osDescription
+                    "agentEnabled"                   = $poolAgent.enabled
+                    "agentStatus"                    = $poolAgent.status
+                    "agentProvisioningState"         = $poolAgent.provisioningState
+                    "agentAccessPoint"               = $poolAgent.accessPoint
+                    #"computerName"                   = $poolAgent.computerName
+                    "machineName"                    = $poolAgent.machineName
                 }) | ConvertTo-Json
         }
         catch {
