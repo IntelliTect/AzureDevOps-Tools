@@ -42,15 +42,7 @@ class poolAndAgent {
         $this.status = $agent.status
         $this.provisioningState = $agent.provisioningState
         $this.accessPoint = $agent.accessPoint
-        if($agent.systemCapabilities.MACHINENAME){
-            $this.computerName = $agent.systemCapabilities.MACHINENAME
-        }elseif($agent.systemCapabilities.Agent.MachineName){
-            $this.computerName = $agent.systemCapabilities.Agent.MachineName
-        }elseif($agent.systemCapabilities.COMPUTERNAME){
-            $this.computerName = $agent.systemCapabilities.COMPUTERNAME
-        }elseif($agent.systemCapabilities.Agent.ComputerName){
-            $this.computerName = $agent.systemCapabilities.Agent.ComputerName
-        }
+        $this.computerName = $agent.systemCapabilities."Agent.ComputerName"
         $this.lastCompleatedTaskFinishedTime = $agent.lastCompletedRequest.finishTime
         $this.lastCompleatedTaskId = $agent.lastCompletedRequest.requestId
         $this.lastCompleatedTaskResult = $agent.lastCompletedRequest.result
