@@ -71,9 +71,8 @@ function Get-ADOPoolsWithAgents($Headers, [string]$Org, [string]$poolType) {
     
     $poolAndAgents = New-Object System.Collections.ArrayList
     
-    if ($poolType -eq "all" -or $poolType -eq "a") {
+    if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "automated" -or $poolType -eq "a") {
         $pools = Get-ADOPools $Headers $Org
-        
         foreach ($pool in $pools) {
             if(-not $pool.IsHosted){
                 $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
@@ -82,6 +81,9 @@ function Get-ADOPoolsWithAgents($Headers, [string]$Org, [string]$poolType) {
                 }
             }
         }
+    }
+
+    if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "deployment" -or $poolType -eq "d") {
 
         $pools = Get-ADODeploymentPools $Headers $Org
         foreach ($pool in $pools) {
@@ -93,22 +95,6 @@ function Get-ADOPoolsWithAgents($Headers, [string]$Org, [string]$poolType) {
             }
         }
     }
-    else {
-        if ($poolType -eq "deployment" -or $poolType -eq "d") {
-            $pools = Get-ADODeploymentPools $Headers $Org
-        }
-        else {
-            $pools = Get-ADOPools $Headers $Org
-        }
-    
-        foreach ($pool in $pools) {
-            if(-not $pool.IsHosted){
-                $poolAgents = Get-ADOPoolAgents $Headers $Org $pool.id
-                foreach ($agent in $poolAgents) {
-                    $poolAndAgents.Add([poolAndAgent]::new($pool, $agent))  | Out-Null
-                }
-            }
-        }
-    }
+
     return $poolAndAgents
 }
