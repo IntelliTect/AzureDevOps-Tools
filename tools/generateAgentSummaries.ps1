@@ -1,7 +1,7 @@
 ﻿param(
     [string]$sourcePat,
     [string]$sourceOrg, 
-    [string]$poolType, 
+    [string]$poolType, #poolTypes are all or a, devlopment or d, not assigning it will give automated (will update to something better)
     [string]$OutFile, 
     [int]$BatchSize = 50,
     [string]$LogLocation = $PSScriptRoot
@@ -53,7 +53,6 @@ foreach ($poolAgent in $poolAgents) {
                     "poolIsLegacy"                   = $poolAgent.poolIsLegacy
                     "agentId"                        = $poolAgent.agentId
                     "agentName"                      = $poolAgent.agentName
-                    #"agentstatusChangedOn"           = $poolAgent.statusChangedOn
                     "agentVersion"                   = $poolAgent.version
                     "agentOsDescription"             = $poolAgent.osDescription
                     "agentEnabled"                   = $poolAgent.enabled
@@ -61,10 +60,9 @@ foreach ($poolAgent in $poolAgents) {
                     "agentProvisioningState"         = $poolAgent.provisioningState
                     "agentAccessPoint"               = $poolAgent.accessPoint
                     "computerName"                   = $poolAgent.computerName
-                    #"machineName"                    = $poolAgent.machineName
                     "lastCompleatedTaskFinishedTime" = $poolAgent.lastCompleatedTaskFinishedTime
-                    "lastCompleatedTaskId"           =$poolAgent.lastCompleatedTaskId
-                    "lastCompleatedTaskResult"       =$poolAgent.lastCompleatedTaskResult
+                    "lastCompleatedTaskId"           = $poolAgent.lastCompleatedTaskId
+                    "lastCompleatedTaskResult"       = $poolAgent.lastCompleatedTaskResult
                 }) | ConvertTo-Json
         }
         catch {
