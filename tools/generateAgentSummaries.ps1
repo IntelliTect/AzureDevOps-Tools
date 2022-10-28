@@ -1,9 +1,9 @@
 ﻿param(
     [string]$sourcePat,
     [string]$sourceOrg, 
-    [string]$poolType, #poolTypes are "all" or "ad", "automated" or "a", "deployment" or "d"
+    [string]$poolType, #poolTypes are "all" or "ad", "automation" or "a", "deployment" or "d"
     [string]$OutFile, 
-    [int]$BatchSize = 10,
+    [int]$BatchSize = 1,
     [string]$LogLocation = $PSScriptRoot
 )
 
@@ -17,10 +17,10 @@ $helpers = "$(Get-Location)\AzureDevOps-Helpers.ps1"
 
 $pools = New-Object System.Collections.ArrayList
 
-if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "automated" -or $poolType -eq "a") {
+if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "automation" -or $poolType -eq "a") {
         $autoPools = Get-ADOPools $sourceHeaders $sourceOrg
         foreach ($autoPool in $autoPools) {
-            if(-not $pool.IsHosted){
+            if(-not $autoPool.IsHosted){
                 $pools.Add($autoPool) | Out-Null
             }
         }
@@ -28,7 +28,7 @@ if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "automated" -or
 if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "deployment" -or $poolType -eq "d") {
         $buildPools = Get-ADODeploymentPools $sourceHeaders $sourceOrg
         foreach ($buildPool in $buildPools) {
-            if(-not $pool.IsHosted){
+            if(-not $buildPool.IsHosted){
                 $pools.Add($buildPool) | Out-Null
             }
         }
