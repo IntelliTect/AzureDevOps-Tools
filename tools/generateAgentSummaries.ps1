@@ -3,7 +3,7 @@
     [string]$sourceOrg, 
     [string]$poolType, #poolTypes are "all" or "ad", "automated" or "a", "devlopment or d"
     [string]$OutFile, 
-    [int]$BatchSize = 50,
+    [int]$BatchSize = 1,
     [string]$LogLocation = $PSScriptRoot
 )
 . .\AzureDevOps-Helpers.ps1 -LogLocation $LogLocation
@@ -14,15 +14,27 @@ $sourceHeaders = New-HTTPHeaders -pat $sourcePat
 $agentPoolHelpers = "$(Get-Location)\AzureDevOps-AgentPoolHelpers.ps1"
 $helpers = "$(Get-Location)\AzureDevOps-Helpers.ps1"
 
-$poolAgents = (Get-ADOPoolsWithAgents -Headers $sourceHeaders -Org $sourceOrg -poolType $poolType)
+$pools = New-Object System.Collections.ArrayList
+
+if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "automated" -or $poolType -eq "a") {
+        $autoPools = Get-ADOPools $sourceHeaders $sourceOrg
+        foreach ($autoPool in $autoPools) {
+            $pools.Add($autoPool) | Out-Null
+        }
+}
+if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "deployment" -or $poolType -eq "d") {
+        $buildPools = Get-ADODeploymentPools $sourceHeaders $sourceOrg
+        foreach ($buildPool in $buildPools) {
+            $pools.Add($buildPool) | Out-Null
+        }
+}
 
 $WorkingDir = $PSScriptRoot
-
-Write-Log -msg "Found $($poolAgents.Count) agents.."
-Write-Log -msg "Processing agents in batches of $BatchSize.."
+Write-Log -msg "Found $($pools.Count) pools.."
+Write-Log -msg "Processing pools in batches of $BatchSize.."
     
 $jobsBatch = @()
-foreach ($poolAgent in $poolAgents) {
+foreach ($pool in $pools) {
 
     if ($jobsBatch.Count -eq $BatchSize) {
         Write-Log -msg "Waiting for current batch to complete.."
@@ -31,46 +43,56 @@ foreach ($poolAgent in $poolAgents) {
         foreach ($job in $jobsBatch) {
             $final += Receive-Job -Job $job | ConvertFrom-Json
         }
-        Write-Log -msg "Progress ($($final.Count)/$($poolAgents.Count))"
+        Write-Log -msg "Progress (Proccessed $($final.Count) agents..)"
         $jobsBatch = @()
     }
+   
+            Write-Log -msg ("[$($jobsBatch.Count)] Collecting info for $($pool.Name) ..")
 
-    Write-Log -msg ("[$($jobsBatch.Count)] Collecting info for $($poolAgent.agentName) in $($poolAgent.poolName) ..")
+            $jobsBatch += Start-Job -ArgumentList $sourceHeaders, $sourceOrg, $pool, $agentPoolHelpers, $helpers -ScriptBlock {
+                param ($sourceHeaders, $sourceOrg, $pool, $agentPoolHelpers, $helpers)
+                Import-Module $agentPoolHelpers
+                Import-Module $Helpers
 
-    $jobsBatch += Start-Job -ArgumentList $helpers, $sourceHeaders, $sourceOrg, $poolAgent, $agentPoolHelpers -ScriptBlock {
-        param ($helpers, $headers, $org, $poolAgent, $agentPoolHelpers)
-        Import-Module $helpers
-        Import-Module $agentPoolHelpers
 
-        try {
-            $PoolAgents = [array](Get-ADOPoolsWithAgents -headers $headers -org $Org -poolType $poolType)
+                $agents = [array](Get-ADOPoolAgents $sourceHeaders $sourceOrg $pool.id)
+                Write-Log -msg "Found $($agents.Count) agents in $($pool.Name).."
+                
+                $info = @()
 
-            return (@{
-                    "poolId"                         = $poolAgent.poolId
-                    "poolName"                       = $poolAgent.poolName
-                    "poolIsHosted"                   = $poolAgent.poolIsHosted
-                    "poolType"                       = $poolAgent.poolType
-                    "poolIsLegacy"                   = $poolAgent.poolIsLegacy
-                    "agentId"                        = $poolAgent.agentId
-                    "agentName"                      = $poolAgent.agentName
-                    "agentVersion"                   = $poolAgent.version
-                    "agentOsDescription"             = $poolAgent.osDescription
-                    "agentEnabled"                   = $poolAgent.enabled
-                    "agentStatus"                    = $poolAgent.status
-                    "agentProvisioningState"         = $poolAgent.provisioningState
-                    "agentAccessPoint"               = $poolAgent.accessPoint
-                    "computerName"                   = $poolAgent.computerName
-                    "lastCompleatedTaskFinishedTime" = $poolAgent.lastCompleatedTaskFinishedTime
-                    "lastCompleatedTaskId"           = $poolAgent.lastCompleatedTaskId
-                    "lastCompleatedTaskResult"       = $poolAgent.lastCompleatedTaskResult
-                }) | ConvertTo-Json
+                foreach($agent in $agents){
+                
+                    Write-Log -msg ("Parsing $($agent.name) in $($pool.Name) ..")
+                
+                    try {
+                           $info += (@{
+                                    "poolId"                            = $pool.Id
+                                    "poolName"                          = $pool.Name
+                                    "poolIsHosted"                      = $pool.IsHosted
+                                    "poolType"                          = $pool.poolType
+                                    "poolIsLegacy"                      = $pool.IsLegacy
+                                    "agentId"                           = $agent.id
+                                    "agentName"                         = $agent.name
+                                    "agentVersion"                      = $agent.version
+                                    "agentOsDescription"                = $agent.osDescription
+                                    "agentEnabled"                      = $agent.enabled
+                                    "agentStatus"                       = $agent.status
+                                    "agentProvisioningState"            = $agent.provisioningState
+                                    "agentAccessPoint"                  = $agent.accessPoint
+                                    "computerName"                      = $agent.systemCapabilities."Agent.ComputerName"
+                                    "lastCompleatedRequestFinishedTime" = $agent.lastCompletedRequest.finishTime
+                                    "lastCompleatedRequestId"           = $agent.lastCompletedRequest.requestId
+                                    "lastCompleatedRequestResult"       = $agent.lastCompletedRequest.result
+                                }) | ConvertTo-Json
+                    }
+                    catch {
+                        Write-Error ($_.Exception | Format-List -Force | Out-String) -ErrorAction Continue
+                        Write-Error ($_.InvocationInfo | Format-List -Force | Out-String) -ErrorAction Continue
+                        throw
+                    }
+            }
+            return $info
         }
-        catch {
-            Write-Error ($_.Exception | Format-List -Force | Out-String) -ErrorAction Continue
-            Write-Error ($_.InvocationInfo | Format-List -Force | Out-String) -ErrorAction Continue
-            throw
-        }
-    }
 }
 
 Wait-Job -Job $jobsBatch | Out-Null
