@@ -1,7 +1,7 @@
 ﻿param(
     [string]$sourcePat,
     [string]$sourceOrg, 
-    [string]$poolType, #poolTypes are "all" or "ad", "automated" or "a", "devlopment" or "d"
+    [string]$poolType, #poolTypes are "all" or "ad", "automated" or "a", "deployment" or "d"
     [string]$OutFile, 
     [int]$BatchSize = 10,
     [string]$LogLocation = $PSScriptRoot
@@ -20,13 +20,17 @@ $pools = New-Object System.Collections.ArrayList
 if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "automated" -or $poolType -eq "a") {
         $autoPools = Get-ADOPools $sourceHeaders $sourceOrg
         foreach ($autoPool in $autoPools) {
-            $pools.Add($autoPool) | Out-Null
+            if(-not $pool.IsHosted){
+                $pools.Add($autoPool) | Out-Null
+            }
         }
 }
 if ($poolType -eq "all" -or $poolType -eq "ad" -or $poolType -eq "deployment" -or $poolType -eq "d") {
         $buildPools = Get-ADODeploymentPools $sourceHeaders $sourceOrg
         foreach ($buildPool in $buildPools) {
-            $pools.Add($buildPool) | Out-Null
+            if(-not $pool.IsHosted){
+                $pools.Add($buildPool) | Out-Null
+            }
         }
 }
 
