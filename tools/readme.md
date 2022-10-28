@@ -119,3 +119,38 @@ workItemLastChanged            2020-02-14T17:53:57.587Z
 serviceEndpointCount           0
 teamCount                      1
 ```
+
+### Get-AgentSummaries
+
+Returns a summary of all non-hosted pool's agents in a given organization. Sample output
+
+#### Parameters
+
+- [Required] Headers - headers generated in previous steps
+- [Required] Org - organization including https://
+- [Required] PoolType - "all" or "ad", "automation" or "a", "deployment" or "d"
+- [Optional] OutFile - CSV Output file path
+
+#### Sample Console Output
+
+```
+Name                                Value
+----                                -----
+lastCompleatedRequestFinishedTime : 2019-03-22T23:06:44.0225896Z
+poolType                          : automation
+agentEnabled                      : True
+lastCompleatedRequestId           : 280
+agentVersion                      : 2.147.1
+agentOsDescription                : Microsoft Windows 10.0.19013
+agentAccessPoint                  : CodexAccessMapping
+agentId                           : 67
+agentProvisioningState            : Provisioned
+computerName                      : BATTLE-X1
+agentName                         : PHIL-X1
+poolId                            : 1
+agentStatus                       : offline
+poolIsLegacy                      : False
+poolName                          : Default
+lastCompleatedRequestResult       : succeeded
+poolIsHosted                      : False
+```
