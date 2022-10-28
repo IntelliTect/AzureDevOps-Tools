@@ -1,11 +1,12 @@
 ﻿param(
     [string]$sourcePat,
     [string]$sourceOrg, 
-    [string]$poolType, #poolTypes are "all" or "ad", "automated" or "a", "devlopment or d"
+    [string]$poolType, #poolTypes are "all" or "ad", "automated" or "a", "devlopment" or "d"
     [string]$OutFile, 
     [int]$BatchSize = 10,
     [string]$LogLocation = $PSScriptRoot
 )
+
 . .\AzureDevOps-Helpers.ps1 -LogLocation $LogLocation
 . .\AzureDevOps-AgentPoolHelpers.ps1
 
