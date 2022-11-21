@@ -2,3 +2,4 @@
 *.log
 scratch.ps1
 *.csv
+.vs*
