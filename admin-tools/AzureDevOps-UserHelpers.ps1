@@ -1,8 +1,11 @@
 # https://docs.microsoft.com/en-us/rest/api/azure/devops/memberentitlementmanagement/user%20entitlements/add?view=azure-devops-rest-5.1
 
-function Add-ADOUser([string]$pat, [string]$orgName, [string]$user, [string]$licenseType = "stakeholder") {
-    $url = "https://vsaex.dev.azure.com/$orgName/_apis/userentitlements?api-version=5.1-preview.1"
-
+function Add-ADOUser([string]$pat, [string]$orgName, [string]$user, [string]$licenseType = "stakeholder", [string]$org) {
+    if ($org) {
+        $url = $org
+    } else {
+        $url = "https://vsaex.dev.azure.com/$orgName/_apis/userentitlements?api-version=5.1-preview.1"
+    }
     $body = @{
         "accessLevel" = @{
             "accountLicenseType" = $licenseType
@@ -22,17 +25,26 @@ function Add-ADOUser([string]$pat, [string]$orgName, [string]$user, [string]$lic
     return $result
 }
 
-function get-ADOUsers($pat, [string]$OrgName) {
-    #todo OAuth token: https://docs.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops
-    $url = "https://vssps.dev.azure.com/$orgName/_apis/graph/users?api-version=5.1-preview.1"
+function get-ADOUsers($pat, [string]$OrgName, [string]$org) {
+    if ($org) {
+        $url = $org
+    } else {
+        #todo OAuth token: https://docs.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops
+        $url = "https://vsaex.dev.azure.com/$orgName/_apis/userentitlements?api-version=5.1-preview.1"
+    }
     $results = Invoke-RestMethod -Method Get -uri $url -Headers (New-HTTPHeaders -pat $pat)
     return $results
 }
 
-function Get-ADOUserEntitlements($pat, [string]$OrgName)  {
+function Get-ADOUserEntitlements($pat, [string]$OrgName, [string]$org)  {
     #todo Service apis 
-    # GET https://vsaex.dev.azure.com/{organization}/_apis/userentitlementsummary?api-version=5.1-preview.1
-    $url = "https://vsaex.dev.azure.com/$orgName/_apis/userentitlementsummary?api-version=5.1-preview.1"
+    # check if url is passed in
+    if ($org) {
+        $url = $org
+    } else {
+        # GET https://vsaex.dev.azure.com/{organization}/_apis/userentitlementsummary?api-version=5.1-preview.1
+        $url = "https://vsaex.dev.azure.com/$orgName/_apis/userentitlements?api-version=5.1-preview.1"
+    }    
     $results = Invoke-RestMethod -Method Get -uri $url -Headers (New-HTTPHeaders -pat $pat)
     return $results
 }
