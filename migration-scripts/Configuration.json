@@ -1,0 +1,15 @@
+{
+    "TargetProject": {
+        "OrgName": "",
+        "PAT": ""
+    },
+    "SourceProject": {
+        "OrgName": "",
+        "PAT": ""
+    },
+    "SavedAzureQuery": "My Queries/All Items",
+    "ProjectDirectory": "",
+    "ProjectsCsv": ".\\migration-scripts\\Projects.csv",
+    "MSConfigPath": ".\\migration-scripts\\base-configuration.json",
+    "WorkItemMigratorDirectory": ""
+}
