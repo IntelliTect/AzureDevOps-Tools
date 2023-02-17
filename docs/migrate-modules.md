@@ -1,6 +1,6 @@
 # Introduction
 
-DevOps Migrator modules and driver script to migrate multiple projects in bulk. Read through the documentation below to learn how to get started with your first migration!
+DevOps Migrator modules and driver script are used to migrate multiple projects in bulk. Read through the documentation below to learn how to get started with your first migration!
 
 The modules provided support the following migration options:
 - Migrate Users (On the ORG level)
@@ -11,13 +11,16 @@ The modules provided support the following migration options:
 - Migrate Repos
 - Migrate Build Queues
 
-Migrating work items is not supported in this tool, see dependencies for additional options.
 
 # Dependencies
-- You will need the [Microsoft VSTS Work Item Migrator](https://github.com/microsoft/vsts-work-item-migrator) or something comparable to migrate work items.
+The following tools are required to complete migrations:
+
+- Work Items are migrated using [Microsoft VSTS Work Item Migrator](https://github.com/microsoft/vsts-work-item-migrator)
 - PowerShell 5.1.0 or later
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 	- [Azure CLI DevOps Extension](https://docs.microsoft.com/en-us/azure/devops/cli/?view=azure-devops)
+
+The [Azure DevOps Migration Tool](https://github.com/nkdAgility/azure-devops-migration-tools) can also be used to migrate work items. This is an excellent tool that better supports work item transforms and history though can be complex to configure.
 
 # Getting Started
 There is some simple set up that needs to be done before you can run any of the migration modules. Included in the repo are two directories...
