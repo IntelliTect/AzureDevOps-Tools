@@ -3,3 +3,6 @@
 scratch.ps1
 *.csv
 .vs*
+# Logging files
+Projects */
+_work
