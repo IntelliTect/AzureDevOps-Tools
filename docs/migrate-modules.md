@@ -11,7 +11,6 @@ The modules provided support the following migration options:
 - Migrate Repos
 - Migrate Build Queues
 
-
 # Dependencies
 The following tools are required to complete migrations:
 
@@ -45,7 +44,6 @@ You should only have to run this script the first time cloning this repo or when
 ### All steps listed below are only required if you plan on using the `migration-scripts/AllProjects.ps1` script, which is recommended.
 ---
 
-  
 
 ### STEP 2: Clone the Microsoft VSTS Work Item Migrator
 

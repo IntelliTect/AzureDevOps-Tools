@@ -9,7 +9,7 @@ $sourceProjectName = "<sourceprojectname>"
 $targetProjectName = "<targetprojectname>" 
 $orgName = "<orgname>"
 
-$sourceRepoPrefix = "template source repo clone url  $sourceProjectName /_git"
+$sourceRepoPrefix = "template source repo clone url  $sourceProjectName "
 $targetRepoPrefix = "template target repo clone url /$orgName/$targetProjectName/_git"
 
 foreach ($repo in $repos) {
