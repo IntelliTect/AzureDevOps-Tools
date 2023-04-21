@@ -66,7 +66,7 @@ function Start-ADO_AddCustomField {
         Write-Log -Message '--------------------------------'
         Write-Log -Message ' '
 
-       $workitemTypes = Get-ProcessWorkItemTypes `
+        $workitemTypes = Get-ProcessWorkItemTypes `
             -LocalProjectName $ProjectName `
             -LocalOrgName $OrgName `
             -LocalHeaders $Headers `
@@ -75,7 +75,7 @@ function Start-ADO_AddCustomField {
         if ($workitemTypes) {
             foreach ($workitemType in $workitemTypes) {
                 # if((!$workitemType.IsDisabled) -and ($workitemType.Class -eq "derived"))
-                if(!$workitemType.IsDisabled) {
+                if (!$workitemType.IsDisabled) {
                     $workitemType.Id
                     Add-CustomField `
                         -LocalProjectName $ProjectName `
@@ -92,11 +92,7 @@ function Start-ADO_AddCustomField {
 
 
 function Get-ProcessWorkItemTypes {
-    [CmdletBinding(SupportsShouldProcess)]
     param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$LocalProjectName,
-
         [Parameter (Mandatory = $TRUE)]
         [String]$LocalOrgName,
 
@@ -106,18 +102,15 @@ function Get-ProcessWorkItemTypes {
         [Parameter (Mandatory = $TRUE)]
         [String]$LocalProcessId
     )
-    if ($PSCmdlet.ShouldProcess($LocalProjectName)) {
-        
-        $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=4.1-preview.1"
+    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=4.1-preview.1"
 
-        $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
+    $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
 
-        [ADO_WorkItemType[]]$workItemTypes = @()
-        foreach ($result in $results.Value) {
-            $workItemTypes += (ConvertTo-WorkItemTypeObject -WorkItemType $result)
-        }
-        return $workItemTypes
+    [ADO_WorkItemType[]]$workItemTypes = @()
+    foreach ($result in $results.Value) {
+        $workItemTypes += (ConvertTo-WorkItemTypeObject -WorkItemType $result)
     }
+    return $workItemTypes
 }
 
 function Add-CustomField {
@@ -141,7 +134,7 @@ function Add-CustomField {
     if ($PSCmdlet.ShouldProcess($WorkItemType.Name)) {
         # TODO: Write logic here
 
-        $url ="https://dev.azure.com/$LocalOrgName/_apis/work/processdefinitions/$LocalProcessId/workItemTypes/$($WorkItemType.Id)/fields?api-version=4.1-preview.1"
+        $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processdefinitions/$LocalProcessId/workItemTypes/$($WorkItemType.Id)/fields?api-version=4.1-preview.1"
 
         $body = @"
 {
@@ -177,10 +170,23 @@ function ConvertTo-WorkItemTypeObject {
             $WorkItemType.Color, 
             $WorkItemType.Icon,
             $WorkItemType.IsDisabled 
-            )
+        )
 
         return $ADOWorkItemType
     }
 }
 
+function Get-Processes {
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$LocalOrgName,
 
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$LocalHeaders
+    )
+    $url = "https://dev.azure.com/$LocalOrgName/_apis/process/processes?api-version=7.0"
+
+    $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
+
+    return $results.value
+}
