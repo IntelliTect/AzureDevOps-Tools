@@ -22,8 +22,6 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        # [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildDefinitions = $TRUE,
-        # [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleaseDefinitions = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddADOCustomField = $TRUE
     )
@@ -31,7 +29,6 @@ function Start-ADOProjectMigration {
             "Target project $TargetOrg/$TargetProjectName",
             "Migrate teams from source project $SourceOrg/$SourceProjectName")
     ) {
-
         Write-Log -Message ' '
         Write-Log -Message '--------------------------------------------------------------------'
         Write-Log -Message "-- Migrate $($SourceProjectName) to $($TargetProjectName) --"
@@ -46,30 +43,8 @@ function Start-ADOProjectMigration {
         Write-Log -Message "TargetOrgName $($TargetOrgName)"
         Write-Log -Message "TargetProcessId $($TargetProcessId)"
         Write-Log -Message ' '
-        # IntelliTect AzureDevOps-Tools Items
-        Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
-        Write-Log -Message "SkipMigrateBuildQueues $($SkipMigrateBuildQueues)"
-        Write-Log -Message "SkipMigrateRepos $($SkipMigrateRepos)"
-        Write-Log -Message "SkipMigrateWikis $($SkipMigrateWikis)"
-        Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
-        Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
-        Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
-        Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
-        # Write-Log -Message "SkipMigrateBuildDefinitions $($SkipMigrateBuildDefinitions)"
-        # Write-Log -Message "SkipMigrateReleaseDefinitions $($SkipMigrateReleaseDefinitions)"
-        # Azure DevOps Migration Tool Items
-        Write-Log -Message "SkipMigrateTeams $($SkipMigrateTeams)"
-        Write-Log -Message "SkipMigrateTestVariables $($SkipMigrateTestVariables)"
-        Write-Log -Message "SkipMigrateTestConfigurations $($SkipMigrateTestConfigurations)"
-        Write-Log -Message "SkipMigrateTestPlansAndSuites $($SkipMigrateTestPlansAndSuites)"
-        Write-Log -Message "SkipMigrateWorkItemQuerys $($SkipMigrateWorkItemQuerys)"
-        Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
-        Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
-        Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
-        Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
-        Write-Log -Message ' '
-        Write-Log -Message "SkipAddADOCustomField $($SkipAddADOCustomField)"
-        Write-Log -Message ' '
+        # Write-Log -Message "SkipAzureDevOpsMigrationTool $($SkipAzureDevOpsMigrationTool)"
+
 
 
            # Get Headers
@@ -135,45 +110,6 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateWikis
         #endregion
 
-        
-
-        # # ========================================
-        # # ======= Migrate Build Definitions ======
-        # #    Migrate-ADO-BuildDefinitions.psm1 
-        # #region ==================================
-        # #
-        # # *** INCOMPLETE SCRIPT
-        # #
-        # # .\migrateBuildDefinitions.ps1
-        # Start-ADOBuildDefinitionsMigration `
-        # -SourceProjectName $SourceProjectName `
-        # -SourceOrgName $SourceOrgName `
-        # -SourceHeaders $sourceHeaders `
-        # -TargetProjectName $TargetProjectName `
-        # -TargetOrgName $TargetOrgName `
-        # -TargetHeaders $targetHeaders `
-        # -WhatIf:$SkipMigrateBuildDefinitions
-        # # #endregion
-
-        # # ========================================
-        # # ====== Migrate Release Definitions =====
-        # #   Migrate-ADO-ReleaseDefinitions.psm1
-        # #region ==================================
-        # #
-        # # *** INCOMPLETE SCRIPT
-        # #
-        # # .\migrateReleaseDefinitions.ps1
-        # Start-ADOReleaseDefinitionsMigration `
-        # -SourceProjectName $SourceProjectName `
-        # -SourceOrgName $SourceOrgName `
-        # -SourceHeaders $sourceHeaders `
-        # -TargetProjectName $TargetProjectName `
-        # -TargetOrgName $TargetOrgName `
-        # -TargetHeaders $targetHeaders `
-        # -WhatIf:$SkipMigrateReleaseDefinitions
-        # # #endregion
-
-
         # ==========================================
         # ====== Azure DevOps Migration Tool  ======
         # ====== Martin's Tool                ======
@@ -221,7 +157,6 @@ function Start-ADOProjectMigration {
             Write-Host "What if: Preforming the operation `"Running Azure DevOps Migration Tool Migration from source project $SourceProjectName`" on target `"Target project $TargetProjectName`""
         }
         #endregion
-
 
         # ========================================
         # ======== Migrate Service Hooks =========

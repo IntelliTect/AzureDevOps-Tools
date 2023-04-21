@@ -69,11 +69,13 @@ function Start-ADOGroupsMigration {
         Write-Log -Message '--------------------'
         Write-Log -Message ' '
 
+        Write-Log -Message 'Get ADO Groups'
         $groups = Get-ADOGroups `
             -OrgName $SourceOrgName `
             -ProjectName $SourceProjectName `
             -PersonalAccessToken $SourcePAT
 
+        Write-Log -Message 'Migrate ADO Groups'
         Push-ADOGroups `
             -PersonalAccessToken $TargetPAT `
             -OrgName $TargetOrgName `
