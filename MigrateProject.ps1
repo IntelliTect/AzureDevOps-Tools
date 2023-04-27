@@ -6,12 +6,12 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $FALSE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
         # Azure DevOps Migration Tool Items (Martin's Tool)
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTeams = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTeams = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestVariables = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestConfigurations = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestPlansAndSuites = $TRUE,
@@ -21,13 +21,14 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE,
-        # Custom field for migration
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddADOCustomField = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
 )
 
 Import-Module Migrate-ADO -Force
 
+
+# Debug option to not add the Work Item Migration Custom Field (ReflectedWorkItemId)
+$SkipAddADOCustomField = $FALSE
 
 # IntelliTect AzureDevOps-Tools Items
 Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
@@ -38,8 +39,8 @@ Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
 Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
 # Azure DevOps Migration Tool Items
-Write-Log -Message "SkipMigrateTeams $($SkipMigrateTeams)"
 Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
+Write-Log -Message "SkipMigrateTeams $($SkipMigrateTeams)"
 Write-Log -Message "SkipMigrateTestVariables $($SkipMigrateTestVariables)"
 Write-Log -Message "SkipMigrateTestConfigurations $($SkipMigrateTestConfigurations)"
 Write-Log -Message "SkipMigrateTestPlansAndSuites $($SkipMigrateTestPlansAndSuites)"
@@ -51,7 +52,6 @@ Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
 Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
 Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
 Write-Log -Message ' '
-Write-Log -Message "SkipAddADOCustomField $($SkipAddADOCustomField)"
 
 
 # -------------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ $TargetProject
 $ProjectDirectory
 $WorkItemMigratorDirectory
 
-
+# Organization Level Project Folder Path
 # $projectPath = Get-ProjectFolderPath `
 #     -RunDate $runDate `
 #     -Root $ProjectDirectory
@@ -101,7 +101,8 @@ $env:MIGRATION_LOGS_PATH = $projectPath
 #   Martin's Tool
 #region ====================================
 
-$martinConfigPath = "$ProjectDirectory\migration-scripts\$DevOpsMigrationToolConfigurationFile"
+# $martinConfigPath = "$ProjectDirectory\migration-scripts\$DevOpsMigrationToolConfigurationFile"
+$martinConfigPath = "$ProjectDirectory\$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 32)
 $martinConfigFileChanged = $FALSE
 
@@ -119,10 +120,6 @@ if($martinConfiguration.Source.Project -ne $SourceProject.ProjectName) {
     $martinConfigFileChanged = $TRUE
 }
 # personal access token
-# if($martinConfiguration.Source.PersonalAccessTokenVariableName -ne $SourceProject.PersonalAccessTokenVariableName) {
-#     $martinConfiguration.Source.PersonalAccessTokenVariableName = $SourceProject.PersonalAccessTokenVariableName
-#     $martinConfigFileChanged = $TRUE
-# }
 if($martinConfiguration.Source.PersonalAccessToken -ne $SourceProject.PersonalAccessToken) {
     $martinConfiguration.Source.PersonalAccessToken = $SourceProject.PersonalAccessToken
     $martinConfigFileChanged = $TRUE
@@ -142,10 +139,6 @@ if($martinConfiguration.Target.Project -ne $TargetProject.ProjectName) {
     $martinConfigFileChanged = $TRUE
 }
 # personal access token
-# if($martinConfiguration.Target.PersonalAccessTokenVariableName -ne $TargetProject.PersonalAccessTokenVariableName) {
-#     $martinConfiguration.Target.PersonalAccessTokenVariableName = $TargetProject.PersonalAccessTokenVariableName
-#     $martinConfigFileChanged = $TRUE
-# }
 if($martinConfiguration.Target.PersonalAccessToken -ne $TargetProject.PersonalAccessToken) {
     $martinConfiguration.Target.PersonalAccessToken = $TargetProject.PersonalAccessToken
     $martinConfigFileChanged = $TRUE
@@ -173,6 +166,14 @@ foreach($endpointConfig in $martinConfiguration.Endpoints.PSObject.Properties) {
             $endpointConfig.Value[0].AccessToken = $SourceProject.PersonalAccessToken
             $martinConfigFileChanged = $TRUE
         }
+        if($endpointConfig.Name -eq "TfsWorkItemEndpoints") {
+             # Source personal access token
+            if($endpointConfig.Value[0].PersonalAccessToken -ne $SourceProject.PersonalAccessToken) {
+                $endpointConfig.Value[0].PersonalAccessToken = $SourceProject.PersonalAccessToken
+                $martinConfigFileChanged = $TRUE
+            }
+        }
+
         # Target Organization
         if($endpointConfig.Value[1].Organisation -ne $TargetProject.Organization) {
             $endpointConfig.Value[1].Organisation = $TargetProject.Organization
@@ -188,6 +189,13 @@ foreach($endpointConfig in $martinConfiguration.Endpoints.PSObject.Properties) {
             $endpointConfig.Value[1].AccessToken = $TargetProject.PersonalAccessToken
             $martinConfigFileChanged = $TRUE
         }
+        if($endpointConfig.Name -eq "TfsWorkItemEndpoints") {
+            # Source personal access token
+           if($endpointConfig.Value[1].PersonalAccessToken -ne $TargetProject.PersonalAccessToken) {
+               $endpointConfig.Value[1].PersonalAccessToken = $TargetProject.PersonalAccessToken
+               $martinConfigFileChanged = $TRUE
+           }
+       }
     }
 }
 
@@ -197,38 +205,26 @@ foreach($endpointConfig in $martinConfiguration.Endpoints.PSObject.Properties) {
 # --------------------------------------------------
 foreach($processor in $martinConfiguration.Processors)
 {
-    if ($processor.'$type' -eq "TfsTeamSettingsProcessorOptions") {
-        if(($processor.Enabled -ne !$SkipMigrateTeams)){
-            $processor.Enabled = !$SkipMigrateTeams
-            $martinConfigFileChanged = $TRUE
-        }
-
-        # TODO: Add EndPoint update
-
-    } elseif($processor.'$type' -eq "TfsAreaAndIterationProcessorOptions") {
+    if($processor.'$type' -eq "TfsAreaAndIterationProcessorOptions") {
         if(($processor.Enabled -ne !$SkipMigrateTfsAreaAndIterations)){
             $processor.Enabled = !$SkipMigrateTfsAreaAndIterations
             $martinConfigFileChanged = $TRUE
         }
-
-        # TODO: Add EndPoint update
-
+    } elseif($processor.'$type' -eq "TfsTeamSettingsProcessorOptions") {
+        if(($processor.Enabled -ne !$SkipMigrateTeams)){
+            $processor.Enabled = !$SkipMigrateTeams
+            $martinConfigFileChanged = $TRUE
+        }
     } elseif($processor.'$type' -eq "TestVariablesMigrationConfig") {
         if(($processor.Enabled -ne !$SkipMigrateTestVariables)){
             $processor.Enabled = !$SkipMigrateTestVariables
             $martinConfigFileChanged = $TRUE
         }
-
-        # TODO: Add EndPoint update
-
     } elseif($processor.'$type' -eq "TestConfigurationsMigrationConfig") {
         if(($processor.Enabled -ne !$SkipMigrateTestConfigurations)){
             $processor.Enabled = !$SkipMigrateTestConfigurations
             $martinConfigFileChanged = $TRUE
         }
-
-        # TODO: Add EndPoint update
-
     } elseif($processor.'$type' -eq "TestPlansAndSuitesMigrationConfig") {
         if(($processor.Enabled -ne !$SkipMigrateTestPlansAndSuites)){
             $processor.Enabled = !$SkipMigrateTestPlansAndSuites
@@ -239,9 +235,6 @@ foreach($processor in $martinConfiguration.Processors)
             $processor.Enabled = !$SkipMigrateWorkItemQuerys
             $martinConfigFileChanged = $TRUE
         }
-
-        # TODO: Add EndPoint update
-
     } elseif($processor.'$type' -eq "AzureDevOpsPipelineProcessorOptions") {
         # MigrateBuildPipelines
         $migratingPipeline = $FALSE
@@ -313,8 +306,8 @@ foreach($processor in $martinConfiguration.Processors)
 }
 
 $SkipAzureDevOpsMigrationTool = (  `
-    $SkipMigrateTeams -and  `
     $SkipMigrateTfsAreaAndIterations -and  `
+    $SkipMigrateTeams -and  `
     $SkipMigrateTestVariables -and  `
     $SkipMigrateTestConfigurations -and  `
     $SkipMigrateTestPlansAndSuites -and  `
@@ -366,5 +359,5 @@ Start-ADOProjectMigration `
     -SkipMigratePolicies $SkipMigratePolicies `
     -SkipMigrateDashboards $SkipMigrateDashboards `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
-    -SkipAddADOCustomField $SkipAddADOCustomField
+    -SkipAddADOCustomField ($SkipAddADOCustomField -and $SkipMigrateWorkItems)
 #endregion
