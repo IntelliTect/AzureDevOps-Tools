@@ -20,20 +20,16 @@ function Start-ADOServiceHooksMigration {
         Write-Log -Message '---------------------------'
         Write-Log -Message ' '
 
-        $sourceProjectOrg = Get-ADOProjects -org $SourceOrgName -Headers $sourceHeaders -ProjectName $sourceProjectName
-        $targetProjectOrg = Get-ADOProjects -org $TargetOrgName -Headers $targetHeaders -ProjectName $targetProjectName
+        $sourceProjectOrg = Get-ADOProjects -OrgName $SourceOrgName -ProjectName $sourceProjectName -Headers $sourceHeaders
+        $targetProjectOrg = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $targetProjectName -Headers $targetHeaders
 
-        $SourceTeams = Get-ADOProjectTeams `
-            -Headers $SourceHeaders `
-            -OrgName $SourceOrgName `
-            -ProjectName $SourceProjectName
+        $SourceTeams = Get-ADOProjectTeams -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName
+        $TargetTeams = Get-ADOProjectTeams -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
 
-        $TargetTeams = Get-ADOProjectTeams `
-            -Headers $TargetHeaders `
-            -OrgName $TargetOrgName `
-            -ProjectName $TargetProjectName
-
+        $SourcePipelines = Get-Pipelines -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName
+        $TargetPipelines = Get-Pipelines -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
         
+
         $targetRepos = Get-Repos -projectName $targetProject.name -headers $targetHeaders -org $TargetOrgName
         
         $maskedValue = "********"
@@ -59,6 +55,15 @@ function Start-ADOServiceHooksMigration {
         $hooks | ConvertTo-Json -Depth 10 | Out-File -FilePath "hooks.json"
         
         foreach ($hook in $hooks) {
+
+
+            # THIS IS A TEMP TESTING BLOCK, REMOVE WHEN DONE TESTING
+            if($hook.id -ne "d713f8d6-d8e4-443a-8843-aa01184fda4d") {
+                continue
+            }
+
+
+
             Write-Log -Message "Attempting to create [$($hook.id)] in target.. "
             try {
                 if ($null -ne $hook.publisherInputs) {
@@ -127,6 +132,20 @@ function Start-ADOServiceHooksMigration {
                             foreach ($t_team in $TargetTeams) {
                                 if($t_team.name -eq $s_team.name){
                                     $hook.publisherInputs.subscriberId = $t_team.id
+                                    break
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (($hook.consumerId -eq "workplaceMessagingApps") -AND ($hook.publisherId -eq "pipelines")) {
+                    # Take source team ID, get Team name, lookup team in target by name to get id to set subscriberId
+                    foreach ($s_pipeline in $SourcePipelines) {
+                        if($s_pipeline.id -eq $hook.publisherInputs.pipelineId) {
+                            foreach ($t_pipeline in $TargetPipelines) {
+                                if($t_pipeline.name -eq $s_pipeline.name){
+                                    $hook.publisherInputs.pipelineId = $t_pipeline.id
                                     break
                                 }
                             }

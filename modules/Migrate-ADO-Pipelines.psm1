@@ -15,7 +15,7 @@ function Get-Pipelines {
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
 
-        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/build/definitions?api-version=5.1"
+        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/build/definitions?api-version=7.0"
         if ($RepoId) {
             $url = "https://dev.azure.com//$OrgName/$ProjectName/_apis/build/definitions?repositoryId=$RepoId&repositoryType=TfsGit";
         }

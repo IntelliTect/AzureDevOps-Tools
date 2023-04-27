@@ -22,8 +22,6 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        # [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildDefinitions = $TRUE,
-        # [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleaseDefinitions = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddADOCustomField = $TRUE
     )
@@ -31,7 +29,6 @@ function Start-ADOProjectMigration {
             "Target project $TargetOrg/$TargetProjectName",
             "Migrate teams from source project $SourceOrg/$SourceProjectName")
     ) {
-
         Write-Log -Message ' '
         Write-Log -Message '--------------------------------------------------------------------'
         Write-Log -Message "-- Migrate $($SourceProjectName) to $($TargetProjectName) --"
@@ -46,50 +43,15 @@ function Start-ADOProjectMigration {
         Write-Log -Message "TargetOrgName $($TargetOrgName)"
         Write-Log -Message "TargetProcessId $($TargetProcessId)"
         Write-Log -Message ' '
-        # IntelliTect AzureDevOps-Tools Items
-        Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
-        Write-Log -Message "SkipMigrateBuildQueues $($SkipMigrateBuildQueues)"
-        Write-Log -Message "SkipMigrateRepos $($SkipMigrateRepos)"
-        Write-Log -Message "SkipMigrateWikis $($SkipMigrateWikis)"
-        Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
-        Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
-        Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
-        Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
-        # Write-Log -Message "SkipMigrateBuildDefinitions $($SkipMigrateBuildDefinitions)"
-        # Write-Log -Message "SkipMigrateReleaseDefinitions $($SkipMigrateReleaseDefinitions)"
-        # Azure DevOps Migration Tool Items
-        Write-Log -Message "SkipMigrateTeams $($SkipMigrateTeams)"
-        Write-Log -Message "SkipMigrateTestVariables $($SkipMigrateTestVariables)"
-        Write-Log -Message "SkipMigrateTestConfigurations $($SkipMigrateTestConfigurations)"
-        Write-Log -Message "SkipMigrateTestPlansAndSuites $($SkipMigrateTestPlansAndSuites)"
-        Write-Log -Message "SkipMigrateWorkItemQuerys $($SkipMigrateWorkItemQuerys)"
-        Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
-        Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
-        Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
-        Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
-        Write-Log -Message ' '
-        Write-Log -Message "SkipAddADOCustomField $($SkipAddADOCustomField)"
-        Write-Log -Message ' '
+        # Write-Log -Message "SkipAzureDevOpsMigrationTool $($SkipAzureDevOpsMigrationTool)"
 
 
-           # Get Headers
+
+        # Get Headers
         $sourceHeaders = New-HTTPHeaders -PersonalAccessToken $SourcePAT
         $targetHeaders = New-HTTPHeaders -PersonalAccessToken $TargetPAT
 
 
-        # ========================================
-        # =========== Migrate Groups =============
-        #         Migrate-ADO-Groups.psm1
-        #region ==================================
-        Start-ADOGroupsMigration `
-        -SourcePAT $SourcePAT `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -TargetPAT $TargetPAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -WhatIf:$SkipMigrateGroups
-        #endregion
 
         # ========================================
         # ========= Migrate Build Queues =========
@@ -135,77 +97,39 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateWikis
         #endregion
 
-        
-
-        # # ========================================
-        # # ======= Migrate Build Definitions ======
-        # #    Migrate-ADO-BuildDefinitions.psm1 
-        # #region ==================================
-        # #
-        # # *** INCOMPLETE SCRIPT
-        # #
-        # # .\migrateBuildDefinitions.ps1
-        # Start-ADOBuildDefinitionsMigration `
-        # -SourceProjectName $SourceProjectName `
-        # -SourceOrgName $SourceOrgName `
-        # -SourceHeaders $sourceHeaders `
-        # -TargetProjectName $TargetProjectName `
-        # -TargetOrgName $TargetOrgName `
-        # -TargetHeaders $targetHeaders `
-        # -WhatIf:$SkipMigrateBuildDefinitions
-        # # #endregion
-
-        # # ========================================
-        # # ====== Migrate Release Definitions =====
-        # #   Migrate-ADO-ReleaseDefinitions.psm1
-        # #region ==================================
-        # #
-        # # *** INCOMPLETE SCRIPT
-        # #
-        # # .\migrateReleaseDefinitions.ps1
-        # Start-ADOReleaseDefinitionsMigration `
-        # -SourceProjectName $SourceProjectName `
-        # -SourceOrgName $SourceOrgName `
-        # -SourceHeaders $sourceHeaders `
-        # -TargetProjectName $TargetProjectName `
-        # -TargetOrgName $TargetOrgName `
-        # -TargetHeaders $targetHeaders `
-        # -WhatIf:$SkipMigrateReleaseDefinitions
-        # # #endregion
-
-
         # ==========================================
         # ====== Azure DevOps Migration Tool  ======
         # ====== Martin's Tool                ======
         #region ====================================
+        if (!$SkipAddADOCustomField) {
+            # # ======================================================
+            # # ========= Add Custom Field To Source Project ========= 
+            # #region ================================================
+            # Start-ADO_AddCustomField `
+            # -Headers $sourceHeaders `
+            # -OrgName $SourceOrgName `
+            # -PAT $SourcePAT `
+            # -ProjectName $SourceProjectName `
+            # -ProcessId $SourceProcessId `
+            # -FieldName "Custom.ReflectedWorkItemId" `
+            # -WhatIf: $SkipAddADOCustomField
+            # #endregion
+
+            # # ======================================================
+            # # ========= Add Custom Field To Target Project ========= 
+            # #region ================================================
+            # Start-ADO_AddCustomField `
+            # -Headers $targetHeaders `
+            # -OrgName $TargetOrgName `
+            # -PAT $targetPAT `
+            # -ProjectName $TargetProjectName `
+            # -ProcessId $TargetProcessId `
+            # -FieldName "Custom.ReflectedWorkItemId" `
+            # -WhatIf: $SkipAddADOCustomField
+            # #endregion
+        }
+
         if (!$SkipAzureDevOpsMigrationTool) {
-            # ======================================================
-            # ========= Add Custom Field To Source Project ========= 
-            #region ================================================
-            Start-ADO_AddCustomField `
-            -Headers $sourceHeaders `
-            -OrgName $SourceOrgName `
-            -PAT $SourcePAT `
-            -ProjectName $SourceProjectName `
-            -ProcessId $SourceProcessId `
-            -FieldName "Custom.ReflectedWorkItemId" `
-            -WhatIf: $SkipAddADOCustomField
-            #endregion
-
-            # ======================================================
-            # ========= Add Custom Field To Target Project ========= 
-            #region ================================================
-            Start-ADO_AddCustomField `
-            -Headers $targetHeaders `
-            -OrgName $TargetOrgName `
-            -PAT $targetPAT `
-            -ProjectName $TargetProjectName `
-            -ProcessId $TargetProcessId `
-            -FieldName "Custom.ReflectedWorkItemId" `
-            -WhatIf: $SkipAddADOCustomField
-            #endregion
-
-
             $savedPath = $(Get-Location).Path
     
             Set-Location -Path $WorkItemMigratorDirectory
@@ -222,7 +146,20 @@ function Start-ADOProjectMigration {
         }
         #endregion
 
-
+        # ========================================
+        # =========== Migrate Groups =============
+        #         Migrate-ADO-Groups.psm1
+        #region ==================================
+        Start-ADOGroupsMigration `
+        -SourcePAT $SourcePAT `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -TargetPAT $TargetPAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -WhatIf:$SkipMigrateGroups
+        #endregion
+        
         # ========================================
         # ======== Migrate Service Hooks =========
         #       Migrate-ADO-ServiceHooks.psm1

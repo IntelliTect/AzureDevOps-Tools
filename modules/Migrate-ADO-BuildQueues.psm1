@@ -73,9 +73,9 @@ function Get-BuildQueues {
         [Hashtable]$Headers
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $project = Get-ADOProjects -org $OrgName -Headers $Headers -ProjectName $ProjectName
+        $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers 
 
-        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/queues?api-version=5.1-preview"
+        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/queues?api-version=7.0"
     
         $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
     
@@ -145,9 +145,9 @@ function New-BuildQueue {
         [Hashtable]$Headers
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $project = Get-ADOProjects -OrgName $OrgName -Headers $Headers -ProjectName $ProjectName
+        $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers
 
-        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/queues?api-version=5.1-preview&authorizePipelines=true"
+        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/queues?api-version=7.0&authorizePipelines=true"
     
         $body = @{
             "projectId" = $queue.ProjectId

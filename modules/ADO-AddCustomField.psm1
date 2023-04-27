@@ -66,23 +66,55 @@ function Start-ADO_AddCustomField {
         Write-Log -Message '--------------------------------'
         Write-Log -Message ' '
 
-        $workitemTypes = Get-ProcessWorkItemTypes `
+        # See if the custom field exists yet or not. If not it needs to be created before it can be added to any work item type
+        $customFields = Get-CustomfieldsList `
+            -LocalOrgName $OrgName `
             -LocalProjectName $ProjectName `
+            -LocalHeaders $Headers
+        
+        if($NULL -ne $customFields) {
+            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq $FieldName })) {
+                Write-Log -Message "Creating Custom Field `"$FieldName`" for $OrgName/$ProjectName... "
+                # Add a new custom field for this org/project so that it can be added to work item types for the process
+                New-Customfield `
+                    -LocalOrgName $OrgName `
+                    -LocalFieldName $FieldName `
+                    -LocalHeaders $Headers
+            }
+        }
+        
+        # Get the associated work item types for this process by process Id 
+        $workitemTypes = Get-ProcessWorkItemTypes `
             -LocalOrgName $OrgName `
             -LocalHeaders $Headers `
             -LocalProcessId $ProcessId
 
         if ($workitemTypes) {
             foreach ($workitemType in $workitemTypes) {
-                # if((!$workitemType.IsDisabled) -and ($workitemType.Class -eq "derived"))
-                if (!$workitemType.IsDisabled) {
+                # if((!$workitemType.IsDisabled) -and ($workitemType.Class -eq "derived")) {
+                if(!$workitemType.IsDisabled) {
                     $workitemType.Id
-                    Add-CustomField `
-                        -LocalProjectName $ProjectName `
+
+                    $processDefinitions = Get-ProcessesDefinitions `
                         -LocalOrgName $OrgName `
                         -LocalHeaders $Headers `
                         -LocalProcessId $ProcessId `
-                        -WorkItemType $workitemType
+                        -LocalWorkItemType $workitemType
+
+                    if($NULL -ne $processDefinitions) {
+                        if ($null -ne ($processDefinitions | Where-Object { $_.referenceName -ieq $FieldName })) {
+                            Write-Log -Message "Custom Field `"$FieldName`" already exists for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
+                            continue
+                        }
+
+                        Write-Log -Message "ADDing Custom Field `"$FieldName`" for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
+                        Add-CustomField `
+                            -LocalOrgName $OrgName `
+                            -LocalHeaders $Headers `
+                            -LocalProcessId $ProcessId `
+                            -LocalWorkItemType $workitemType `
+                            -LocalFieldName $FieldName
+                    }
                 }
             }
         }
@@ -102,7 +134,7 @@ function Get-ProcessWorkItemTypes {
         [Parameter (Mandatory = $TRUE)]
         [String]$LocalProcessId
     )
-    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=4.1-preview.1"
+    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=7.0"
 
     $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
 
@@ -117,9 +149,6 @@ function Add-CustomField {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
-        [String]$LocalProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
         [String]$LocalOrgName,
 
         [Parameter (Mandatory = $TRUE)]
@@ -129,18 +158,20 @@ function Add-CustomField {
         [String]$LocalProcessId,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_WorkItemType]$WorkItemType
+        [ADO_WorkItemType]$LocalWorkItemType,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$LocalFieldName
     )
     if ($PSCmdlet.ShouldProcess($WorkItemType.Name)) {
-        # TODO: Write logic here
-
-        $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processdefinitions/$LocalProcessId/workItemTypes/$($WorkItemType.Id)/fields?api-version=4.1-preview.1"
+        # $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workItemTypes/$($LocalWorkItemType.Id)/fields?api-version=7.0"
+        $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processdefinitions/$LocalProcessId/workItemTypes/$($LocalWorkItemType.Id)/fields?api-version=7.0"
 
         $body = @"
 {
     "defaultValue": "",
-    "referenceName": "Custom.ReflectedWorkItemId",
-    "name": null,
+    "referenceName": "$LocalFieldName",
+    "name": "Custom Work Item Field - ReflectedWorkItemId",
     "type": "plainText",
     "readOnly": false,
     "required": false,
@@ -190,3 +221,83 @@ function Get-Processes {
 
     return $results.value
 }
+
+function Get-ProcessesDefinitions {
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$LocalOrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$LocalHeaders,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$LocalProcessId,
+
+        [Parameter (Mandatory = $TRUE)]
+        [ADO_WorkItemType]$LocalWorkItemType
+    )
+    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workItemTypes/$($LocalWorkItemType.Id)/fields?api-version=7.0"
+
+    $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
+
+    return $results.value
+}
+
+function Get-CustomfieldsList {
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$LocalOrgName,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$LocalProjectName, 
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$LocalHeaders
+    )
+    $url = "https://dev.azure.com/$OrgName/$LocalProjectName/_apis/wit/fields?api-version=7.0"
+
+    $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
+
+    return $results.value
+}
+
+function New-Customfield {
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$LocalOrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$LocalHeaders,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$LocalFieldName
+    )
+    $url = "https://dev.azure.com/$LocalOrgName/$ProjectName/_apis/wit/fields?api-version=7.0"
+
+    $body = @"
+{
+    "name": "Custom Work Item Field - ReflectedWorkItemId",
+    "referenceName": "$LocalFieldName",
+    "description": "Custom field used by data migration tool.",
+    "type": "string",
+    "usage": "workItem",
+    "readOnly": false,
+    "canSortBy": true,
+    "isQueryable": true,
+    "supportedOperations": [
+        {
+        "referenceName": "SupportedOperations.Equals",
+        "name": "="
+        }
+    ],
+    "isIdentity": true,
+    "isPicklist": false,
+    "isPicklistSuggested": false,
+    "url": null
+}
+"@
+    $results = Invoke-RestMethod -Method POST -Uri $url -Body $body -Headers $LocalHeaders -ContentType "application/json"
+
+    return $results
+}
+
