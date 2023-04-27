@@ -202,7 +202,7 @@ function New-GitRepository {
     }
     $url = "https://dev.azure.com/$OrgName/_apis/git/repositories?api-version=5.1"
 
-    $project = Get-ADOProjects -OrgName $OrgName -Headers $Headers -ProjectName $ProjectName
+    $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers
 
     $requestBody = @{
         name    = $RepoName

@@ -20,23 +20,22 @@ function Start-ADOServiceConnectionsMigration {
         Write-Log -Message '-------------------------------'
         Write-Log -Message ' '
 
-        $sourceProject = Get-ADOProjects -org $sourceOrg -Headers $sourceHeaders -ProjectName $sourceProjectName
-        $targetProject = Get-ADOProjects -org $targetOrg -Headers $targetHeaders -ProjectName $targetProjectName
+        # $sourceProject = Get-ADOProjects -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders 
+        # $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders 
         
-        $endpoints = Get-ServiceEndpoints -projectSk $sourceProject.id -org $SourceOrg -headers $sourceHeaders
+        $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
+        $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $sourceHeaders
         
-        $targetEndpoints = Get-ServiceEndpoints -projectSk $TargetProject.id -org $SourceOrg -headers $sourceHeaders
+        #$sourceEndpoints | ConvertTo-Json -Depth 10 | Out-File -FilePath "DEBUG_endpoints.json"
         
-        #$endpoints | ConvertTo-Json -Depth 10 | Out-File -FilePath "DEBUG_endpoints.json"
-        
-        foreach ($endpoint in $endpoints) {
+        foreach ($endpoint in $sourceEndpoints) {
         
             if ($null -ne ($targetEndpoints | Where-Object {$_.description.ToUpper().Contains("#ORIGINSERVICEENDPOINTID:$($endpoint.id.ToUpper())")})) {
-                Write-Log -msg "Service endpoint [$($endpoint.id)] already exists in target.. "
+                Write-Log -Message "Service endpoint [$($endpoint.id)] already exists in target.. "
                 continue
             }
         
-            Write-Log -msg "Attempting to create [$($endpoint.name)] in target.. "
+            Write-Log -Message "Attempting to create [$($endpoint.name)] in target.. "
         
             $data = @{
                 "data"          = $endpoint.data
@@ -49,14 +48,45 @@ function Start-ADOServiceConnectionsMigration {
             }
             
             try {
-                New-ServiceEndpoint -headers $targetHeaders -projectSk $targetProject.id -org $targetOrg -serviceEndpoint $data
-                Write-Log -msg "Done!" -LogLevel SUCCESS
+                New-ServiceEndpoint -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $targetHeaders -ServiceEndpoint $data
+                Write-Log -Message "Done!" -LogLevel SUCCESS
             }
             catch {
-                Write-Log -msg "FAILED!" -LogLevel ERROR
-                Write-Log -msg ($_ | ConvertFrom-Json).message -LogLevel ERROR
+                Write-Log -Message "FAILED!" -LogLevel ERROR
+                Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
             }
         }
     }
 }
+
+
+
+function Get-ServiceEndpoints([string]$OrgName, [string]$ProjectName, $Headers) {
+    $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
+    
+    return , $results.value
+}
+
+function Get-ServiceEndpoint([string]$OrgName, [string]$ProjectName, $Headers, $ServiceEndpointId) {
+    $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints/$ServiceEndpointId?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results
+}
+
+function New-ServiceEndpoint([string]$OrgName, [string]$ProjectName, $Headers, $ServiceEndpoint) {
+
+    $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints?api-version=7.0"
+    
+    $body = $ServiceEndpoint | ConvertTo-Json
+
+    $results = Invoke-RestMethod -ContentType "application/json" -Method Post -uri $url -Headers $Headers -Body $body 
+    
+    return $results
+
+}
+
 

@@ -47,24 +47,11 @@ function Start-ADOProjectMigration {
 
 
 
-           # Get Headers
+        # Get Headers
         $sourceHeaders = New-HTTPHeaders -PersonalAccessToken $SourcePAT
         $targetHeaders = New-HTTPHeaders -PersonalAccessToken $TargetPAT
 
 
-        # ========================================
-        # =========== Migrate Groups =============
-        #         Migrate-ADO-Groups.psm1
-        #region ==================================
-        Start-ADOGroupsMigration `
-        -SourcePAT $SourcePAT `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -TargetPAT $TargetPAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -WhatIf:$SkipMigrateGroups
-        #endregion
 
         # ========================================
         # ========= Migrate Build Queues =========
@@ -114,34 +101,35 @@ function Start-ADOProjectMigration {
         # ====== Azure DevOps Migration Tool  ======
         # ====== Martin's Tool                ======
         #region ====================================
+        if (!$SkipAddADOCustomField) {
+            # # ======================================================
+            # # ========= Add Custom Field To Source Project ========= 
+            # #region ================================================
+            # Start-ADO_AddCustomField `
+            # -Headers $sourceHeaders `
+            # -OrgName $SourceOrgName `
+            # -PAT $SourcePAT `
+            # -ProjectName $SourceProjectName `
+            # -ProcessId $SourceProcessId `
+            # -FieldName "Custom.ReflectedWorkItemId" `
+            # -WhatIf: $SkipAddADOCustomField
+            # #endregion
+
+            # # ======================================================
+            # # ========= Add Custom Field To Target Project ========= 
+            # #region ================================================
+            # Start-ADO_AddCustomField `
+            # -Headers $targetHeaders `
+            # -OrgName $TargetOrgName `
+            # -PAT $targetPAT `
+            # -ProjectName $TargetProjectName `
+            # -ProcessId $TargetProcessId `
+            # -FieldName "Custom.ReflectedWorkItemId" `
+            # -WhatIf: $SkipAddADOCustomField
+            # #endregion
+        }
+
         if (!$SkipAzureDevOpsMigrationTool) {
-            # ======================================================
-            # ========= Add Custom Field To Source Project ========= 
-            #region ================================================
-            Start-ADO_AddCustomField `
-            -Headers $sourceHeaders `
-            -OrgName $SourceOrgName `
-            -PAT $SourcePAT `
-            -ProjectName $SourceProjectName `
-            -ProcessId $SourceProcessId `
-            -FieldName "Custom.ReflectedWorkItemId" `
-            -WhatIf: $SkipAddADOCustomField
-            #endregion
-
-            # ======================================================
-            # ========= Add Custom Field To Target Project ========= 
-            #region ================================================
-            Start-ADO_AddCustomField `
-            -Headers $targetHeaders `
-            -OrgName $TargetOrgName `
-            -PAT $targetPAT `
-            -ProjectName $TargetProjectName `
-            -ProcessId $TargetProcessId `
-            -FieldName "Custom.ReflectedWorkItemId" `
-            -WhatIf: $SkipAddADOCustomField
-            #endregion
-
-
             $savedPath = $(Get-Location).Path
     
             Set-Location -Path $WorkItemMigratorDirectory
@@ -158,6 +146,20 @@ function Start-ADOProjectMigration {
         }
         #endregion
 
+        # ========================================
+        # =========== Migrate Groups =============
+        #         Migrate-ADO-Groups.psm1
+        #region ==================================
+        Start-ADOGroupsMigration `
+        -SourcePAT $SourcePAT `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -TargetPAT $TargetPAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -WhatIf:$SkipMigrateGroups
+        #endregion
+        
         # ========================================
         # ======== Migrate Service Hooks =========
         #       Migrate-ADO-ServiceHooks.psm1

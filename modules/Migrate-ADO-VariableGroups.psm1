@@ -21,8 +21,8 @@ function Start-ADOVariableGroupsMigration {
         Write-Log -Message '----------------------------'
         Write-Log -Message ' '
 
-        $sourceProject = Get-ADOProjects -OrgName $SourceOrgName -Headers $sourceHeaders -ProjectName $sourceProjectName
-        $targetProject = Get-ADOProjects -OrgName $TargetOrgName -Headers $targetHeaders -ProjectName $targetProjectName
+        $sourceProject = Get-ADOProjects -OrgName $SourceOrgName -ProjectName $sourceProjectName -Headers $sourceHeaders
+        $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $targetProjectName -Headers $targetHeaders 
 
         $targetVariableGroups = Get-VariableGroups -projectName $targetProject.name -headers $targetHeaders -orgName $TargetOrgName
 
