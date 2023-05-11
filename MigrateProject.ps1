@@ -6,9 +6,11 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $FALSE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $FALSE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
+
         # Azure DevOps Migration Tool Items (Martin's Tool)
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTeams = $TRUE,
@@ -20,7 +22,6 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
 )
 
@@ -28,7 +29,7 @@ Import-Module Migrate-ADO -Force
 
 
 # Debug option to not add the Work Item Migration Custom Field (ReflectedWorkItemId)
-$SkipAddADOCustomField = $FALSE
+$SkipAddADOCustomField = $TRUE
 
 # IntelliTect AzureDevOps-Tools Items
 Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
@@ -38,6 +39,7 @@ Write-Log -Message "SkipMigrateWikis $($SkipMigrateWikis)"
 Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
 Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
+Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
 # Azure DevOps Migration Tool Items
 Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
 Write-Log -Message "SkipMigrateTeams $($SkipMigrateTeams)"
@@ -49,7 +51,7 @@ Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
 Write-Log -Message "SkipMigrateTaskGroups $($SkipMigrateTaskGroups)"
 Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
 Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
-Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
+# Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
 Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
 Write-Log -Message ' '
 
@@ -64,7 +66,6 @@ $SourceProject = $configuration.SourceProject
 $TargetProject = $configuration.TargetProject
 $SourceProjectName = $configuration.SourceProject.ProjectName
 $TargetProjectName = $configuration.TargetProject.ProjectName
-# $SavedAzureQuery = $configuration.SavedAzureQuery
 $ProjectDirectory = $configuration.ProjectDirectory
 $ScriptDirectoryName = $configuration.ScriptDirectoryName
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
@@ -74,7 +75,6 @@ $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfig
 Write-Host "CONFIGURATION:"
 $SourceProject
 $TargetProject
-# $SavedAzureQuery
 $ProjectDirectory
 $WorkItemMigratorDirectory
 
@@ -269,17 +269,17 @@ foreach($processor in $martinConfiguration.Processors)
             $processor.MigrateVariableGroups = !$SkipMigrateVariableGroups
         }
 
-        # MigrateServiceConnections
-        if(($processor.MigrateServiceConnections -ne !$SkipMigrateServiceConnections)){
-            $processor.MigrateServiceConnections = !$SkipMigrateServiceConnections
-        }
+        # # MigrateServiceConnections
+        # if(($processor.MigrateServiceConnections -ne !$SkipMigrateServiceConnections)){
+        #     $processor.MigrateServiceConnections = !$SkipMigrateServiceConnections
+        # }
 
         $SkipAzureDevOpsPipelineProcessorOptions = (  `
             $SkipMigrateBuildPipelines -and  `
             $SkipMigrateReleasePipelines -and  `
             $SkipMigrateVariableGroups -and  `
-            $SkipMigrateTaskGroups -and  `
-            $SkipMigrateServiceConnections
+            $SkipMigrateTaskGroups #-and  `
+            # $SkipMigrateServiceConnections
         )
 
         # if(($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions)){
@@ -316,7 +316,7 @@ $SkipAzureDevOpsMigrationTool = (  `
     $SkipMigrateReleasePipelines -and  `
     $SkipMigrateTaskGroups -and  `
     $SkipMigrateVariableGroups -and  `
-    $SkipMigrateServiceConnections -and  `
+    # $SkipMigrateServiceConnections -and  `
     $SkipMigrateWorkItems
 )
 
@@ -358,6 +358,7 @@ Start-ADOProjectMigration `
     -SkipMigrateServiceHooks $SkipMigrateServiceHooks `
     -SkipMigratePolicies $SkipMigratePolicies `
     -SkipMigrateDashboards $SkipMigrateDashboards `
+    -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
-    -SkipAddADOCustomField ($SkipAddADOCustomField -and $SkipMigrateWorkItems)
+    -SkipAddADOCustomField ($SkipAddADOCustomField -or $SkipMigrateWorkItems)
 #endregion

@@ -178,6 +178,8 @@ function Start-ADOPoliciesMigration {
                 } catch {}
             }
         }
+        # TEMP FOR TESTING ONLY
+        Stop-Transcript
     }
 }
 
