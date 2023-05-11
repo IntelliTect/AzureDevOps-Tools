@@ -29,18 +29,7 @@ function Start-ADOPoliciesMigration {
 
         Write-Log -Message "Found $($sourcePolicies.Count) policies in source.. "
         
-        # TEMP FOR TESTING ONLY
-        Start-Transcript -Path "C:\Users\JohnEvans\Working\policy-migration.log"
-
         foreach ($policy in $sourcePolicies) {
-            
-            # # TEMP THIS IS FOR TESTING ONLY AND NEEDS TO BE REMOVED AFTER TESTING 
-            # # if(($policy.id -ne 6789) -and ($policy.id -ne 7820)) {
-            # if($policy.id -ne 360) {
-            #     continue
-            # }
-            # ##
-
             Write-Log -Message "Attempting to find $($policy.type.displayName) [$($policy.id)] in target.. "
             try {
                 foreach ($entry in $policy.settings.scope) {
@@ -121,7 +110,6 @@ function Start-ADOPoliciesMigration {
                     continue
                 } 
 
-
                 Write-Log -Message "Creating NEW $($policy.type.displayName) [Id: $($policy.id)] policy in target !" -LogLevel SUCCESS
                 $result = New-Policy -projectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders -policy $policy
                 Write-Host $result
@@ -135,8 +123,7 @@ function Start-ADOPoliciesMigration {
                 } catch {}
             }
         }
-        # TEMP FOR TESTING ONLY
-        Stop-Transcript
+       
     }
 }
 
