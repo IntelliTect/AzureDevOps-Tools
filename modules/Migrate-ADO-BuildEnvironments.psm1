@@ -1,22 +1,16 @@
-class ADO_BuildQueue {
-    [Int]$Id
-    [String]$ProjectId
+class ADO_BuildEnvironment {
     [String]$Name
-    [Boolean]$IsHosted
-    [String]$PoolType
+    [String]$Description
     
-    ADO_BuildQueue(
+    ADO_BuildEnvironment(
         [Object]$object
     ) {
-        $this.Id = $object.id
-        $this.ProjectId = $object.projectId
-        $this.Name = $object.pool.name
-        $this.IsHosted = $object.pool.isHosted
-        $this.PoolType = $object.pool.poolType
+        $this.Name = $object.name
+        $this.Description = $object.description
     }
 }
 
-function Start-ADOBuildQueuesMigration {
+function Start-ADOBuildEnvironmentsMigration {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
@@ -42,26 +36,25 @@ function Start-ADOBuildQueuesMigration {
             "Migrate build queries from source project $SourceOrg/$SourceProjectName")
     ) {
         Write-Log -Message ' '
-        Write-Log -Message '--------------------------'
-        Write-Log -Message '-- Migrate Build Queues --'
-        Write-Log -Message '- (Project Agent Pools)  -'
-        Write-Log -Message '--------------------------'
+        Write-Log -Message '--------------------------------'
+        Write-Log -Message '-- Migrate Build Environments --'
+        Write-Log -Message '--------------------------------'
         Write-Log -Message ' '
 
-        $queues = Get-BuildQueues `
+        $environments = Get-BuildEnvironments `
             -ProjectName $SourceProjectName `
             -OrgName $SourceOrgName `
             -Headers $Sourceheaders
 
-        Push-BuildQueues `
+        Push-BuildEnvironments `
             -ProjectName $TargetProjectName `
             -OrgName $TargetOrgName `
-            -Queues $queues `
+            -Environments $environments `
             -Headers $TargetHeaders
     }
 }
 
-function Get-BuildQueues {
+function Get-BuildEnvironments {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
@@ -76,21 +69,21 @@ function Get-BuildQueues {
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
         $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers 
 
-        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/queues?api-version=7.0"
+        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/environments?api-version=7.0"
     
         $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
     
-        [ADO_BuildQueue[]]$queues = @()
+        [ADO_BuildEnvironment[]]$environments = @()
 
         foreach ($result in $results.value) {
-            $queues += [ADO_BuildQueue]::new($result)
+            $environments += [ADO_BuildEnvironment]::new($result)
         }
 
-        return $queues
+        return $environments
     }
 }
 
-function Push-BuildQueues {    
+function Push-BuildEnvironments {    
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
@@ -100,27 +93,23 @@ function Push-BuildQueues {
         [String]$OrgName, 
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_BuildQueue[]]$queues,
+        [ADO_BuildEnvironment[]]$environments,
 
         [Parameter (Mandatory = $TRUE)]
         [Hashtable]$Headers
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $targetQueues = Get-BuildQueues -ProjectName $ProjectName -org $OrgName -headers $Headers
+        $targetEnvironment = Get-BuildEnvironment -ProjectName $ProjectName -org $OrgName -headers $Headers
 
-        foreach ($queue in $queues) {
-            if ($queue.IsHosted -or $queue.Name -eq "Default") {
+        foreach ($environment in $environments) {
+            if ($null -ne ($targetEnvironment | Where-Object { $_.Name -ieq $environment.Name })) {
+                Write-Log -Message "Build environment [$($environment.Name)] already exists in target.. "
                 continue
             }
         
-            if ($null -ne ($targetQueues | Where-Object { $_.Name -ieq $queue.Name })) {
-                Write-Log -Message "Build queue [$($queue.Name)] already exists in target.. "
-                continue
-            }
-        
-            Write-Log -Message "Attempting to create [$($queue.Name)] in target.. "
+            Write-Log -Message "Attempting to create [$($environment.Name)] in target.. "
             try {
-                New-BuildQueue -Headers $targetHeaders -ProjectName $ProjectName -OrgName $OrgName -Queue $queue
+                New-BuildEnvironment -Headers $targetHeaders -ProjectName $ProjectName -OrgName $OrgName -Environment $environment
                 Write-Log -Message "Done!" -LogLevel SUCCESS
             }
             catch {
@@ -130,7 +119,7 @@ function Push-BuildQueues {
     }
 }
 
-function New-BuildQueue {
+function New-BuildEnvironment {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
@@ -140,7 +129,7 @@ function New-BuildQueue {
         [String]$OrgName, 
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_BuildQueue]$queue,
+        [ADO_BuildEnvironment]$environment,
 
         [Parameter (Mandatory = $TRUE)]
         [Hashtable]$Headers
@@ -148,12 +137,11 @@ function New-BuildQueue {
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
         $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers
 
-        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/queues?api-version=7.0&authorizePipelines=true"
+        $url = "https://dev.azure.com/$OrgName/$($project.id)/_apis/distributedtask/environments?api-version=7.0&authorizePipelines=true"
     
         $body = @{
-            "projectId" = $queue.ProjectId
-            "name"      = $queue.Name
-            "id"        = $queue.Id
+            "name"          = $environment.Name
+            "description"   = $environment.Description
         } | ConvertTo-Json
 
         $results = Invoke-RestMethod -Method Post -uri $url -Headers $Headers -Body $body -ContentType "application/json"

@@ -56,13 +56,10 @@ function Start-ADOServiceHooksMigration {
         
         foreach ($hook in $hooks) {
 
-
-            # THIS IS A TEMP TESTING BLOCK, REMOVE WHEN DONE TESTING
-            if($hook.id -ne "d713f8d6-d8e4-443a-8843-aa01184fda4d") {
-                continue
-            }
-
-
+            # # THIS IS A TEMP TESTING BLOCK, REMOVE WHEN DONE TESTING
+            # if($hook.id -ne "d713f8d6-d8e4-443a-8843-aa01184fda4d") {
+            #     continue
+            # }
 
             Write-Log -Message "Attempting to create [$($hook.id)] in target.. "
             try {

@@ -350,6 +350,32 @@ function Get-ADOUsers {
 }
 
 
+function Get-ADOUsersByAPI {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers
+    )
+    if ($PSCmdlet.ShouldProcess($OrgName)) {
+        
+        $url = "https://vssps.dev.azure.com/$OrgName/_apis/graph/users?api-version=7.0-preview.1"
+           
+        $members = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
+
+        # Convert to ADO User objects
+        [ADO_User[]]$users = @()
+        foreach ($orgUser in $members.Value ) {
+            $users += [ADO_User]::new($orgUser.originId, $orgUser.principalName, $orgUser.displayName, $orgUser.mailAddress, "")
+        }
+
+        return $users
+    }
+}
+
+
 # Projects
 function Get-ADOProjects {
     [CmdletBinding(SupportsShouldProcess)]
@@ -434,6 +460,30 @@ function Get-Pipelines {
         $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
 
         return $results.value
+    }
+}
+
+function Get-Pipeline {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$DefinitionId = $NULL
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/build/definitions/$($DefinitionId)?api-version=7.0";
+
+        $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+
+        return $results
     }
 }
 

@@ -1,6 +1,5 @@
 
 function Start-ADOServiceConnectionsMigration {
-    # Start-ADOServiceEndpointsMigration
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)] [String]$SourceOrgName, 
@@ -15,13 +14,13 @@ function Start-ADOServiceConnectionsMigration {
             "Migrate Service Endpoints from source project $SourceOrgName/$SourceProjectName")
     ) {
         Write-Log -Message ' '
-        Write-Log -Message '-------------------------------'
-        Write-Log -Message '-- Migrate Service Endpoints --'
-        Write-Log -Message '-------------------------------'
+        Write-Log -Message '---------------------------------------------'
+        Write-Log -Message '-- Migrate Service Connections (Endpoints) --'
+        Write-Log -Message '---------------------------------------------'
         Write-Log -Message ' '
 
         # $sourceProject = Get-ADOProjects -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders 
-        # $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders 
+        $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders 
         
         $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
         $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $sourceHeaders
@@ -34,54 +33,86 @@ function Start-ADOServiceConnectionsMigration {
                 Write-Log -Message "Service endpoint [$($endpoint.id)] already exists in target.. "
                 continue
             }
+
+            if ($null -ne ($targetEndpoints | Where-Object {($_.name -eq $endpoint.name) -and ($_.type -eq $endpoint.type)})) {
+                Write-Log -Message "Service endpoint [$($endpoint.name)] [$($endpoint.id)] already exists in target.. "
+                continue
+            }
+
+            # # THIS IS TEMP FOR TESTING AND SHOULD BE REMOVED
+            # if ($endpoint.name -ne "AIZ-GH" ) {
+            #     continue
+            # }
         
             Write-Log -Message "Attempting to create [$($endpoint.name)] in target.. "
-        
-            $data = @{
-                "data"          = $endpoint.data
-                "name"          = $endpoint.name
-                "type"          = $endpoint.type
-                "url"           = $endpoint.url
-                "authorization" = $endpoint.authorization
-                "description"   = "$($endpoint.description) #OriginServiceEndpointId:$($endpoint.id)"
-                "isReady"       = $endpoint.isReady
+
+            $projectReference = @{
+                "id"        = $targetProject.id
+                "name"      = $TargetProjectName
             }
-            
+
+            $endpointProjectReference = @{
+                "name"              = $endpoint.name
+                "description"       = ""
+                "projectReference"  = $projectReference
+            }
+
+            $endpoint.serviceEndpointProjectReferences = @($endpointProjectReference)
+        
+            if($endpoint.data.creationMode -eq "Automatic") {
+                if($null -ne $endpoint.data.azureSpnRoleAssignmentId){
+                    $endpoint.data.azureSpnRoleAssignmentId = $null
+                }
+                $endpoint.data.azureSpnPermissions = $null
+                $endpoint.data.spnObjectId = $null
+                $endpoint.data.appObjectId = $null
+                $endpoint.authorization.parameters.serviceprincipalid = $NULL
+                if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
+                    $endpoint.authorization.parameters.authenticationType = $NULL
+                }
+            }
+
+            if ($endpoint.type -eq "github") {
+                $parameters = @{
+                    "accessToken" = $NULL
+                }
+                $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+            } elseif ($endpoint.type -eq "azurerm") {
+
+            } elseif ($endpoint.type -eq "sonarqube") {
+
+            }
+
             try {
-                New-ServiceEndpoint -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $targetHeaders -ServiceEndpoint $data
+                New-ServiceEndpoint -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $targetHeaders -ServiceEndpoint $endpoint
                 Write-Log -Message "Done!" -LogLevel SUCCESS
             }
             catch {
                 Write-Log -Message "FAILED!" -LogLevel ERROR
-                Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
+                Write-Log -Message $_.Exception -LogLevel ERROR
+                Write-Log -Message ($_ | ConvertFrom-Json -Depth 10) -LogLevel ERROR
+                Write-Log -Message $_ -LogLevel ERROR
             }
         }
     }
 }
 
 
-
+# Get ALl Service Connection Endpoints
 function Get-ServiceEndpoints([string]$OrgName, [string]$ProjectName, $Headers) {
-    $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints?api-version=7.0"
+    $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints?includeFailed=true&includeDetails=true&api-version=7.0"
     
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
     
     return , $results.value
 }
 
-function Get-ServiceEndpoint([string]$OrgName, [string]$ProjectName, $Headers, $ServiceEndpointId) {
-    $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints/$ServiceEndpointId?api-version=7.0"
-    
-    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
-    
-    return $results
-}
-
+# Create NEW Service Connection Endpoint
 function New-ServiceEndpoint([string]$OrgName, [string]$ProjectName, $Headers, $ServiceEndpoint) {
 
     $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/serviceendpoint/endpoints?api-version=7.0"
     
-    $body = $ServiceEndpoint | ConvertTo-Json
+    $body = $ServiceEndpoint | ConvertTo-Json -Depth 32
 
     $results = Invoke-RestMethod -ContentType "application/json" -Method Post -uri $url -Headers $Headers -Body $body 
     

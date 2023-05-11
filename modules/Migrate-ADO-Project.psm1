@@ -22,6 +22,7 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddADOCustomField = $TRUE
     )
@@ -43,26 +44,43 @@ function Start-ADOProjectMigration {
         Write-Log -Message "TargetOrgName $($TargetOrgName)"
         Write-Log -Message "TargetProcessId $($TargetProcessId)"
         Write-Log -Message ' '
-        # Write-Log -Message "SkipAzureDevOpsMigrationTool $($SkipAzureDevOpsMigrationTool)"
 
-
-
+        
         # Get Headers
         $sourceHeaders = New-HTTPHeaders -PersonalAccessToken $SourcePAT
         $targetHeaders = New-HTTPHeaders -PersonalAccessToken $TargetPAT
 
+        
+        # # $sourceUsers = Get-ADOUsers -OrgName $SourceOrgName -PersonalAccessToken $SourcePat
+        # $targetUsers = Get-ADOUsers -OrgName $targetOrgName -PersonalAccessToken $targetPat
+        # $targetUsers_api = Get-ADOUsersByAPI -OrgName $targetOrgName -Headers $TargetHeaders
+        # Write-Log -Message ' '
 
-
+       
         # ========================================
         # ========= Migrate Build Queues =========
         #       Migrate-ADO-BuildQueues.psm1
         #region ==================================
         Start-ADOBuildQueuesMigration `
-        -SourceProjectName $SourceProjectName `
         -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
-        -TargetProjectName $TargetProjectName `
         -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -WhatIf:$SkipMigrateBuildQueues
+        #endregion
+
+        # ==============================================
+        # ========= Migrate Build Environments =========
+        #       Migrate-ADO-BuildEnvironments.psm1
+        #region ========================================
+        Start-ADOBuildEnvironmentsMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -WhatIf:$SkipMigrateBuildQueues
         #endregion
@@ -72,11 +90,11 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-Repos.psm1
         #region ==================================
         Start-ADORepoMigration `
-        -SourceProjectName $SourceProjectName `
         -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
-        -TargetProjectName $TargetProjectName `
         -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -ReposPath $projectPath `
         -WhatIf:$SkipMigrateRepos
@@ -87,46 +105,49 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-Repos.psm1
         #region ==================================
         Start-ADOWikiMigration `
-        -SourceProjectName $SourceProjectName `
         -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
-        -TargetProjectName $TargetProjectName `
         -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -ReposPath $projectPath `
         -WhatIf:$SkipMigrateWikis
         #endregion
+        
+        # ========================================
+        # ===== Migrate Service Connections ======
+        #   Migrate-ADO-ServiceConnections.psm1
+        #region ==================================
+        Start-ADOServiceConnectionsMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -WhatIf:$SkipMigrateServiceConnections
+        #endregion
+
+        
 
         # ==========================================
         # ====== Azure DevOps Migration Tool  ======
         # ====== Martin's Tool                ======
         #region ====================================
         if (!$SkipAddADOCustomField) {
-            # # ======================================================
-            # # ========= Add Custom Field To Source Project ========= 
-            # #region ================================================
-            # Start-ADO_AddCustomField `
-            # -Headers $sourceHeaders `
-            # -OrgName $SourceOrgName `
-            # -PAT $SourcePAT `
-            # -ProjectName $SourceProjectName `
-            # -ProcessId $SourceProcessId `
-            # -FieldName "Custom.ReflectedWorkItemId" `
-            # -WhatIf: $SkipAddADOCustomField
-            # #endregion
-
-            # # ======================================================
-            # # ========= Add Custom Field To Target Project ========= 
-            # #region ================================================
-            # Start-ADO_AddCustomField `
-            # -Headers $targetHeaders `
-            # -OrgName $TargetOrgName `
-            # -PAT $targetPAT `
-            # -ProjectName $TargetProjectName `
-            # -ProcessId $TargetProcessId `
-            # -FieldName "Custom.ReflectedWorkItemId" `
-            # -WhatIf: $SkipAddADOCustomField
-            # #endregion
+            # ======================================================
+            # ========= Add Custom Field To Target Project ========= 
+            #region ================================================
+            Start-ADO_AddCustomField `
+            -OrgName $TargetOrgName `
+            -Headers $targetHeaders `
+            -PAT $targetPAT `
+            -ProjectName $TargetProjectName `
+            -ProcessId $TargetProcessId `
+            -FieldName "Custom.ReflectedWorkItemId" `
+            -WhatIf: $SkipAddADOCustomField
+            #endregion
         }
 
         if (!$SkipAzureDevOpsMigrationTool) {
@@ -167,11 +188,11 @@ function Start-ADOProjectMigration {
         #region ==================================
         # .\migrateServiceHooks.ps1 
         Start-ADOServiceHooksMigration `
-        -SourceProjectName $SourceProjectName `
         -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
-        -TargetProjectName $TargetProjectName `
         -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -WhatIf:$SkipMigrateServiceHooks
         # #endregion
@@ -182,11 +203,11 @@ function Start-ADOProjectMigration {
         #region ==================================
         # .\migratePolicies.ps1 
         Start-ADOPoliciesMigration `
-        -SourceProjectName $SourceProjectName `
         -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
-        -TargetProjectName $TargetProjectName `
         -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -WhatIf:$SkipMigratePolicies
         # #endregion
@@ -197,12 +218,12 @@ function Start-ADOProjectMigration {
         #region ==================================
         # .\migrateDashboards.ps1 
         Start-ADODashboardsMigration `
-        -SourceProjectName $SourceProjectName `
         -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
         -SourcePAT $SourcePAT `
-        -TargetProjectName $TargetProjectName `
         -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
         -WhatIf:$SkipMigrateDashboards
