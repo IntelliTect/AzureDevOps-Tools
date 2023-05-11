@@ -44,6 +44,7 @@ function Start-ADOBuildQueuesMigration {
         Write-Log -Message ' '
         Write-Log -Message '--------------------------'
         Write-Log -Message '-- Migrate Build Queues --'
+        Write-Log -Message '- (Project Agent Pools)  -'
         Write-Log -Message '--------------------------'
         Write-Log -Message ' '
 
