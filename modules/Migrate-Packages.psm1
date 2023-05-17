@@ -87,6 +87,8 @@ function Move-MyGetNuGetPackages
         $NumVersions = -1
     )
 
+    Write-Verbose "Migrate Package Versions for Feed [$($DestinationFeedName)] in target.. "
+
     if ($null -eq $TempFilePath)
     {
         $TempFilePath = [System.IO.Path]::GetTempPath()
@@ -360,6 +362,7 @@ function Get-Packages
 
             foreach ($package in $packages)
             {
+                # Filter any un-needed or older versions here
                 foreach ($version in $package.versions)
                 {
                     $packageObject = [PSCustomObject]@{
@@ -527,7 +530,6 @@ function Start-MigrationSingleThreaded
     )
 
     $results = [System.Collections.ArrayList]::new()
-    # $TempFilePath = "$TempFilePath/temp.nupkg"
     $TempFilePath = "$TempFilePath\temp.nupkg"
 
     foreach ($url in $ContentUrls)

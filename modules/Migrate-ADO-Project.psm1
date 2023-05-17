@@ -52,12 +52,6 @@ function Start-ADOProjectMigration {
         $sourceHeaders = New-HTTPHeaders -PersonalAccessToken $SourcePAT
         $targetHeaders = New-HTTPHeaders -PersonalAccessToken $TargetPAT
 
-        
-        # # $sourceUsers = Get-ADOUsers -OrgName $SourceOrgName -PersonalAccessToken $SourcePat
-        # $targetUsers = Get-ADOUsers -OrgName $targetOrgName -PersonalAccessToken $targetPat
-        # $targetUsers_api = Get-ADOUsersByAPI -OrgName $targetOrgName -Headers $TargetHeaders
-        # Write-Log -Message ' '
-
        
         # ========================================
         # ========= Migrate Build Queues =========

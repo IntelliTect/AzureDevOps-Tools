@@ -106,8 +106,20 @@ function Start-ADODashboardsMigration {
                } catch {}
            }
         }
+        Write-Log ' '
 
-        Write-Log ''
+        $migratedDashboards = (Get-Dashboard -orgName $TargetOrgName -projectName $targetProjectName -headers $TargetHeaders).Value
+        Write-Log -Message "--- Project Dashboard Widgets: ---"
+        ForEach ($dashboard in $migratedDashboards) { 
+            Write-Log -Message "dashboard: $($dashboard.name)"
+
+            # Get Widgets
+            Get-Widgets -orgName $TargetOrgName -projectName $targetProjectName [string]$team, [string]dashboardId, $headers)
+
+            # Migrate Widgets
+            "POST https://dev.azure.com/{organization}/{project}/{team}/_apis/dashboard/dashboards/{dashboardId}/widgets?api-version=7.0-preview.2"
+        }
+        Write-Log ' '
     }
 }
 
@@ -160,3 +172,42 @@ function Get-Teams([string]$projectName, [string]$orgName, $headers) {
     
     return $results.value
 }
+
+
+# Widgets
+function Get-Widgets([string]$orgName, [string]$projectName, [string]$team, [string]$dashboardId, $headers) {
+    if ($team) {
+        $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+    else {
+        $url = "https://dev.azure.com/$orgName/$projectName/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results
+}
+
+
+function New-Widgets([string]$orgName, [string]$projectName, [string]$team, [string]$dashboardId, $headers, $widget) {
+
+    "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+
+    if ($team) {
+        $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+    else {
+        $url = "https://dev.azure.com/$orgName/$projectName/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+
+    $body = $widget | ConvertTo-Json -Depth 32
+    
+    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    
+    return $results
+}
+
+
+
+
+
