@@ -394,6 +394,7 @@ function Get-Packages
 
             foreach ($package in $packages)
             {
+                # Filter any un-needed or older versions here
                 foreach ($version in $package.versions)
                 {
                     $packageObject = [PSCustomObject]@{

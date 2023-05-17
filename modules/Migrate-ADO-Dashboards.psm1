@@ -157,7 +157,18 @@ function Start-ADODashboardsMigration {
     }
 }
 
-        Write-Log ''
+        $migratedDashboards = (Get-Dashboard -orgName $TargetOrgName -projectName $targetProjectName -headers $TargetHeaders).Value
+        Write-Log -Message "--- Project Dashboard Widgets: ---"
+        ForEach ($dashboard in $migratedDashboards) { 
+            Write-Log -Message "dashboard: $($dashboard.name)"
+
+            # Get Widgets
+            Get-Widgets -orgName $TargetOrgName -projectName $targetProjectName [string]$team, [string]dashboardId, $headers)
+
+            # Migrate Widgets
+            "POST https://dev.azure.com/{organization}/{project}/{team}/_apis/dashboard/dashboards/{dashboardId}/widgets?api-version=7.0-preview.2"
+        }
+        Write-Log ' '
     }
 }
 

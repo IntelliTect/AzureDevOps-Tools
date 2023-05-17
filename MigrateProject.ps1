@@ -8,7 +8,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $FALSE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
@@ -99,7 +99,6 @@ $projectPath = Get-ProjectFolderPath `
     -Root $ProjectDirectory
 
 $env:MIGRATION_LOGS_PATH = $projectPath
-
 
 
 # ==========================================
