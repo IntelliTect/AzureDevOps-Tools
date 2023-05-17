@@ -279,6 +279,25 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateArtifacts
         # #endregion
 
+
+
+        
+        # ===========================================
+        # ========== Migrate DeliveryPlans ==========
+        #       Migrate-ADO-DeliveryPlans.psm1
+        #region =====================================
+        Start-ADODeliveryPlansMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -SourcePAT $SourcePAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
+        -WhatIf:$SkipMigratDeliveryPlans
+        # #endregion
+
         # ========================================
         # ========== Migration Finished ========== 
         # ========================================

@@ -157,6 +157,9 @@ function Start-ADODashboardsMigration {
     }
 }
 
+        Write-Log ''
+    }
+}
 
 # Dashboards
 function Get-Dashboards([string]$orgName, [string]$projectName, [string]$team, $headers) {
