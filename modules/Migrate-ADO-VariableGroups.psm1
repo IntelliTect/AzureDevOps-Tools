@@ -96,3 +96,34 @@ function Start-ADOVariableGroupsMigration {
     }
 }
 
+
+# Variable groups 
+function Get-VariableGroups([string]$projectName, [string]$orgName, $headers) {
+    # $url = "$org/$projectSk/_apis/distributedtask/variablegroups?api-version=5.1-preview"
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/distributedtask/variablegroups?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results.value
+}
+
+
+function Get-VariableGroup([string]$projectName, [string]$orgName, $headers, $groupId) {
+    # $url = "$org/$projectSk/_apis/distributedtask/variablegroups/$groupId"
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/distributedtask/variablegroups/$($groupId)?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results
+}
+
+
+function New-VariableGroup([string]$projectName, [string]$orgName, $headers, $body) {
+    # $url = "$org/$projectSk/_apis/distributedtask/variablegroups?api-version=5.1-preview.1"
+    $url = "https://dev.azure.com/$orgName/_apis/distributedtask/variablegroups?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    
+    return $results
+}
+

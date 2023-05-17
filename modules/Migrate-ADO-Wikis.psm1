@@ -217,5 +217,21 @@ function New-GitRepository {
     catch {
         Write-Log -Message "Error creating repo $RepoName in project $projectId : $($_.Exception) " 
     }
+}
 
+# Wikis
+function Get-Wikis([string]$projectName, [string]$orgName, $headers) {
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/wiki/wikis?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return , $results.value
+}
+
+function Get-Wiki([string]$projectName, [string]$orgName, $headers, $wikiIdentifier) {
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/wiki/wikis/$($wikiIdentifier)?api-version=7.0"
+    
+    $results =  Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return , $results.value
 }

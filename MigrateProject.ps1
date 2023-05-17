@@ -7,9 +7,11 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $FALSE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $FALSE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
 
         # Azure DevOps Migration Tool Items (Martin's Tool)
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE,
@@ -40,6 +42,10 @@ Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
 Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
 Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
+Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
+Write-Log -Message "SkipMigrateArtifacts $($SkipMigratDeliveryPlans)"
+
+
 # Azure DevOps Migration Tool Items
 Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
 Write-Log -Message "SkipMigrateTeams $($SkipMigrateTeams)"
@@ -359,6 +365,8 @@ Start-ADOProjectMigration `
     -SkipMigratePolicies $SkipMigratePolicies `
     -SkipMigrateDashboards $SkipMigrateDashboards `
     -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
+    -SkipMigrateArtifacts $SkipMigrateArtifacts `
+    -SkipMigratDeliveryPlans $SkipMigratDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipAddADOCustomField ($SkipAddADOCustomField -or $SkipMigrateWorkItems)
 #endregion

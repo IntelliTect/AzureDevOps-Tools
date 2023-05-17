@@ -176,3 +176,43 @@ function Start-ADOServiceHooksMigration {
     }
 }
 
+
+
+#Service Hooks
+function Get-ServiceHooks([string]$projectId, [string]$orgName, $headers) {
+    $url = "https://dev.azure.com/$orgName/_apis/hooks/subscriptionsquery?api-version=7.0"
+    
+    $body = @{
+        "publisherInputFilters" = @(
+            @{
+                "conditions" = @(
+                    @{
+                        "inputId"    = "projectId"
+                        "inputValue" = $projectId
+                    }
+                )
+            }
+        )
+    }
+    $temp = $body | ConvertTo-Json -Depth 10
+    
+    $results = Invoke-RestMethod -Method "POST" -uri $url -Headers $headers -Body $temp -ContentType "application/json"
+    
+    return , $results.results
+}
+
+
+function New-ServiceHook([string]$projectName, [string]$orgName, $serviceHook, $headers) {
+    $url = "https://dev.azure.com/$orgName/_apis/hooks/subscriptions?api-version=7.0"
+
+    # Service Hook subscriptions for Release events require the vsrm sub-domain endpoint
+    if($serviceHook.publisherId -eq "rm"){
+        $url = "https://vsrm.dev.azure.com/$orgName/_apis/hooks/subscriptions?api-version=7.0"
+    }
+    
+    $body = $serviceHook | ConvertTo-Json -Depth 10
+
+    $results = Invoke-RestMethod -ContentType "application/json" -Method Post -uri $url -Headers $headers -Body $body 
+    
+    return $results
+}

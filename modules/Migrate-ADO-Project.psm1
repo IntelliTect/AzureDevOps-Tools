@@ -23,6 +23,8 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddADOCustomField = $TRUE
     )
@@ -229,6 +231,41 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateDashboards
         # #endregion
 
+        # ========================================
+        # ========= Migrate Artifacts= ===========
+        #       Migrate-ADO-Artifacts.psm1
+        #region ==================================
+        Start-ADOArtifactsMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -SourcePAT $SourcePAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
+        -ProjectPath $projectPath `
+        -WhatIf:$SkipMigrateArtifacts
+        # #endregion
+
+
+
+        
+        # ===========================================
+        # ========== Migrate DeliveryPlans ==========
+        #       Migrate-ADO-DeliveryPlans.psm1
+        #region =====================================
+        Start-ADODeliveryPlansMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -SourcePAT $SourcePAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
+        -WhatIf:$SkipMigratDeliveryPlans
+        # #endregion
 
         # ========================================
         # ========== Migration Finished ========== 
