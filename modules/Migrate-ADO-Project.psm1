@@ -279,9 +279,6 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateArtifacts
         # #endregion
 
-
-
-        
         # ===========================================
         # ========== Migrate DeliveryPlans ==========
         #       Migrate-ADO-DeliveryPlans.psm1
