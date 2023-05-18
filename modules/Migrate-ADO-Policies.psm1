@@ -114,8 +114,7 @@ function Start-ADOPoliciesMigration {
                 $result = New-Policy -projectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders -policy $policy
                 Write-Host $result
                 Write-Log -Message "Done!" -LogLevel SUCCESS
-            }
-            catch {
+            } catch {
                 Write-Log -Message "FAILED!" -LogLevel ERROR
                 Write-Log -Message $_.Exception -LogLevel ERROR
                 try {
@@ -126,4 +125,28 @@ function Start-ADOPoliciesMigration {
        
     }
 }
+
+
+function Get-Policies([string]$projectName, [string]$orgName, $headers) {
+
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/policy/configurations?api-version=7.0"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return , $results.value
+
+}
+
+function New-Policy([string]$projectName, [string]$orgName, $headers, $policy) {
+
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/policy/configurations?api-version=7.0"
+    
+    $body = $policy | ConvertTo-Json -Depth 10
+
+    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    
+    return $results
+}
+
+
 

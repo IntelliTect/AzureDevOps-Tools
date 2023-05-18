@@ -22,15 +22,63 @@ function Start-ADODashboardsMigration {
         Write-Log -Message '------------------------'
         Write-Log -Message ' '
 
-        # set-alias CopyDashboard "C:\wrk\ups\azure-devops-utils\CopyDashboard\CopyDashboard\bin\Debug\netcoreapp3.1\CopyDashboard.exe"
+
+        $sourceTeams = [array](Get-Teams -projectName $sourceProjectName -orgName $SourceOrgName -headers $SourceHeaders)
+
+        $sourceDashboards = (Get-Dashboards -orgName $SourceOrgName -projectName $sourceProjectName -headers $SourceHeaders).Value
+        $targetDashboards = (Get-Dashboard -orgName $TargetOrgName -projectName $targetProjectName -headers $TargetHeaders).Value
+
+        $completed_list = New-Object Collections.Generic.List[string]
+
+        ForEach ($team in $sourceTeams) {
+            Write-Log -Message "--- Team Dashboard: ---"
+            $dashboardResults = Get-Dashboards -orgName $SourceOrgName -projectName $sourceProjectName -team $team.name -headers $SourceHeaders
+           
+            if ($SourceOrgName.Contains("tfs")) {
+                $dashboards = $dashboardResults.dashboardEntries;
+            }
+            else {
+                $dashboards = $dashboardResults.value;
+            }
+
+            ForEach ($dashboard in $dashboards) { 
+                Write-Log -Message "team: $($team.name) dashboard: $($dashboard.name) scope: copy$($dashboard.dashboardScope)"
+
+                # $targetDashboard = Get-Dashboard -projectName $targetProjectName -orgName $TargetOrgName -team $team.name -headers $TargetHeaders
+                $targetDashboard = $targetDashboards | Where-Object { $_.Name -eq $dashboard.name }
+
+                if ($null -ine $targetDashboard) {
+                    Write-Log -Message "Dashboard [$($dashboard.Name)] already exists in target.. "
+                    continue
+                }
+
+                try{
+                    Write-Log -Message "CREATING Dashboard [$($dashboard.Name)] in target.. "
+                    New-Dashboard -orgName $targetOrgName -projectName $targetProjectName -team $team.name -headers $targetHeaders -dashboard @{
+                        "name"              = $dashboard.name
+                        "description"       = $dashboard.description
+                        "dashboardScope"    = $dashboard.dashboardScope
+                        "position"          = $dashboard.position
+                        "widgets"           = $dashboard.widgets
+                        "refreshInterval"   = $dashboard.refreshInterval
+                        "url"               = $dashboard.url
+                    }
+                    $completed_list.Add($dashboard.Name)
+                } catch {
+                    Write-Log -Message "FAILED!" -LogLevel ERROR
+                    Write-Log -Message $_.Exception -LogLevel ERROR
+                    try {
+                        Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
+                    } catch {}
+                }
+            }
+        }
 
 
-        $sourceDashboards = Get-Dashboards -projectName $sourceProjectName -orgName $SourceOrgName -headers $SourceHeaders
-        $targetDashboards = Get-Dashboard -projectName $targetProjectName -orgName $TargetOrgName -headers $TargetHeaders
-        $targetDashboards = $targetDashboards.Value
-
-        $dashboards = $sourceDashboards.Value;
-        ForEach ($dashboard in $dashboards) { 
+        # Add Dashboards not tied to a Team
+        $projectDashboards = $sourceDashboards | Where-Object { $_.Name -notin $completed_list }
+        Write-Log -Message "--- Project Dashboards: ---"
+        ForEach ($dashboard in $projectDashboards) { 
             Write-Log -Message "dashboard: $($dashboard.name) scope: copy$($dashboard.dashboardScope)"
 
             if ($null -ne ($targetDashboards | Where-Object { $_.name -ieq $dashboard.name } )) {
@@ -38,50 +86,128 @@ function Start-ADODashboardsMigration {
                 continue
             }
             
-            New-Dashboard -projectName $targetProjectName -orgName $targetOrgName -team $team.name -headers $targetHeaders -dashboard @{
-                "name"              = $dashboard.name
-                "description"       = $dashboard.description
-                "dashboardScope"    = $dashboard.dashboardScope
-                "position"          = $dashboard.position
-                "widgets"           = $dashboard.widgets
-                "refreshInterval"   = $dashboard.refreshInterval
-                "url"               = $dashboard.url
-            }
+            try {
+                Write-Log -Message "CREATING Dashboard [$($dashboard.Name)] in target.. "
+                $completed_list.Add($dashboard.Name)
+                New-Dashboard -orgName $targetOrgName -projectName $targetProjectName -team $team.name -headers $targetHeaders -dashboard @{
+                    "name"              = $dashboard.name
+                    "description"       = $dashboard.description
+                    "dashboardScope"    = $dashboard.dashboardScope
+                    "position"          = $dashboard.position
+                    "widgets"           = $dashboard.widgets
+                    "refreshInterval"   = $dashboard.refreshInterval
+                    "url"               = $dashboard.url
+                }
+            } catch {
+               Write-Log -Message "FAILED!" -LogLevel ERROR
+               Write-Log -Message $_.Exception -LogLevel ERROR
+               try {
+                   Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
+               } catch {}
+           }
         }
+        Write-Log ' '
 
+        $migratedDashboards = (Get-Dashboard -orgName $TargetOrgName -projectName $targetProjectName -headers $TargetHeaders).Value
+        Write-Log -Message "--- Project Dashboard Widgets: ---"
+        ForEach ($dashboard in $migratedDashboards) { 
+            Write-Log -Message "dashboard: $($dashboard.name)"
 
+            # Get Widgets
+            Get-Widgets -orgName $TargetOrgName -projectName $targetProjectName [string]$team, [string]dashboardId, $headers)
 
-        # $teams = [array](Get-Teams -projectName $sourceProjectName -orgName $SourceOrgName -headers $SourceHeaders)
-
-        # ForEach ($team in $teams) {
-        #     Write-Log -Message "--- Dashboard: ---"
-        #     $dashboardResults = Get-Dashboards -projectName $sourceProjectName -orgName $SourceOrgName -team $team.name -headers $SourceHeaders
-        #     if ($SourceOrgName.Contains("tfs")) {
-        #         $dashboards = $dashboardResults.dashboardEntries;
-        #     }
-        #     else {
-        #         $dashboards = $dashboardResults.value;
-        #     }
-        #     ForEach ($dashboard in $dashboards) { 
-        #         Write-Log -Message "team: $($team.name) dashboard: $($dashboard.name) scope: copy$($dashboard.dashboardScope)"
-
-        #         $targetDashboard = Get-Dashboard -projectName $targetProjectName -orgName $TargetOrgName -team $team.name -headers $TargetHeaders
-        #         if ($null -ine $targetDashboard) {
-        #             Write-Log -Message "Dashboard [$($dashboard.Name)] already exists in target.. "
-        #             continue
-        #         }
-
-        #        New-Dashboard -projectName $targetProjectName -orgName $targetOrgName -team $team.name -headers $targetHeaders -dashboard @{
-        #             "name"              = $dashboard.name
-        #             "description"       = $dashboard.description
-        #             "dashboardScope"    = $dashboard.dashboardScope
-        #             "position"          = $dashboard.position
-        #             "widgets"           = $dashboard.widgets
-        #             "refreshInterval"   = $dashboard.refreshInterval
-        #             "url"               = $dashboard.url
-        #         }
-        #     }
-        # }
+            # Migrate Widgets
+            "POST https://dev.azure.com/{organization}/{project}/{team}/_apis/dashboard/dashboards/{dashboardId}/widgets?api-version=7.0-preview.2"
+        }
+        Write-Log ' '
     }
 }
+
+
+# Dashboards
+function Get-Dashboards([string]$orgName, [string]$projectName, [string]$team, $headers) {
+    if ($team) {
+        $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards?api-version=7.0-preview.3"
+    }
+    else {
+        $url = "https://dev.azure.com/$orgName/$projectName/_apis/dashboard/dashboards?api-version=7.0-preview.3"
+    }
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results
+}
+
+function Get-Dashboard([string]$orgName, [string]$projectName, [string]$team, $headers) {
+    $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards?api-version=7.0-preview.3"
+
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results
+}
+
+
+function New-Dashboard([string]$orgName, [string]$projectName, [string]$team, $headers, $dashboard) {
+    if ($team) {
+        $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards?api-version=7.0-preview.3"
+    }
+    else {
+        $url = "https://dev.azure.com/$orgName/$projectName/_apis/dashboard/dashboards?api-version=7.0-preview.3"
+    }
+
+    $body = $dashboard | ConvertTo-Json -Depth 10
+    
+    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    
+    return $results
+}
+
+
+
+# Teams
+function Get-Teams([string]$projectName, [string]$orgName, $headers) {
+    $url = "https://dev.azure.com/$orgName/_apis/projects/$projectName/teams?api-version=7.0&`$top=1000"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results.value
+}
+
+
+# Widgets
+function Get-Widgets([string]$orgName, [string]$projectName, [string]$team, [string]$dashboardId, $headers) {
+    if ($team) {
+        $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+    else {
+        $url = "https://dev.azure.com/$orgName/$projectName/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    return $results
+}
+
+
+function New-Widgets([string]$orgName, [string]$projectName, [string]$team, [string]$dashboardId, $headers, $widget) {
+
+    "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+
+    if ($team) {
+        $url = "https://dev.azure.com/$orgName/$projectName/$team/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+    else {
+        $url = "https://dev.azure.com/$orgName/$projectName/_apis/dashboard/dashboards/$dashboardId/widgets?api-version=7.0-preview.2"
+    }
+
+    $body = $widget | ConvertTo-Json -Depth 32
+    
+    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    
+    return $results
+}
+
+
+
+
 
