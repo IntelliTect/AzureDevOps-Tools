@@ -290,3 +290,11 @@ function Write-Log-Async
 }
 
 
+function Get-Extensions([string]$org, $headers) {
+
+    # GET https://extmgmt.dev.azure.com/ { organization }/_apis/extensionmanagement/installedextensions?api-version=7.1-preview.1
+    $url = "https://extmgmt.dev.azure.com/$org/_apis/extensionmanagement/installedextensions?api-version=7.1-preview.1"
+    
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    return $results.value
+}
