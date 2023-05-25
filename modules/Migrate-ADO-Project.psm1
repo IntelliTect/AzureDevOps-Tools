@@ -261,6 +261,24 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateDeliveryPlans
         # #endregion
 
+        # ===========================================
+        # ========== Migrate DeliveryPlans ==========
+        #       Migrate-ADO-DeliveryPlans.psm1
+        #region =====================================
+        Start-ADODeliveryPlansMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -SourcePAT $SourcePAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
+        -ProjectPath $projectPath `
+        -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
+        -WhatIf:$SkipMigrateArtifacts
+        # #endregion
+
         # ========================================
         # ========= Migrate Artifacts= ===========
         #       Migrate-ADO-Artifacts.psm1
@@ -275,24 +293,7 @@ function Start-ADOProjectMigration {
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
         -ProjectPath $projectPath `
-        -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
         -WhatIf:$SkipMigrateArtifacts
-        # #endregion
-
-        # ===========================================
-        # ========== Migrate DeliveryPlans ==========
-        #       Migrate-ADO-DeliveryPlans.psm1
-        #region =====================================
-        Start-ADODeliveryPlansMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePAT $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -WhatIf:$SkipMigratDeliveryPlans
         # #endregion
 
         # ========================================
