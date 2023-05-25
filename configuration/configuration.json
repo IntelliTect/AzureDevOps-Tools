@@ -2,14 +2,12 @@
     "SourceProject": {
         "Organization": "https://dev.azure.com/AIZ-GL/",
         "ProjectName": "GL.CL-Elita",
-        "OrgName": "AIZ-GL",
-        "ProcessTypeId": "c7003fb8-215d-488f-bf25-d60ac4e2fe27"
+        "OrgName": "AIZ-GL"
     },
     "TargetProject": {
         "Organization": "https://dev.azure.com/AIZ-Sandbox/",
         "ProjectName": "GL.CL-Elita-migration-test",
-        "OrgName": "AIZ-Sandbox",
-        "ProcessTypeId": "9d399cf0-446e-4381-a18d-83f2affa6d35"
+        "OrgName": "AIZ-Sandbox"
     },
     "ProjectDirectory": "C:\\Users\\JohnEvans\\Working\\Assurant AIZ-GT- ADO Migration Tools\\DevOps-Enablement-ADO-migration",
     "ScriptDirectoryName": "",

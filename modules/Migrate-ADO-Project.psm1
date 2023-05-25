@@ -5,11 +5,9 @@ function Start-ADOProjectMigration {
         [Parameter (Mandatory = $TRUE)] [String]$SourceProjectName,
         [Parameter (Mandatory = $TRUE)] [String]$SourceOrgName,
         [Parameter (Mandatory = $TRUE)] [String]$SourcePAT,
-        [Parameter (Mandatory = $TRUE)] [String]$SourceProcessId,
         [Parameter (Mandatory = $TRUE)] [String]$TargetProjectName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetPAT,
-        [Parameter (Mandatory = $TRUE)] [String]$TargetProcessId,
         [Parameter (Mandatory = $TRUE)] [String]$ProjectPath,
         [Parameter (Mandatory = $TRUE)] [String]$ProjectDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$configurationDirectory,
@@ -40,11 +38,9 @@ function Start-ADOProjectMigration {
         
         Write-Log -Message "SourceProjectName $($SourceProjectName)"
         Write-Log -Message "SourceOrgName $($SourceOrgName)"
-        Write-Log -Message "SourceProcessId $($SourceProcessId)"
         Write-Log -Message ' '
         Write-Log -Message "TargetProjectName $($TargetProjectName)"
         Write-Log -Message "TargetOrgName $($TargetOrgName)"
-        Write-Log -Message "TargetProcessId $($TargetProcessId)"
         Write-Log -Message ' '
 
         
