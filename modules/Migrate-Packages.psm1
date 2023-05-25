@@ -362,14 +362,22 @@ function Get-Packages
 
             foreach ($package in $packages)
             {
-                # Filter any un-needed or older versions here
-                foreach ($version in $package.versions)
+                # TODO: Filter any un-needed or older versions here
+                #       Test having only 5 versions back. 
+                $maxVersions = 5
+                $versions = $package.versions | Sort-Object -Property version
+                $counter = 0
+                foreach ($version in $versions)
                 {
                     $packageObject = [PSCustomObject]@{
                         Id      = $package.id
                         Version = $version.version
                     }
                     $null = $result.add($packageObject)
+                    $counter ++
+                    if($counter -ge $maxVersions) {  
+                        break
+                    }
                 }
             }
 

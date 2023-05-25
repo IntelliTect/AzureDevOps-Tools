@@ -12,6 +12,7 @@ function Start-ADOProjectMigration {
         [Parameter (Mandatory = $TRUE)] [String]$TargetProcessId,
         [Parameter (Mandatory = $TRUE)] [String]$ProjectPath,
         [Parameter (Mandatory = $TRUE)] [String]$ProjectDirectory,
+        [Parameter (Mandatory = $TRUE)] [String]$configurationDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$WorkItemMigratorDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$DevOpsMigrationToolConfigurationFile,
         # -------------- What parts of the migration should NOT be executed --------------- 
@@ -25,8 +26,7 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddADOCustomField = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -131,21 +131,6 @@ function Start-ADOProjectMigration {
         # ====== Azure DevOps Migration Tool  ======
         # ====== Martin's Tool                ======
         #region ====================================
-        if (!$SkipAddADOCustomField) {
-            # ======================================================
-            # ========= Add Custom Field To Target Project ========= 
-            #region ================================================
-            Start-ADO_AddCustomField `
-            -OrgName $TargetOrgName `
-            -Headers $targetHeaders `
-            -PAT $targetPAT `
-            -ProjectName $TargetProjectName `
-            -ProcessId $TargetProcessId `
-            -FieldName "Custom.ReflectedWorkItemId" `
-            -WhatIf: $SkipAddADOCustomField
-            #endregion
-        }
-
         if (!$SkipAzureDevOpsMigrationTool) {
             $savedPath = $(Get-Location).Path
     
@@ -154,7 +139,7 @@ function Start-ADOProjectMigration {
             # Migrate Work Items using nkdagility tool 
             Write-Log -Message "Run Azure DevOps Migration Tool (Martins Tool)"
 
-            $arguments = "execute --config `"$ProjectDirectory\configuration-intellitect.json`""
+            $arguments = "execute --config `"$configurationDirectory\migrator-configuration.json`""
             Start-Process -NoNewWindow -Wait -FilePath .\migration.exe -ArgumentList $arguments
         
             Set-Location -Path $savedpath
@@ -225,6 +210,22 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateDashboards
         # #endregion
 
+        # ===========================================
+        # ========== Migrate DeliveryPlans ==========
+        #       Migrate-ADO-DeliveryPlans.psm1
+        #region =====================================
+        Start-ADODeliveryPlansMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -SourcePAT $SourcePAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
+        -WhatIf:$SkipMigratDeliveryPlans
+        # #endregion
+
         # ========================================
         # ========= Migrate Artifacts= ===========
         #       Migrate-ADO-Artifacts.psm1
@@ -240,22 +241,6 @@ function Start-ADOProjectMigration {
         -TargetPAT $TargetPAT `
         -ProjectPath $projectPath `
         -WhatIf:$SkipMigrateArtifacts
-        # #endregion
-
-        # ===========================================
-        # ========== Migrate DeliveryPlans ==========
-        #       Migrate-ADO-DeliveryPlans.psm1
-        #region =====================================
-        Start-ADODeliveryPlansMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePAT $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -WhatIf:$SkipMigratDeliveryPlans
         # #endregion
 
         # ========================================

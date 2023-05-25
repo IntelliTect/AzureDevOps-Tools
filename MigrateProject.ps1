@@ -2,36 +2,37 @@
 Param (
         # -------------- What parts of the migration should NOT be executed --------------- \
         # IntelliTect AzureDevOps-Tools Items
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
+        # Step 1
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
+        # Step 4
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
         # Azure DevOps Migration Tool Items (Martin's Tool)
+        # Step 2
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTeams = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestVariables = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestConfigurations = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestPlansAndSuites = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItemQuerys = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildPipelines = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
+        
+        # Step 3
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
 )
 
 Import-Module Migrate-ADO -Force
-
-
-# Debug option to not add the Work Item Migration Custom Field (ReflectedWorkItemId)
-$SkipAddADOCustomField = $TRUE
 
 # IntelliTect AzureDevOps-Tools Items
 Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
@@ -43,7 +44,7 @@ Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
 Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
 Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
-Write-Log -Message "SkipMigrateArtifacts $($SkipMigratDeliveryPlans)"
+Write-Log -Message "SkipMigratDeliveryPlans $($SkipMigratDeliveryPlans)"
 
 
 # Azure DevOps Migration Tool Items
@@ -57,7 +58,6 @@ Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
 Write-Log -Message "SkipMigrateTaskGroups $($SkipMigrateTaskGroups)"
 Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
 Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
-# Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
 Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
 Write-Log -Message ' '
 
@@ -66,7 +66,23 @@ Write-Log -Message ' '
 # ---------------- Set up files for logging & get configuration values ---------------- 
 #region -------------------------------------------------------------------------------
 $runDate = (get-date).ToString('yyyy-MM-dd HHmmss')
-$configuration = [Object](Get-Content 'configuration.json' | Out-String | ConvertFrom-Json)
+
+$configFile = 'configuration.json'
+$configPath = 'configuration\'
+$filePath = Resolve-Path -Path "$configPath$configFile"
+
+if($NULL -eq $filePath) {
+    Write-Host "Checking in project root directory for configuration.json file.."
+    $configPath = ''
+    $filePath = Resolve-Path -Path "$configPath$configFile"
+}
+if($NULL -eq $filePath) {
+    Write-Log -Message 'Unable to locate configuration.json file which is required!' -LogLevel ERROR
+    exit
+}
+
+Write-Host "Configuration.json file found.."
+$configuration = [Object](Get-Content "$configPath$configFile" | Out-String | ConvertFrom-Json)
 
 $SourceProject = $configuration.SourceProject
 $TargetProject = $configuration.TargetProject
@@ -106,8 +122,7 @@ $env:MIGRATION_LOGS_PATH = $projectPath
 #   Martin's Tool
 #region ====================================
 
-# $martinConfigPath = "$ProjectDirectory\migration-scripts\$DevOpsMigrationToolConfigurationFile"
-$martinConfigPath = "$ProjectDirectory\$DevOpsMigrationToolConfigurationFile"
+$martinConfigPath = "$ProjectDirectory\$($configPath)$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 32)
 $martinConfigFileChanged = $FALSE
 
@@ -274,20 +289,13 @@ foreach($processor in $martinConfiguration.Processors)
             $processor.MigrateVariableGroups = !$SkipMigrateVariableGroups
         }
 
-        # # MigrateServiceConnections
-        # if(($processor.MigrateServiceConnections -ne !$SkipMigrateServiceConnections)){
-        #     $processor.MigrateServiceConnections = !$SkipMigrateServiceConnections
-        # }
-
         $SkipAzureDevOpsPipelineProcessorOptions = (  `
             $SkipMigrateBuildPipelines -and  `
             $SkipMigrateReleasePipelines -and  `
             $SkipMigrateVariableGroups -and  `
-            $SkipMigrateTaskGroups #-and  `
-            # $SkipMigrateServiceConnections
+            $SkipMigrateTaskGroups
         )
 
-        # if(($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions)){
         if(($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions) -or (!$SkipAzureDevOpsPipelineProcessorOptions)){
             $processor.Enabled = !$SkipAzureDevOpsPipelineProcessorOptions
 
@@ -321,13 +329,12 @@ $SkipAzureDevOpsMigrationTool = (  `
     $SkipMigrateReleasePipelines -and  `
     $SkipMigrateTaskGroups -and  `
     $SkipMigrateVariableGroups -and  `
-    # $SkipMigrateServiceConnections -and  `
     $SkipMigrateWorkItems
 )
 
 
 if($martinConfigFileChanged) {
-    $martinConfiguration | ConvertTo-Json -Depth 32 | Set-Content $DevOpsMigrationToolConfigurationFile
+    $martinConfiguration | ConvertTo-Json -Depth 32 | Set-Content $martinConfigPath
 }
 #endregion
 
@@ -339,6 +346,12 @@ if($martinConfigFileChanged) {
 #   zure Active Directory and you can grant Contributor role to the subscription 
 #   that was chosen.
 
+# Either separate source and target tokens or same token for source and target
+$sourcePat = $env:AZURE_DEVOPS_MIGRATION_SOURCE_PAT
+$targetPat = $env:AZURE_DEVOPS_MIGRATION_TARGET_PAT
+$pat = $env:AZURE_DEVOPS_MIGRATION_PAT
+If ($NULL -eq $sourcePat) {$sourcePat = $pat }
+If ($NULL -eq $targetPat) {$targetPat = $pat }
 
 # ========================================
 # ========== Migrate Project =============
@@ -346,14 +359,15 @@ if($martinConfigFileChanged) {
 Start-ADOProjectMigration `
     -SourceOrgName $configuration.SourceProject.OrgName `
     -SourceProjectName $SourceProjectName `
-    -SourcePAT $configuration.SourceProject.PersonalAccessToken `
+    -SourcePAT $sourcePat  `
     -SourceProcessId $configuration.SourceProject.ProcessTypeId `
     -TargetOrgName $configuration.TargetProject.OrgName `
     -TargetProjectName $TargetProjectName `
-    -TargetPAT $configuration.TargetProject.PersonalAccessToken `
+    -TargetPAT $targetPat `
     -TargetProcessId $configuration.TargetProject.ProcessTypeId `
     -ProjectPath $projectPath `
     -ProjectDirectory "$ProjectDirectory\\$ScriptDirectoryName" `
+    -configurationDirectory "$ProjectDirectory\\$configPath" `
     -WorkItemMigratorDirectory $WorkItemMigratorDirectory `
     -DevOpsMigrationToolConfigurationFile $DevOpsMigrationToolConfigurationFile `
     -SkipMigrateGroups $SkipMigrateGroups `
@@ -366,6 +380,5 @@ Start-ADOProjectMigration `
     -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
     -SkipMigratDeliveryPlans $SkipMigratDeliveryPlans `
-    -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
-    -SkipAddADOCustomField ($SkipAddADOCustomField -or $SkipMigrateWorkItems)
+    -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool
 #endregion
