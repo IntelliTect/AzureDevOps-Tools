@@ -10,7 +10,6 @@
         "OrgName": "AIZ-Sandbox"
     },
     "ProjectDirectory": "C:\\Users\\JohnEvans\\Working\\Assurant AIZ-GT- ADO Migration Tools\\DevOps-Enablement-ADO-migration",
-    "ScriptDirectoryName": "",
     "WorkItemMigratorDirectory": "C:\\tools\\MigrationTools",
     "DevOpsMigrationToolConfigurationFile": "migrator-configuration.json"
 }
