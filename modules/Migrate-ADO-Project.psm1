@@ -9,8 +9,7 @@ function Start-ADOProjectMigration {
         [Parameter (Mandatory = $TRUE)] [String]$TargetOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetPAT,
         [Parameter (Mandatory = $TRUE)] [String]$ProjectPath,
-        [Parameter (Mandatory = $TRUE)] [String]$ProjectDirectory,
-        [Parameter (Mandatory = $TRUE)] [String]$configurationDirectory,
+        [Parameter (Mandatory = $TRUE)] [String]$MartinsToolConfigurationFile,
         [Parameter (Mandatory = $TRUE)] [String]$WorkItemMigratorDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$DevOpsMigrationToolConfigurationFile,
         # -------------- What parts of the migration should NOT be executed --------------- 
@@ -135,7 +134,7 @@ function Start-ADOProjectMigration {
             # Migrate Work Items using nkdagility tool 
             Write-Log -Message "Run Azure DevOps Migration Tool (Martins Tool)"
 
-            $arguments = "execute --config `"$configurationDirectory\migrator-configuration.json`""
+            $arguments = "execute --config `"$MartinsToolConfigurationFile`""
             Start-Process -NoNewWindow -Wait -FilePath .\migration.exe -ArgumentList $arguments
         
             Set-Location -Path $savedpath
