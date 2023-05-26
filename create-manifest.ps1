@@ -6,18 +6,23 @@ $IncludedModules = @(
     "$(Get-Location)\modules\Migrate-ADO-Teams.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Groups.psm1",
     "$(Get-Location)\modules\Migrate-ADO-BuildQueues.psm1",
+    "$(Get-Location)\modules\Migrate-ADO-BuildEnvironments.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Repos.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Wikis.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Common.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Pipelines.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Project.psm1",
     "$(Get-Location)\modules\Migrate-ADO-ServiceHooks.psm1",
-    "$(Get-Location)\modules\Migrate-ADO-ServiceEndpoints.psm1",
+    "$(Get-Location)\modules\Migrate-ADO-ServiceConnections.psm1",
     "$(Get-Location)\modules\Migrate-ADO-VariableGroups.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Policies.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Dashboards.psm1",
     "$(Get-Location)\modules\Migrate-ADO-BuildDefinitions.psm1",
-    "$(Get-Location)\modules\Migrate-ADO-ReleaseDefinitions.psm1"
+    "$(Get-Location)\modules\Migrate-ADO-ReleaseDefinitions.psm1",
+    "$(Get-Location)\modules\Migrate-ADO-Artifacts.psm1",
+    "$(Get-Location)\modules\Migrate-ADO-DeliveryPlans.psm1",
+    "$(Get-Location)\modules\ADO-AddCustomField.psm1",
+    "$(Get-Location)\modules\Migrate-Packages.psm1"
 )
 
 # Make sure files are the correct paths
