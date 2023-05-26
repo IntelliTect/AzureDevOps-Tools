@@ -11,7 +11,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $FALSE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
@@ -113,7 +113,6 @@ $TargetProject = $configuration.TargetProject
 $SourceProjectName = $configuration.SourceProject.ProjectName
 $TargetProjectName = $configuration.TargetProject.ProjectName
 $ProjectDirectory = $configuration.ProjectDirectory
-$ScriptDirectoryName = $configuration.ScriptDirectoryName
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
 
@@ -146,7 +145,7 @@ $env:MIGRATION_LOGS_PATH = $projectPath
 #   Martin's Tool
 #region ====================================
 
-$martinConfigPath = "$ProjectDirectory\$($configPath)$DevOpsMigrationToolConfigurationFile"
+$martinConfigPath = "$($ProjectDirectory)\$($configPath)$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 32)
 $martinConfigFileChanged = $FALSE
 
@@ -388,8 +387,7 @@ Start-ADOProjectMigration `
     -TargetProjectName $TargetProjectName `
     -TargetPAT $targetPat `
     -ProjectPath $projectPath `
-    -ProjectDirectory "$ProjectDirectory\\$ScriptDirectoryName" `
-    -configurationDirectory "$ProjectDirectory\\$configPath" `
+    -MartinsToolConfigurationFile $martinConfigPath `
     -WorkItemMigratorDirectory $WorkItemMigratorDirectory `
     -DevOpsMigrationToolConfigurationFile $DevOpsMigrationToolConfigurationFile `
     -SkipMigrateGroups $SkipMigrateGroups `
