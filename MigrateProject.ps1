@@ -32,7 +32,31 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
 )
 
-Import-Module Migrate-ADO -Force
+# Import-Module Migrate-ADO -Force
+
+Import-Module .\modules\Migrate-ADO-AreaPaths.psm1
+Import-Module .\modules\Migrate-ADO-IterationPaths.psm1
+Import-Module .\modules\Migrate-ADO-Users.psm1
+Import-Module .\modules\Migrate-ADO-Teams.psm1
+Import-Module .\modules\Migrate-ADO-Groups.psm1
+Import-Module .\modules\Migrate-ADO-BuildQueues.psm1
+Import-Module .\modules\Migrate-ADO-BuildEnvironments.psm1
+Import-Module .\modules\Migrate-ADO-Repos.psm1
+Import-Module .\modules\Migrate-ADO-Wikis.psm1
+Import-Module .\modules\Migrate-ADO-Common.psm1
+Import-Module .\modules\Migrate-ADO-Pipelines.psm1
+Import-Module .\modules\Migrate-ADO-Project.psm1
+Import-Module .\modules\Migrate-ADO-ServiceHooks.psm1
+Import-Module .\modules\Migrate-ADO-ServiceConnections.psm1
+Import-Module .\modules\Migrate-ADO-VariableGroups.psm1
+Import-Module .\modules\Migrate-ADO-Policies.psm1
+Import-Module .\modules\Migrate-ADO-Dashboards.psm1
+Import-Module .\modules\Migrate-ADO-BuildDefinitions.psm1
+Import-Module .\modules\Migrate-ADO-ReleaseDefinitions.psm1
+Import-Module .\modules\Migrate-ADO-Artifacts.psm1
+Import-Module .\modules\Migrate-ADO-DeliveryPlans.psm1
+Import-Module .\modules\ADO-AddCustomField.psm1
+Import-Module .\modules\Migrate-Packages.psm1
 
 # IntelliTect AzureDevOps-Tools Items
 Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
