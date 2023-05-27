@@ -26,7 +26,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildPipelines = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $FALSE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
         
         # Step 3
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
@@ -59,17 +59,23 @@ Import-Module .\modules\ADO-AddCustomField.psm1
 Import-Module .\modules\Migrate-Packages.psm1
 
 # IntelliTect AzureDevOps-Tools Items
-Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
+Write-Log ' '
+Write-Log ' '
+
+ 
+
 Write-Log -Message "SkipMigrateBuildQueues $($SkipMigrateBuildQueues)"
 Write-Log -Message "SkipMigrateRepos $($SkipMigrateRepos)"
 Write-Log -Message "SkipMigrateWikis $($SkipMigrateWikis)"
+Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
+Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
 Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
 Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
-Write-Log -Message "SkipMigrateServiceConnections $($SkipMigrateServiceConnections)"
-Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
 Write-Log -Message "SkipMigratDeliveryPlans $($SkipMigratDeliveryPlans)"
+Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
 
+ 
 
 # Azure DevOps Migration Tool Items
 Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
@@ -78,10 +84,10 @@ Write-Log -Message "SkipMigrateTestVariables $($SkipMigrateTestVariables)"
 Write-Log -Message "SkipMigrateTestConfigurations $($SkipMigrateTestConfigurations)"
 Write-Log -Message "SkipMigrateTestPlansAndSuites $($SkipMigrateTestPlansAndSuites)"
 Write-Log -Message "SkipMigrateWorkItemQuerys $($SkipMigrateWorkItemQuerys)"
-Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
-Write-Log -Message "SkipMigrateTaskGroups $($SkipMigrateTaskGroups)"
-Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
 Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
+Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
+Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
+Write-Log -Message "SkipMigrateTaskGroups $($SkipMigrateTaskGroups)"
 Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
 Write-Log -Message ' '
 
