@@ -11,7 +11,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $FALSE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
@@ -26,7 +26,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildPipelines = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $FALSE,
         
         # Step 3
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
@@ -113,6 +113,7 @@ $TargetProject = $configuration.TargetProject
 $SourceProjectName = $configuration.SourceProject.ProjectName
 $TargetProjectName = $configuration.TargetProject.ProjectName
 $ProjectDirectory = $configuration.ProjectDirectory
+$ScriptDirectoryName = $configuration.ScriptDirectoryName
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
 
@@ -139,13 +140,20 @@ $projectPath = Get-ProjectFolderPath `
 
 $env:MIGRATION_LOGS_PATH = $projectPath
 
+# Either separate source and target tokens or same token for source and target
+$sourcePat = $env:AZURE_DEVOPS_MIGRATION_SOURCE_PAT
+$targetPat = $env:AZURE_DEVOPS_MIGRATION_TARGET_PAT
+$pat = $env:AZURE_DEVOPS_MIGRATION_PAT
+If ($NULL -eq $sourcePat) {$sourcePat = $pat }
+If ($NULL -eq $targetPat) {$targetPat = $pat }
+
 
 # ==========================================
 # = Configure Azure DevOps Migration Tool  =
 #   Martin's Tool
 #region ====================================
 
-$martinConfigPath = "$($ProjectDirectory)\$($configPath)$DevOpsMigrationToolConfigurationFile"
+$martinConfigPath = "$($ProjectDirectory)\$($ScriptDirectoryName)\$($configPath)$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 32)
 $martinConfigFileChanged = $FALSE
 
@@ -163,8 +171,8 @@ if($martinConfiguration.Source.Project -ne $SourceProject.ProjectName) {
     $martinConfigFileChanged = $TRUE
 }
 # personal access token
-if($martinConfiguration.Source.PersonalAccessToken -ne $SourceProject.PersonalAccessToken) {
-    $martinConfiguration.Source.PersonalAccessToken = $SourceProject.PersonalAccessToken
+if($martinConfiguration.Source.PersonalAccessToken -ne $sourcePat) {
+    $martinConfiguration.Source.PersonalAccessToken = $sourcePat
     $martinConfigFileChanged = $TRUE
 }
 
@@ -182,8 +190,8 @@ if($martinConfiguration.Target.Project -ne $TargetProject.ProjectName) {
     $martinConfigFileChanged = $TRUE
 }
 # personal access token
-if($martinConfiguration.Target.PersonalAccessToken -ne $TargetProject.PersonalAccessToken) {
-    $martinConfiguration.Target.PersonalAccessToken = $TargetProject.PersonalAccessToken
+if($martinConfiguration.Target.PersonalAccessToken -ne $targetPat) {
+    $martinConfiguration.Target.PersonalAccessToken = $targetPat
     $martinConfigFileChanged = $TRUE
 }
 
@@ -205,14 +213,14 @@ foreach($endpointConfig in $martinConfiguration.Endpoints.PSObject.Properties) {
             $martinConfigFileChanged = $TRUE
         }
         # Source personal access token
-        if($endpointConfig.Value[0].AccessToken -ne $SourceProject.PersonalAccessToken) {
-            $endpointConfig.Value[0].AccessToken = $SourceProject.PersonalAccessToken
+        if($endpointConfig.Value[0].AccessToken -ne $sourcePat) {
+            $endpointConfig.Value[0].AccessToken = $sourcePat
             $martinConfigFileChanged = $TRUE
         }
         if($endpointConfig.Name -eq "TfsWorkItemEndpoints") {
              # Source personal access token
-            if($endpointConfig.Value[0].PersonalAccessToken -ne $SourceProject.PersonalAccessToken) {
-                $endpointConfig.Value[0].PersonalAccessToken = $SourceProject.PersonalAccessToken
+            if($endpointConfig.Value[0].PersonalAccessToken -ne $sourcePat) {
+                $endpointConfig.Value[0].PersonalAccessToken = $sourcePat
                 $martinConfigFileChanged = $TRUE
             }
         }
@@ -228,14 +236,14 @@ foreach($endpointConfig in $martinConfiguration.Endpoints.PSObject.Properties) {
             $martinConfigFileChanged = $TRUE
         }
         # Target personal access token
-        if($endpointConfig.Value[1].AccessToken -ne $TargetProject.PersonalAccessToken) {
-            $endpointConfig.Value[1].AccessToken = $TargetProject.PersonalAccessToken
+        if($endpointConfig.Value[1].AccessToken -ne $targetPat) {
+            $endpointConfig.Value[1].AccessToken = $targetPat
             $martinConfigFileChanged = $TRUE
         }
         if($endpointConfig.Name -eq "TfsWorkItemEndpoints") {
             # Source personal access token
-           if($endpointConfig.Value[1].PersonalAccessToken -ne $TargetProject.PersonalAccessToken) {
-               $endpointConfig.Value[1].PersonalAccessToken = $TargetProject.PersonalAccessToken
+           if($endpointConfig.Value[1].PersonalAccessToken -ne $targetPat) {
+               $endpointConfig.Value[1].PersonalAccessToken = $targetPat
                $martinConfigFileChanged = $TRUE
            }
        }
@@ -369,12 +377,6 @@ if($martinConfigFileChanged) {
 #   zure Active Directory and you can grant Contributor role to the subscription 
 #   that was chosen.
 
-# Either separate source and target tokens or same token for source and target
-$sourcePat = $env:AZURE_DEVOPS_MIGRATION_SOURCE_PAT
-$targetPat = $env:AZURE_DEVOPS_MIGRATION_TARGET_PAT
-$pat = $env:AZURE_DEVOPS_MIGRATION_PAT
-If ($NULL -eq $sourcePat) {$sourcePat = $pat }
-If ($NULL -eq $targetPat) {$targetPat = $pat }
 
 # ========================================
 # ========== Migrate Project =============
