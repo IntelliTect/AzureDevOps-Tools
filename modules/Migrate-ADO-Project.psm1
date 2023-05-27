@@ -135,6 +135,7 @@ function Start-ADOProjectMigration {
             Write-Log -Message "Run Azure DevOps Migration Tool (Martins Tool)"
 
             $arguments = "execute --config `"$MartinsToolConfigurationFile`""
+            
             Start-Process -NoNewWindow -Wait -FilePath .\migration.exe -ArgumentList $arguments
         
             Set-Location -Path $savedpath
