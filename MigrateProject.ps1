@@ -29,7 +29,8 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
         
         # Step 3
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE,
+        [parameter(Mandatory=$FALSE)] [String]$WorkItemQueryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request')"
 )
 
 # Import-Module Migrate-ADO -Force
@@ -89,7 +90,10 @@ Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
 Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
 Write-Log -Message "SkipMigrateTaskGroups $($SkipMigrateTaskGroups)"
 Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
-Write-Log -Message ' '
+Write-Log -Message " "
+Write-Log -Message "WorkItemQueryBit: $($WorkItemQueryBit)"
+Write-Log -Message " "
+
 
 
 # -------------------------------------------------------------------------------------
@@ -348,8 +352,9 @@ foreach($processor in $martinConfiguration.Processors)
             $martinConfigFileChanged = $TRUE
         }
     } elseif(($processor.'$type' -eq "WorkItemMigrationConfig") -or ($processor.'$type' -eq "WorkItemTrackingProcessorOptions")) {
-        if(($processor.Enabled -ne !$SkipMigrateWorkItems)){
+        if(($processor.Enabled -ne !$SkipMigrateWorkItems) -or ($processor.WIQLQueryBit -ne $WorkItemQueryBit)){
             $processor.Enabled = !$SkipMigrateWorkItems
+            $processor.WIQLQueryBit = $WorkItemQueryBit
             $martinConfigFileChanged = $TRUE
         }
     }
