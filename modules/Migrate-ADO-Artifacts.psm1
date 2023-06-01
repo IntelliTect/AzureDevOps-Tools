@@ -55,15 +55,15 @@ function Start-ADOArtifactsMigration {
 
             Write-Log -Message "Creating New Feed [$($feed.Name)] in target.. "
             
-            # $resultFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedName $feed.Name -UpstreamSources $feed.upstreamSources
+            $resultFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedName $feed.Name -UpstreamSources $feed.upstreamSources
            
-            # if ($null -eq $resultFeed) {
-            #     Write-Log -Message "Could not create a new feed with name '$($FeedName)'. The feed name may be reserved by the system." -LogLevel ERROR
-            #    continue
-            # } else {
-            #     Write-Log -Message "Done!" -LogLevel SUCCESS
-            #     $newTargetFeeds += $resultFeed
-            # }
+            if ($null -eq $resultFeed) {
+                Write-Log -Message "Could not create a new feed with name '$($FeedName)'. The feed name may be reserved by the system." -LogLevel ERROR
+               continue
+            } else {
+                Write-Log -Message "Done!" -LogLevel SUCCESS
+                $newTargetFeeds += $resultFeed
+            }
         }
 
         foreach ($newTargetFeed in $newTargetFeeds) {

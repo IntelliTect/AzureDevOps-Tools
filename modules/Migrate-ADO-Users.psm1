@@ -24,7 +24,7 @@ function Start-ADOUserMigration {
         Write-Log -Message '-----------------------'
         Write-Log -Message ' '
 
-        [ADO_User[]]$sourceUsers = Get-ADOUsers `
+        $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
 
@@ -32,6 +32,7 @@ function Start-ADOUserMigration {
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat `
             -Users $sourceUsers
+
     }
 }
 

@@ -23,12 +23,44 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
             "Migrate teams from source project $SourceOrg/$SourceProjectName")
     ) {
+        
+        # Get Headers
+        $sourceHeaders = New-HTTPHeaders -PersonalAccessToken $SourcePAT
+        $targetHeaders = New-HTTPHeaders -PersonalAccessToken $TargetPAT
+
+
+        # -------------------------------------------------------------------------------------
+        # ---------------- Start The Migration At the Org Level -------------------------------
+        #region -------------------------------------------------------------------------------
+        Write-Log -Message ' '
+        Write-Log -Message '----------------------------------------------------'
+        Write-Log -Message "-- From: $($SourceOrgName) To: $($TargetOrgName) --"
+        Write-Log -Message '----------------------------------------------------'
+        Write-Log -Message ' '
+
+
+        # ========================================
+        # ====== Migrate Users On Org Level ====== 
+        #region ==================================    
+        Start-ADOUserMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourcePat $SourcePAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetPAT $TargetPAT `
+        -WhatIf: $SkipMigrateOrganizationUsers
+        #endregion
+
+       
+        # -----------------------------------------------------------------------------------------
+        # ---------------- Start The Migration At the Project Level -------------------------------
+        #region -----------------------------------------------------------------------------------
         Write-Log -Message ' '
         Write-Log -Message '--------------------------------------------------------------------'
         Write-Log -Message "-- Migrate $($SourceProjectName) to $($TargetProjectName) --"
@@ -42,12 +74,6 @@ function Start-ADOProjectMigration {
         Write-Log -Message "TargetOrgName $($TargetOrgName)"
         Write-Log -Message ' '
 
-        
-        # Get Headers
-        $sourceHeaders = New-HTTPHeaders -PersonalAccessToken $SourcePAT
-        $targetHeaders = New-HTTPHeaders -PersonalAccessToken $TargetPAT
-
-       
         # ========================================
         # ========= Migrate Build Queues =========
         #       Migrate-ADO-BuildQueues.psm1

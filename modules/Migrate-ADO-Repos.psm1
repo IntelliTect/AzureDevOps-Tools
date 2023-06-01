@@ -41,12 +41,12 @@ function Start-ADORepoMigration {
             -TargetHeaders $TargetHeaders `
             -ReposPath $ReposPath
 
-        Push-Repos `
-            -ProjectName $TargetProjectName `
-            -OrgName $TargetOrgName `
-            -Repos $reposToPush `
-            -Headers $TargetHeaders `
-            -ReposPath $ReposPath
+        # Push-Repos `
+        #     -ProjectName $TargetProjectName `
+        #     -OrgName $TargetOrgName `
+        #     -Repos $reposToPush `
+        #     -Headers $TargetHeaders `
+        #     -ReposPath $ReposPath
     }
 }
 
@@ -101,24 +101,32 @@ function Copy-Repos {
 
             $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
             $sourceRepos = Get-Repos -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
-
+            $sourceRepos = $sourceRepos[0..10]
             foreach ($sourceRepo in $sourceRepos) {
-        
-                if ($null -ne ($targetRepos | Where-Object { $_.name -ieq $sourceRepo.name })) {
-                    Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
-                    continue
-                }
+                # if ($null -ne ($targetRepos | Where-Object { $_.name -ieq $sourceRepo.name })) {
+                #     Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
+                #     continue
+                # }
         
                 Write-Log -Message "Cloning $($sourceRepo.name)"
-                # git clone $sourceRepo.remoteURL "`"$ReposPath\$($sourceRepo.name)`""
-                git clone $sourceRepo.remoteURL "$ReposPath\$($sourceRepo.name)"
+                $getOutput = & git clone $sourceRepo.remoteURL "$ReposPath\$($sourceRepo.name)" 2>&1
+
+                if ($getOutput.GetType().Name = "[Object][]") {
+                    foreach ($error in $getOutput) {
+                        Write-Log -Message ($error | ConvertTo-Json -Depth 100)            
+                    }
+                } else {
+                    Write-Log -Message ($getOutput | ConvertTo-Json -Depth 100)
+                }
+                
+                # Write-Log -Message $getOutput.Exception.Message
                 $final += $sourceRepo
             } 
             return $final
         }
         catch {
             Write-Log -Message "Error cloning repos from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR
-            Write-Error -Messsage $_ -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
             return
         }
     }
