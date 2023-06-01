@@ -26,14 +26,52 @@ function Start-ADOUserMigration {
         Write-Log -Message '-----------------------'
         Write-Log -Message ' '
 
+        Write-Log -Message 'Getting ADO Users from Source..'
         $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
 
+        Write-Log -Message 'Pushing ADO Users to Target..'
         Push-ADOUsers `
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat `
             -Users $sourceUsers
+    }
+}
+
+function Get-ADOUsers {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+        
+        [Parameter (Mandatory = $TRUE)]
+        [String]$PersonalAccessToken
+    )
+    if ($PSCmdlet.ShouldProcess($OrgName)) {
+        Set-AzDevOpsContext -PersonalAccessToken $PersonalAccessToken -OrgName $OrgName
+
+        Write-Host "Calling az devops user list.." -NoNewline
+        $results = az devops user list --detect $False | ConvertFrom-Json
+
+        $members = $results.members
+        $totalCount = $results.totalCount
+        $counter = $members.Count
+        do {
+            $UserResponse = az devops user list --detect $False --skip $counter | ConvertFrom-Json
+            Write-Host ".." -NoNewline
+            $members += $UserResponse.members
+            $counter += $UserResponse.members.Count
+        } while ($counter -lt $totalCount)
+        Write-Host " "
+
+        # Convert to ADO User objects
+        [ADO_User[]]$users = @()
+        foreach ($orgUser in $members ) {
+            $users += [ADO_User]::new($orgUser.user.originId, $orgUser.user.principalName, $orgUser.user.displayName, $orgUser.user.mailAddress, $orgUser.accessLevel.accountLicenseType)
+        }
+
+        return $users
     }
 }
 
@@ -50,6 +88,8 @@ function Push-ADOUsers {
         [ADO_User[]]$Users
     )
     if ($PSCmdlet.ShouldProcess($OrgName)) {
+
+        Write-Log -Message 'Getting Target ADO Users to verify if users exist already..'
         [ADO_User[]]$targetUsers = Get-ADOUsers `
             -OrgName $OrgName `
             -PersonalAccessToken $PersonalAccessToken
@@ -57,7 +97,7 @@ function Push-ADOUsers {
         foreach ($user in $Users) {
             # Check for duplicates
             if ($null -ne ($targetUsers | Where-Object { $_.PrincipalName -ieq $user.PrincipalName } )) {
-                Write-Log -Message "User [$($user.PrincipalName)] already exists in target org '$OrgName'... "
+                Write-Log -Message "User with PrincipalName [$($user.PrincipalName)] already exists in target org '$OrgName'... "
                 continue
             }
 
