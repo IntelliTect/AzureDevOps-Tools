@@ -2,6 +2,9 @@
 Param (
         # -------------- What parts of the migration should NOT be executed --------------- \
         # IntelliTect AzureDevOps-Tools Items
+        # Pre-step 
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
+
         # Step 1
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
@@ -413,5 +416,6 @@ Start-ADOProjectMigration `
     -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
     -SkipMigratDeliveryPlans $SkipMigratDeliveryPlans `
-    -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool
+    -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
+    -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers
 #endregion
