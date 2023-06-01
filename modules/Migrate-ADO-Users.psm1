@@ -1,4 +1,6 @@
 
+Using Module ".\Migrate-ADO-Common.psm1"
+
 function Start-ADOUserMigration {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -32,7 +34,6 @@ function Start-ADOUserMigration {
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat `
             -Users $sourceUsers
-
     }
 }
 
