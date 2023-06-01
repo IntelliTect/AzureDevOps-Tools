@@ -110,7 +110,7 @@
     "TfsWorkItemEndpoints": [
       {
         "Name": "WorkItemSource",
-        "AccessToken": "null",
+        "AccessToken": null,
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc",
           "Parameters": {
@@ -121,7 +121,7 @@
         "Project": "GL.CL-Elita",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": "null",
+        "PersonalAccessToken": null,
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
@@ -129,15 +129,15 @@
       },
       {
         "Name": "WorkItemTarget",
-        "AccessToken": "null",
+        "AccessToken": null,
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc"
         },
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita_migrated",
+        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
+        "Project": "GL.CL-Elita-migration-test",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": "null",
+        "PersonalAccessToken": null,
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
@@ -151,7 +151,7 @@
         "Direction": "Source",
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
-        "AccessToken": "null",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
           "$type": "TfsLanguageMapOptions",
@@ -164,9 +164,9 @@
         "$type": "TfsTeamSettingsEndpointOptions",
         "Name": "TeamSettingsTarget",
         "Direction": "Target",
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita_migrated",
-        "AccessToken": "null",
+        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
+        "Project": "GL.CL-Elita-migration-test",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
           "$type": "TfsLanguageMapOptions",
@@ -182,7 +182,7 @@
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "null",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -192,10 +192,10 @@
       },
       {
         "Name": "tfsTarget",
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita_migrated",
+        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
+        "Project": "GL.CL-Elita-migration-test",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "null",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -211,16 +211,16 @@
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "null",
+        "AccessToken": null,
         "EndpointEnrichers": null
       },
       {
         "Name": "PipelineTarget",
         "$type": "AzureDevOpsEndpointOptions",
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita_migrated",
+        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
+        "Project": "GL.CL-Elita-migration-test",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "null",
+        "AccessToken": null,
         "EndpointEnrichers": null
       }
     ]
@@ -232,7 +232,7 @@
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": "null",
+    "PersonalAccessToken": null,
     "LanguageMaps": {
       "AreaPath": "Area",
       "IterationPath": "Iteration"
@@ -240,12 +240,12 @@
   },
   "Target": {
     "$type": "TfsTeamProjectConfig",
-    "Collection": "https://dev.azure.com/AIZ-Global/",
-    "Project": "GL.CL-Elita_migrated",
+    "Collection": "https://dev.azure.com/AIZ-Sandbox/",
+    "Project": "GL.CL-Elita-migration-test",
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": "null",
+    "PersonalAccessToken": null,
     "LanguageMaps": {
       "AreaPath": "Area",
       "IterationPath": "Iteration"
@@ -330,7 +330,7 @@
       "PrefixProjectToNodes": false,
       "UpdateCreatedDate": true,
       "UpdateCreatedBy": true,
-      "WIQLQueryBit": "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request')",
+      "WIQLQueryBit": "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.ChangedDate] > @Today - 75 AND [System.ChangedDate] <= @Today - 0 ",
       "WIQLOrderBit": "[System.ChangedDate] desc",
       "LinkMigration": true,
       "AttachmentMigration": true,
