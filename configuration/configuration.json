@@ -5,9 +5,9 @@
         "OrgName": "AIZ-GL"
     },
     "TargetProject": {
-        "Organization": "https://dev.azure.com/AIZ-Global/",
-        "ProjectName": "GL.CL-Elita_migrated",
-        "OrgName": "AIZ-Global"
+        "Organization": "https://dev.azure.com/AIZ-Sandbox/",
+        "ProjectName": "GL.CL-Elita-migration-test",
+        "OrgName": "AIZ-Sandbox"
     },
     "ProjectDirectory": "C:\\Users\\JohnEvans\\Working\\Assurant AIZ-GT- ADO Migration Tools\\DevOps-Enablement-ADO-migration",
     "WorkItemMigratorDirectory": "C:\\tools\\MigrationTools",
