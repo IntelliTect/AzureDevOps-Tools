@@ -110,7 +110,7 @@
     "TfsWorkItemEndpoints": [
       {
         "Name": "WorkItemSource",
-        "AccessToken": "",
+        "AccessToken": "null",
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc",
           "Parameters": {
@@ -121,7 +121,7 @@
         "Project": "Sample-Project",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": "",
+        "PersonalAccessToken": "null",
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
@@ -129,7 +129,7 @@
       },
       {
         "Name": "WorkItemTarget",
-        "AccessToken": "",
+        "AccessToken": "null",
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc"
         },
@@ -137,7 +137,7 @@
         "Project": "Sample-Project-migrated",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": "",
+        "PersonalAccessToken": "null",
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
@@ -182,7 +182,7 @@
         "Organisation": "https://dev.azure.com/Source-Org/",
         "Project": "Sample-Project",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "",
+        "AccessToken": "null",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -195,7 +195,7 @@
         "Organisation": "https://dev.azure.com/Target-Org/",
         "Project": "Sample-Project-migrated",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "",
+        "AccessToken": "null",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -211,7 +211,7 @@
         "Organisation": "https://dev.azure.com/Source-Org/",
         "Project": "Sample-Project",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "",
+        "AccessToken": "null",
         "EndpointEnrichers": null
       },
       {
@@ -220,7 +220,7 @@
         "Organisation": "https://dev.azure.com/Target-Org/",
         "Project": "Sample-Project-migrated",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "",
+        "AccessToken": "null",
         "EndpointEnrichers": null
       }
     ]
@@ -232,7 +232,7 @@
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": "",
+    "PersonalAccessToken": "null",
     "LanguageMaps": {
       "AreaPath": "Area",
       "IterationPath": "Iteration"
@@ -245,7 +245,7 @@
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": "",
+    "PersonalAccessToken": "null",
     "LanguageMaps": {
       "AreaPath": "Area",
       "IterationPath": "Iteration"
