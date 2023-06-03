@@ -6,6 +6,9 @@ Write-Host " "
 
 .\MigrateProject.ps1 `
 -SkipMigrateGroups $FALSE `
+-SkipMigrateTestConfigurations $FALSE `
+-SkipMigrateTestVariables $FALSE `
+-SkipMigrateTestPlansAndSuites $FALSE `
 -SkipMigrateServiceHooks $FALSE `
 -SkipMigratePolicies $FALSE `
 -SkipMigrateDashboards $FALSE `

@@ -39,11 +39,6 @@ function Start-ADOServiceConnectionsMigration {
                 continue
             }
 
-            # # THIS IS TEMP FOR TESTING AND SHOULD BE REMOVED
-            # if ($endpoint.name -ne "AIZ-GH" ) {
-            #     continue
-            # }
-        
             Write-Log -Message "Attempting to create [$($endpoint.name)] in target.. "
 
             $projectReference = @{
@@ -72,15 +67,33 @@ function Start-ADOServiceConnectionsMigration {
                 }
             }
 
+            # provide default values for specified endpoint types 
             if ($endpoint.type -eq "github") {
                 $parameters = @{
-                    "accessToken" = $NULL
+                    "accesstoken" = "0123456789" 
                 }
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
-
+                # 500 Errors!!! 
+                # $endpoint.authorization.parameters.serviceprincipalid = $NULL
+            } elseif ($endpoint.type -eq "externaltfs") {
+                $parameters = @{
+                    "apitoken" = "0123456789" 
+                }
+                $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+            } elseif ($endpoint.type -eq "stormrunner") {
+                 $endpoint.authorization.parameters.username = "abcdefghij"
+                 $endpoint.authorization.parameters | Add-Member -NotePropertyName password -NotePropertyValue "0123456789" 
+            } elseif ($endpoint.type -eq "OctopusEndpoint") {
+                $parameters = @{
+                    "apitoken" = "0123456789" 
+                }
+                $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "sonarqube") {
-
+                $parameters = @{
+                    "username" = "abcdefghij"
+                }
+                $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             }
 
             try {
@@ -92,6 +105,7 @@ function Start-ADOServiceConnectionsMigration {
                 Write-Log -Message $_.Exception -LogLevel ERROR
                 Write-Log -Message ($_ | ConvertFrom-Json -Depth 10) -LogLevel ERROR
                 Write-Log -Message $_ -LogLevel ERROR
+                Write-Log -Message " "
             }
         }
     }

@@ -41,7 +41,7 @@ function Start-ADOWikiMigration {
             -TargetHeaders $TargetHeaders `
             -ReposPath $ReposPath
 
-        Push-Repos `
+        Push-Wikis `
             -ProjectName $TargetProjectName `
             -OrgName $TargetOrgName `
             -Repos $wikiReposToPush `
@@ -126,7 +126,7 @@ function Copy-Wikis {
     }
 }
 
-function Push-Repos {
+function Push-Wikis {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
