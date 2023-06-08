@@ -9,6 +9,7 @@ Write-Host "-------------------------------------------"
 <#
   Step #1 migrate 
     - Build Queues (Project Agent Pools)
+      - Build Environments done with Build Queues
     - Repositories
     - Wikis
     - Service Connections 
