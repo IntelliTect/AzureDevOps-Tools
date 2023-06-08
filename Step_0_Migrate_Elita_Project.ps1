@@ -19,9 +19,6 @@ Write-Host "-------------------------------------------"
   Step #2 migrate 
     - Areas and Iterations
     - Teams
-    - Test Variables
-    - Test Configurations
-    - Test Plans and Suites
     - Work Item Querys
     - Variable Groups
     - Build Pipelines
@@ -32,7 +29,7 @@ Write-Host "-------------------------------------------"
 
 <#
   Step #3 migrate 
-    - Work Items
+    - Work Items (Including 'Test Cases')
            0 -   75 - 17284
           75 -  200 - 19010
          200 -  400 - 19159
@@ -47,7 +44,10 @@ Write-Host "-------------------------------------------"
 <#
   Step #4 migrate 
     - Groups
-    - SErvice Hooks 
+    - Test Configurations
+    - Test Variables
+    - Test Plans and Suites
+    - Service Hooks 
     - Policies
     - Dashbaords
     - Delivery Plans 

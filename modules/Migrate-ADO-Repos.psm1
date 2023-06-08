@@ -31,24 +31,89 @@ function Start-ADORepoMigration {
         Write-Log -Message '-- Migrate Repos --'
         Write-Log -Message '-------------------'
         Write-Log -Message ' '
+        
+        try {
+            $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
+            $sourceRepos = Get-Repos -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
+            $savedPath = $(Get-Location).Path
 
-        $reposToPush = Copy-Repos `
-            -SourceProjectName $SourceProjectName `
-            -SourceOrgName $SourceOrgName `
-            -SourceHeaders $sourceHeaders `
-            -TargetProjectName $TargetProjectName `
-            -TargetOrgName $TargetOrgName `
-            -TargetHeaders $TargetHeaders `
-            -ReposPath $ReposPath
+            foreach ($sourceRepo in $sourceRepos) {
+                Write-Log -Message "Copying repo $($sourceRepo.Name).."
 
-        Push-Repos `
-            -ProjectName $TargetProjectName `
-            -OrgName $TargetOrgName `
-            -Repos $reposToPush `
-            -Headers $TargetHeaders `
-            -ReposPath $ReposPath
+                $targetRepo = $targetRepos | Where-Object { $_.name -ieq $sourceRepo.name }
+                if ($null -ne $targetRepo) {
+                    Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
+                    continue
+                }
+
+                try {
+                    Write-Log -Message 'Initializing repository ... '
+                    New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                }
+                catch {
+                    Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR
+                    Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
+                    continue
+                }
+
+                try {
+                    Write-Log -Message "Cloning repository $($sourceRepo.name)"
+                    git clone --mirror $sourceRepo.remoteURL "$ReposPath\$($sourceRepo.name)"
+                    
+                    Write-Log -Message "Entering path `"$ReposPath\$($sourceRepo.name)`""
+                    Set-Location "$ReposPath\$($sourceRepo.name)"
+
+                    Write-Log -Message 'Pushing repo ...'
+                    $gitTarget = "https://$TargetOrgName@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
+                    git push --mirror $gitTarget
+
+                    # Write-Log -Message 'Remove local copy of repo ...'
+                    # remove-Item "$ReposPath\$($sourceRepo.name)" -Force -Recurse
+                }
+                catch {
+                    Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
+                }
+                finally {
+                    Set-Location $savedPath
+                }
+            } 
+        }
+        catch {
+            Write-Log -Message "Fatal-Error cloning repos from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
+            return
+        }
     }
 }
+
+
+function MigrateRepo {
+    Set-Location $RepoLocation
+
+    $response = gh api --method POST `
+        -H "Accept: application/vnd.github+json" `
+        -H "X-GitHub-Api-Version: 2022-11-28" `
+        "/orgs/$GitHubOwner/repos" `
+        -f name=$GitHubRepo `
+        -F private=true `
+        -F has_issues=true `
+        -F has_projects=true `
+        -F has_wiki=false       
+    $targetRepo = $response | ConvertFrom-Json
+    Write-Host -Verbose "New target repo: $($targetRepo.full_name)"
+
+    git clone --mirror "$GiteaHost/$GiteaOwner/$GiteaRepo.git"
+    Set-Location "$GiteaRepo.git"
+    git push --mirror "https://github.com/$GitHubOwner/$GitHubRepo.git"
+
+    Set-Location $RepoLocation
+    Remove-Item "$GiteaRepo.git" -Force -Recurse
+
+    git clone $TargetRepo.clone_url
+    Set-Location $GitHubRepo
+}
+
+
 
 function Get-Repos {
     [CmdletBinding(SupportsShouldProcess)]
@@ -63,7 +128,7 @@ function Get-Repos {
         [Hashtable]$Headers
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/git/repositories?api-version=5.0"
+        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/git/repositories?api-version=7.0"
     
         $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
 
@@ -166,7 +231,6 @@ function Push-Repos {
                 Set-Location "$ReposPath\$($repo.name)"
 
                 $gitTarget = "https://$TargetOrgName@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $repo.name
-        
                 git remote add target $gitTarget
                 git push -u target --all
             }

@@ -1,3 +1,4 @@
+Using Module ".\Migrate-ADO-Common.psm1"
 
 function Start-ADOTeamsMigration {
     [CmdletBinding(SupportsShouldProcess)]

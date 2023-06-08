@@ -315,41 +315,6 @@ function Set-ProjectFolders {
 
 
 # Users
-function Get-ADOUsers {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-        
-        [Parameter (Mandatory = $TRUE)]
-        [String]$PersonalAccessToken
-    )
-    if ($PSCmdlet.ShouldProcess($OrgName)) {
-        Set-AzDevOpsContext -PersonalAccessToken $PersonalAccessToken -OrgName $OrgName
-
-        $results = az devops user list --detect $False | ConvertFrom-Json
-
-        $members = $results.members
-        $totalCount = $results.totalCount
-        $counter = $members.Count
-        do {
-            $UserResponse = az devops user list --detect $False --skip $counter | ConvertFrom-Json
-            $members += $UserResponse.members
-            $counter += $UserResponse.members.Count
-        } while ($counter -lt $totalCount)
-
-
-        # Convert to ADO User objects
-        [ADO_User[]]$users = @()
-        foreach ($orgUser in $members ) {
-            $users += [ADO_User]::new($orgUser.user.originId, $orgUser.user.principalName, $orgUser.user.displayName, $orgUser.user.mailAddress, $orgUser.accessLevel.accountLicenseType)
-        }
-
-        return $users
-    }
-}
-
-
 function Get-ADOUsersByAPI {
     [CmdletBinding(SupportsShouldProcess)]
     param(
