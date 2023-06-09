@@ -75,7 +75,7 @@ function Start-ADOServiceConnectionsMigration {
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
                 # 500 Errors!!! 
-                # $endpoint.authorization.parameters.serviceprincipalid = $NULL
+                continue
             } elseif ($endpoint.type -eq "externaltfs") {
                 $parameters = @{
                     "apitoken" = "0123456789" 
