@@ -75,6 +75,7 @@ function Start-ADOServiceConnectionsMigration {
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
                 # 500 Errors!!! 
+                Write-Log -Message "$($endpoint.name) is an azurerm Service Connection these connection types need to be migrated manually.. "
                 continue
             } elseif ($endpoint.type -eq "externaltfs") {
                 $parameters = @{
