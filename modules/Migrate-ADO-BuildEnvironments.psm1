@@ -99,10 +99,10 @@ function Push-BuildEnvironments {
         [Hashtable]$Headers
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $targetEnvironment = Get-BuildEnvironment -ProjectName $ProjectName -org $OrgName -headers $Headers
+        $targetEnvironments = Get-BuildEnvironments -ProjectName $ProjectName -org $OrgName -headers $Headers
 
         foreach ($environment in $environments) {
-            if ($null -ne ($targetEnvironment | Where-Object { $_.Name -ieq $environment.Name })) {
+            if ($null -ne ($targetEnvironments | Where-Object { $_.Name -ieq $environment.Name })) {
                 Write-Log -Message "Build environment [$($environment.Name)] already exists in target.. "
                 continue
             }

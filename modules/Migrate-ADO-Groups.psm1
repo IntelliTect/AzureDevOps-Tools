@@ -213,6 +213,8 @@ function Push-ADOGroups {
                 $newTargetGroups += $existingGroup
                 continue
             }
+
+            Write-Log -Message "Creating New Group [$($group.Name)] in target.. "
             $result = New-ADOGroup `
                 -PersonalAccessToken $PersonalAccessToken `
                 -OrgName $OrgName `

@@ -41,33 +41,14 @@ function Start-ADOWikiMigration {
             -TargetHeaders $TargetHeaders `
             -ReposPath $ReposPath
 
-        Push-Wikis `
-            -ProjectName $TargetProjectName `
-            -OrgName $TargetOrgName `
-            -Repos $wikiReposToPush `
-            -Headers $TargetHeaders `
-            -ReposPath $ReposPath
-    }
-}
-
-function Copy-Wikis {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers
-    )
-    if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $url = " https://dev.azure.com/$OrgName/$ProjectName/_apis/wiki/wikis?api-version=7.0"
-    
-        $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
-
-        return $results.value
+            if($NULL -ne $wikiReposToPush) {
+                Push-Wikis `
+                    -ProjectName $TargetProjectName `
+                    -OrgName $TargetOrgName `
+                    -Repos $wikiReposToPush `
+                    -Headers $TargetHeaders `
+                    -ReposPath $ReposPath
+            }
     }
 }
 
@@ -99,15 +80,14 @@ function Copy-Wikis {
         try {
             $final = [object[]]@()
 
-            # $targetWikis = Get-Wikis -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
             $sourceWikis = Get-Wikis -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
+            $targetWikis = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
 
             foreach ($sourceWiki in $sourceWikis) {
                 
                 $sourceRepo = Get-Repo -ProjectName $SourceProjectName -org $SourceOrgName -headers $sourceHeaders -repoId $sourceWiki.name
 
-                # if ($null -ne ($targetWikis | Where-Object { $_.name -ieq $sourceWiki.name })) {
-                if ($null -ne $targetWiki) {
+                if ($null -ne ($targetWikis | Where-Object { $_.name -ieq $sourceWiki.name })) {
                     Write-Log -Message "Wiki/repo [$($sourceWiki.name)] already exists in target.. "
                     continue
                 }
@@ -146,7 +126,7 @@ function Push-Wikis {
     )
     if ($PSCmdlet.ShouldProcess($ProjectName, "Push repos from $ReposPath")) {
         $savedPath = $(Get-Location).Path
-        $targetRepos = Get-Wikis -ProjectName $ProjectName -OrgName $OrgName -Headers $Headers
+        $targetRepos = Get-Repos -ProjectName $ProjectName -OrgName $OrgName -Headers $Headers
         
         foreach ($repo in $Repos) {
             Write-Log -Message "Pushing repo $($repo.Name)"
@@ -235,3 +215,5 @@ function Get-Wiki([string]$projectName, [string]$orgName, $headers, $wikiIdentif
     
     return , $results.value
 }
+
+
