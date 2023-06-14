@@ -22,7 +22,7 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE
     )
@@ -224,11 +224,9 @@ function Start-ADOProjectMigration {
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
-        -SourcePAT $SourcePAT `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
         -WhatIf:$SkipMigrateDashboards
         # #endregion
 
@@ -245,7 +243,7 @@ function Start-ADOProjectMigration {
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
-        -WhatIf:$SkipMigratDeliveryPlans
+        -WhatIf:$SkipMigrateDeliveryPlans
         # #endregion
 
         # ========================================
