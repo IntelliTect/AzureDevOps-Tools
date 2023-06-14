@@ -91,10 +91,6 @@ function Start-ADODashboardsMigration {
                         Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
                     } catch {}
                 }
-
-                # # THIS IS TEMP FOR TESTING SO THAT ONLY ONE DASHBOARD IS MIGRATED WHILE TESTING 
-                # exit teamsLoop
-
             }
         }
 

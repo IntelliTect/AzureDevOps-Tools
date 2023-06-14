@@ -75,6 +75,12 @@ Write-Host "Migrate Work Items with Changed Date between 1000 days ago and 2000 
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $FALSE `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.ChangedDate] > @Today - 2000 AND [System.ChangedDate] <= @Today - 1000 "
+-WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.ChangedDate] > @Today - 1150 AND [System.ChangedDate] <= @Today - 1000 "
 
 
+Write-Host " "
+Write-Host "Migrate Work Items with Changed Date between 1000 days ago and 2000 days ago"
+Write-Host " "
+& .\MigrateProject.ps1 `
+-SkipMigrateWorkItems $FALSE `
+-WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.ChangedDate] > @Today - 2000 AND [System.ChangedDate] <= @Today - 1150 "

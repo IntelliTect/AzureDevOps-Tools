@@ -15,7 +15,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
         # Azure DevOps Migration Tool Items (Martin's Tool)
@@ -76,7 +76,7 @@ Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
 Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
 Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
-Write-Log -Message "SkipMigratDeliveryPlans $($SkipMigratDeliveryPlans)"
+Write-Log -Message "SkipMigrateDeliveryPlans $($SkipMigrateDeliveryPlans)"
 Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
 
  
@@ -415,7 +415,7 @@ Start-ADOProjectMigration `
     -SkipMigrateDashboards $SkipMigrateDashboards `
     -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
-    -SkipMigratDeliveryPlans $SkipMigratDeliveryPlans `
+    -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers
 #endregion
