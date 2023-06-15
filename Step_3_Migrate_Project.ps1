@@ -71,7 +71,7 @@ Write-Host " "
 
 
 Write-Host " "
-Write-Host "Migrate Work Items with Changed Date between 1000 days ago and 2000 days ago"
+Write-Host "Migrate Work Items with Changed Date between 1000 days ago and 1150 days ago"
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $FALSE `
@@ -79,7 +79,7 @@ Write-Host " "
 
 
 Write-Host " "
-Write-Host "Migrate Work Items with Changed Date between 1000 days ago and 2000 days ago"
+Write-Host "Migrate Work Items with Changed Date between 1150 days ago and 2000 days ago"
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $FALSE `
