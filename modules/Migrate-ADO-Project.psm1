@@ -293,6 +293,7 @@ function Start-ADOProjectMigration {
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
         -ProjectPath $projectPath `
+        -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
         -WhatIf:$SkipMigrateArtifacts
         # #endregion
 

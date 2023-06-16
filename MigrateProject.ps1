@@ -16,6 +16,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
+        # Step 5
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
         # Azure DevOps Migration Tool Items (Martin's Tool)
@@ -129,6 +130,7 @@ $ProjectDirectory = $configuration.ProjectDirectory
 $ScriptDirectoryName = $configuration.ScriptDirectoryName
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
+$ArtifactFeedPackageVersionLimit = $configuration.ArtifactFeedPackageVersionLimit
 
 
 Write-Host "CONFIGURATION:"
@@ -406,6 +408,7 @@ Start-ADOProjectMigration `
     -MartinsToolConfigurationFile $martinConfigPath `
     -WorkItemMigratorDirectory $WorkItemMigratorDirectory `
     -DevOpsMigrationToolConfigurationFile $DevOpsMigrationToolConfigurationFile `
+    -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
     -SkipMigrateGroups $SkipMigrateGroups `
     -SkipMigrateBuildQueues $SkipMigrateBuildQueues `
     -SkipMigrateRepos $SkipMigrateRepos `
