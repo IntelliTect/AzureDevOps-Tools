@@ -135,6 +135,7 @@ function Move-MyGetNuGetPackages
     if ($NumVersions -gt -1 -and $NumVersions -lt $versionsMissingInDestination.Length)
     {
         $versionsMissingInDestination = $versionsMissingInDestination | Select-Object -First $NumVersions
+        Write-Host "Only the First $($NumVersions) package versions will be copied!"
     }
 
     if ($versionsMissingInDestination.Length -gt 0) {
@@ -362,22 +363,13 @@ function Get-Packages
 
             foreach ($package in $packages)
             {
-                # TODO: Filter any un-needed or older versions here
-                #       Test having only 5 versions back. 
-                $maxVersions = 5
-                $versions = $package.versions | Sort-Object -Property version
-                $counter = 0
-                foreach ($version in $versions)
+                foreach ($version in $package.versions)
                 {
                     $packageObject = [PSCustomObject]@{
                         Id      = $package.id
                         Version = $version.version
                     }
                     $null = $result.add($packageObject)
-                    $counter ++
-                    if($counter -ge $maxVersions) {  
-                        break
-                    }
                 }
             }
 
@@ -385,6 +377,7 @@ function Get-Packages
         }
         catch
         {
+            # $_
             break
         }
     }

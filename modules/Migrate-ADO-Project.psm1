@@ -12,6 +12,8 @@ function Start-ADOProjectMigration {
         [Parameter (Mandatory = $TRUE)] [String]$MartinsToolConfigurationFile,
         [Parameter (Mandatory = $TRUE)] [String]$WorkItemMigratorDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$DevOpsMigrationToolConfigurationFile,
+        [Parameter (Mandatory = $TRUE)] [String]$ArtifactFeedPackageVersionLimit,
+        
         # -------------- What parts of the migration should NOT be executed --------------- 
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
@@ -260,6 +262,7 @@ function Start-ADOProjectMigration {
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
         -ProjectPath $projectPath `
+        -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
         -WhatIf:$SkipMigrateArtifacts
         # #endregion
 
