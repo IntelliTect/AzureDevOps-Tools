@@ -27,7 +27,10 @@ function Start-ADOArtifactsMigration {
         [string]$TargetPAT,
 
         [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectPath
+        [String]$ProjectPath,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Int]$ArtifactFeedPackageVersionLimit
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -43,7 +46,7 @@ function Start-ADOArtifactsMigration {
         $sourceFeeds = Get-Feeds -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders
         $targetFeeds = Get-Feeds -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders
 
-         # Create all Target Feeds before adding packages to each feed
+        # Create all Target Feeds before adding packages to each feed
         $newTargetFeeds = @()
         foreach ($feed in $sourceFeeds) {
             $existingFeed = $targetFeeds | Where-Object { $_.Name -ieq $feed.Name }
@@ -83,6 +86,7 @@ function Start-ADOArtifactsMigration {
                 DestinationIndexUrl = $destinationIndexUrl
                 DestinationPAT      = $TargetPAT
                 DestinationFeedName = $newTargetFeed.Name
+                NumVersions         = $ArtifactFeedPackageVersionLimit
             }
 
             Move-MyGetNuGetPackages -Verbose @params
@@ -131,6 +135,7 @@ function New-ADOFeed {
         [String]$FeedName,
 
         [Parameter (Mandatory = $TRUE)]
+        [AllowEmptyCollection()]
         [Object[]]$UpstreamSources
     )
     if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {

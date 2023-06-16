@@ -15,7 +15,8 @@ Param (
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratDeliveryPlans = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
+        # Step 5
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
         # Azure DevOps Migration Tool Items (Martin's Tool)
@@ -76,7 +77,7 @@ Write-Log -Message "SkipMigrateGroups $($SkipMigrateGroups)"
 Write-Log -Message "SkipMigrateServiceHooks $($SkipMigrateServiceHooks)"
 Write-Log -Message "SkipMigratePolicies $($SkipMigratePolicies)"
 Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
-Write-Log -Message "SkipMigratDeliveryPlans $($SkipMigratDeliveryPlans)"
+Write-Log -Message "SkipMigrateDeliveryPlans $($SkipMigrateDeliveryPlans)"
 Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
 
  
@@ -129,6 +130,7 @@ $ProjectDirectory = $configuration.ProjectDirectory
 $ScriptDirectoryName = $configuration.ScriptDirectoryName
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
+$ArtifactFeedPackageVersionLimit = $configuration.ArtifactFeedPackageVersionLimit
 
 
 Write-Host "CONFIGURATION:"
@@ -406,6 +408,7 @@ Start-ADOProjectMigration `
     -MartinsToolConfigurationFile $martinConfigPath `
     -WorkItemMigratorDirectory $WorkItemMigratorDirectory `
     -DevOpsMigrationToolConfigurationFile $DevOpsMigrationToolConfigurationFile `
+    -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
     -SkipMigrateGroups $SkipMigrateGroups `
     -SkipMigrateBuildQueues $SkipMigrateBuildQueues `
     -SkipMigrateRepos $SkipMigrateRepos `
@@ -415,7 +418,7 @@ Start-ADOProjectMigration `
     -SkipMigrateDashboards $SkipMigrateDashboards `
     -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
-    -SkipMigratDeliveryPlans $SkipMigratDeliveryPlans `
+    -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers
 #endregion
