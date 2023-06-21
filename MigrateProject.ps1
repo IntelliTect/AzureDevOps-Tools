@@ -34,7 +34,7 @@ Param (
         
         # Step 3
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE,
-        [parameter(Mandatory=$FALSE)] [String]$WorkItemQueryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request')"
+        [parameter(Mandatory=$FALSE)] [String]$WorkItemQueryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
 )
 
 # Import-Module Migrate-ADO -Force
