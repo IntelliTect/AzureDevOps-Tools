@@ -1,6 +1,22 @@
 
 # Azure DevOps Project Migration
 
+## prerequisites to migration
+- The target project needs to be created using a process process template that mirrors the source process template. If needed the source template can be migrated to the target organization. 
+
+    - We use the Microsoft Process Migrator (https://github.com/microsoft/process-migrator) to migrate the process template by exporting, editing if needing and importing the template in json format. 
+	 - process-migrator --mode=export --config="C:\Users\JohnEvans\Working\Process_Migrate\configuration.json"
+	 - process-migrator --mode=import --config="C:\Users\JohnEvans\Working\Process_Migrate\configuration.json"
+
+- Users in source organization that are not also in the target organization need to be migrated
+	- There is a script to perform this user migration.
+    
+- Token needs to be created that can access both source and target organizations and has Basic + Test Plans licensing access.
+  
+- Install any extensions etc used in Source that are not installed already in the target organization. 
+  
+- Delete any unneeded/unused Service Connections, Agent Pools, Teams, Groups, Pipelines, Dashbaords etc. so that they are not migrated minimizing chances for failures. 
+
 This tool is used for migrating an Azure DevOps (ADO) project to another project location either within the same organization or to another. 
 It consists of a set of PowerShell and an external .NET application that handles to migration of various components of the ADO project. 
 
@@ -218,6 +234,7 @@ The `MigrateProject.ps1` script is the starting point for preforming a full migr
 - Default iteration path is not set for a team
 - Default area path is not set for a team
 - Wikis get migrated as repositories and need to be re-connected to wiki after migration 
+  - https://learn.microsoft.com/en-us/azure/devops/project/wiki/provisioned-vs-published-wiki?view=azure-devops
 - Dashboard Widgets will need to be re-tied to Work-Item queries
 
 # Set source to read only

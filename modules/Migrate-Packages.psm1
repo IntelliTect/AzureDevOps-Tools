@@ -87,7 +87,7 @@ function Move-MyGetNuGetPackages
         $NumVersions = -1
     )
 
-    Write-Verbose "Migrate Package Versions for Feed [$($DestinationFeedName)] in target.. "
+    Write-Log -Message "Migrate Package Versions for Feed [$($DestinationFeedName)] in target.. " -LogLevel WARNING
 
     if ($null -eq $TempFilePath)
     {
@@ -95,7 +95,7 @@ function Move-MyGetNuGetPackages
 
         if ($null -eq $TempFilePath)
         {
-            Write-Error 'Temp filepath not found. Please provide value for -TempFilePath'
+            Write-Log -Message "Temp filepath not found. Please provide value for -TempFilePath" -LogLevel ERROR
             throw
         }
     }
@@ -119,7 +119,9 @@ function Move-MyGetNuGetPackages
     }
     else
     {
-        $sourceSecurePassword = ConvertTo-SecureString -String $DestinationPAT -AsPlainText -Force
+        $PAT = $DestinationPAT
+        if($NULL -ne $SourcePAT) { $PAT = $SourcePAT }
+        $sourceSecurePassword = ConvertTo-SecureString -String $PAT  -AsPlainText -Force
         $sourceCredential = New-Object -TypeName pscredential -ArgumentList 'PackageMigration', $sourceSecurePassword
     }
 
@@ -130,17 +132,36 @@ function Move-MyGetNuGetPackages
     $sourceVersions = Get-ContentUrls -IndexUrl $SourceIndexUrl -Credential $sourceCredential
     $destinationVersions = Get-Packages -IndexUrl $DestinationIndexUrl -Credential $destinationCredential
     $versionsMissingInDestination = Get-MissingVersions -SourceVersions $sourceVersions -DestinationVersions $destinationVersions
-    Write-Host "Found $($sourceVersions.Count) package versions in source, $($destinationVersions.Count) package versions in destination, and $($versionsMissingInDestination.Count) packages versions need to be copied"
+
+    Write-Log -Message "Found $($sourceVersions.Count) package versions in source, $($destinationVersions.Count) package versions in destination, and $($versionsMissingInDestination.Count) packages versions need to be copied"
 
     if ($NumVersions -gt -1 -and $NumVersions -lt $versionsMissingInDestination.Length)
     {
-        $versionsMissingInDestination = $versionsMissingInDestination | Select-Object -First $NumVersions
-        Write-Host "Only the First $($NumVersions) package versions will be copied!"
+        # $versionsMissingInDestination = $versionsMissingInDestination | Select-Object -First $NumVersions
+        Write-Log -Message "Only the First $($NumVersions) package versions will be copied!"
+        $numVersionPackages = [System.Collections.ArrayList]@()
+        $previousName = ""
+        $counter = 0
+        foreach ($sourceVersion in $SourceVersions)
+        {   
+            $name = "$($sourceVersion.Name)"
+            if($name -ne $previousName) {
+                $previousName = $name
+                $counter = 0
+            }
+
+            if($counter -ge $NumVersions) {
+                continue
+            } 
+            
+            $null = $numVersionPackages.Add($sourceVersion);
+            $counter += 1
+        }
+        $versionsMissingInDestination = $numVersionPackages
     }
 
     if ($versionsMissingInDestination.Length -gt 0) {
-
-        Write-Host "Migrating $($versionsMissingInDestination.Length) package versions."
+        Write-Log -Message "Migrating $($versionsMissingInDestination.Length) package versions."
 
         # Migrates packages from sources to Azure DevOps feed
         $versionContentUrls = $versionsMissingInDestination.Url
@@ -149,6 +170,8 @@ function Move-MyGetNuGetPackages
         Out-Results $results
     }
     $VerbosePreference = $oldVerbosePreference
+
+    return $results
 }
 
 <#
@@ -350,8 +373,7 @@ function Get-Packages
     {
         # Adjust the skip portion of the query to get all packages associated with URL
         $payLoad.Skip = $i * $Take
-        $message = "Request: $searchBaseUrl, Prerelease = $($payload.Prerelease), SemverLevel = $($payload.SemverLevel), Skip =$($payload.Skip), Take = $($payload.Take)"
-        Write-Verbose $message
+        Write-Log -Message "Request: $searchBaseUrl, Prerelease = $($payload.Prerelease), SemverLevel = $($payload.SemverLevel), Skip =$($payload.Skip), Take = $($payload.Take)"
         try
         {
             $response = Invoke-RestMethod -Uri $searchBaseUrl -Body $payLoad -Credential $Credential
@@ -377,7 +399,12 @@ function Get-Packages
         }
         catch
         {
-            # $_
+            Write-Log -Message "FAILED!" -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
+            try {
+                Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
+            } catch {}
+            
             break
         }
     }
@@ -414,11 +441,12 @@ function Read-CatalogUrl
 
     if ($RegistrationUrl -in $Script:registrationRequests)
     {
-        Write-Warning -Message "Skipping duplicate request to $RegistrationUrl" -InformationAction Continue
+        Write-Log -Message "Skipping duplicate request to $RegistrationUrl" -LogLevel WARNING
     }
     else
     {
-        Write-Verbose "Request: $RegistrationUrl"
+        Write-Log -Message "Request: $RegistrationUrl" -LogLevel WARNING
+
         $response = Invoke-RestMethod -Uri $RegistrationUrl -Credential $Credential
 
         # Adds to track Registration requests to identify duplicate requests
@@ -616,7 +644,10 @@ function Start-Migration
     [io.file]::WriteAllBytes($TempFilePath, $response.Content)
     $arguments = "push -Source $DestinationIndexUrl -ApiKey Migration $TempFilePath"
 
-    $result = Start-Command -CommandTitle 'nuget.exe' -CommandArguments $arguments
+    $location = Get-Location
+    $exepath = "$location\nuget.exe"
+
+    $result = Start-Command -CommandTitle $exepath -CommandArguments $arguments
     $return = @{
         Url         = $ContentUrl
         HttpStatus  = $response.StatusCode
@@ -673,15 +704,16 @@ function Out-Result
         $StdErr
     )
 
-    Write-Verbose "$Url, --> fetchContent $HttpStatus, publish $NugetStatus"
+    Write-Log -Message "$Url, --> fetchContent $HttpStatus, publish $NugetStatus" -LogLevel WARNING
+
     if ($NugetStatus -ne 0 -and $null -ne $Stdout)
     {
-        Write-Verbose $StdOut
+        Write-Log -Message $StdOut -LogLevel WARNING
     }
 
     if ($StdErr)
     {
-        Write-Error $StdErr -InformationAction Continue
+        Write-Log -Message $StdErr -LogLevel ERROR
     }
 }
 
@@ -702,11 +734,12 @@ function Out-Results
     )
 
     $errors = $Results | Where-Object -FilterScript {$_.HttpStatus -ne 200 -or $_.NuGetStatus -ne 0}
-    Write-Information "$($Results.Count - $errors.Count) packages pushed successfully" -InformationAction Continue
+
+    Write-Log -Message "$($Results.Count - $errors.Count) packages pushed successfully"
 
     if ($errors.Count -gt 0)
     {
-        Write-Warning "$($errors.Count) errors. See error variable for more information." -InformationAction Continue
+        Write-Log -Message "$($errors.Count) errors. See error variable for more information." -LogLevel WARNING
     }
 }
 
@@ -831,25 +864,28 @@ function Update-NuGetSource
         $Password
     )
 
-    $sourceAdd = Start-Command -CommandTitle 'nuget.exe' -CommandArguments "sources Add -Name $FeedName -Source $DevOpsSourceUrl"
+    $location = Get-Location
+    $exepath = "$location\nuget.exe"
+
+    $sourceAdd = Start-Command -CommandTitle $exepath -CommandArguments "sources Add -Name $FeedName -Source $DevOpsSourceUrl"
     if ($sourceAdd.ExitCode -eq 1)
     {
         if ($sourceAdd.StdErr -match ".*name specified has already been added to the list of available package sources.*")
         {
-            Write-Verbose $sourceAdd.StdErr
+            Write-Log -Message $sourceAdd.StdErr -LogLevel WARNING
         }
         else
         {
-            Write-Error $sourceAdd.StdErr
+            Write-Log -Message $sourceAdd.StdErr -LogLevel ERROR
             throw
         }
     }
 
-    $sourceUpdate = Start-Command -CommandTitle nuget.exe -CommandArguments "sources Update -Name $FeedName -UserName 'username' -Password $password"
+    $sourceUpdate = Start-Command -CommandTitle $exepath -CommandArguments "sources Update -Name $FeedName -UserName 'username' -Password $password"
 
     if ($sourceUpdate.ExitCode -eq 1)
     {
-        Write-Error $sourceUpdate.StdErr
+        Write-Log -Message $sourceUpdate.StdErr -LogLevel ERROR
         throw
     }
 }

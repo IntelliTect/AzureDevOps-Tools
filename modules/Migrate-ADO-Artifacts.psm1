@@ -61,7 +61,7 @@ function Start-ADOArtifactsMigration {
             $resultFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedName $feed.Name -UpstreamSources $feed.upstreamSources
            
             if ($null -eq $resultFeed) {
-                Write-Log -Message "Could not create a new feed with name '$($FeedName)'. The feed name may be reserved by the system." -LogLevel ERROR
+                Write-Log -Message "Could not create a new feed with name '$($feed.Name)'. The feed name may be reserved by the system." -LogLevel ERROR
                continue
             } else {
                 Write-Log -Message "Done!" -LogLevel SUCCESS
@@ -90,8 +90,6 @@ function Start-ADOArtifactsMigration {
             }
 
             Move-MyGetNuGetPackages -Verbose @params
-
-            Write-Log -Message ' '
         }
     }
 }

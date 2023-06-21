@@ -1,5 +1,5 @@
 {
-  "Version": "12.8",
+  "Version": "0.0",
   "LogLevel": "Verbose",
   "MappingTools": [
     {
@@ -133,8 +133,8 @@
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc"
         },
-        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
-        "Project": "GL.CL-Elita-migration-test",
+        "Organisation": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
         "PersonalAccessToken": null,
@@ -164,8 +164,8 @@
         "$type": "TfsTeamSettingsEndpointOptions",
         "Name": "TeamSettingsTarget",
         "Direction": "Target",
-        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
-        "Project": "GL.CL-Elita-migration-test",
+        "Organisation": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
         "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
@@ -192,8 +192,8 @@
       },
       {
         "Name": "tfsTarget",
-        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
-        "Project": "GL.CL-Elita-migration-test",
+        "Organisation": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
         "AuthenticationMode": "AccessToken",
         "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
@@ -217,8 +217,8 @@
       {
         "Name": "PipelineTarget",
         "$type": "AzureDevOpsEndpointOptions",
-        "Organisation": "https://dev.azure.com/AIZ-Sandbox/",
-        "Project": "GL.CL-Elita-migration-test",
+        "Organisation": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
         "AuthenticationMode": "AccessToken",
         "AccessToken": null,
         "EndpointEnrichers": null
@@ -240,8 +240,8 @@
   },
   "Target": {
     "$type": "TfsTeamProjectConfig",
-    "Collection": "https://dev.azure.com/AIZ-Sandbox/",
-    "Project": "GL.CL-Elita-migration-test",
+    "Collection": "https://dev.azure.com/AIZ-Global/",
+    "Project": "GL.CL-Elita-migrated",
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
@@ -251,6 +251,17 @@
       "IterationPath": "Iteration"
     }
   },
+  "CommonEnrichersConfig": [
+    {
+      "$type": "TfsNodeStructureOptions",
+      "Enabled": true,
+      "PrefixProjectToNodes": false,
+      "NodeBasePaths": [],
+      "AreaMaps": {},
+      "IterationMaps": {},
+      "ShouldCreateMissingRevisionPaths": true
+    }
+  ],
   "Processors": [
     {
       "$type": "TfsAreaAndIterationProcessorOptions",
@@ -291,7 +302,7 @@
       "TestPlanQueryBit": null,
       "RemoveAllLinks": false,
       "MigrationDelay": 0,
-      "UseCommonNodeStructureEnricherConfig": false,
+      "UseCommonNodeStructureEnricherConfig": true,
       "NodeBasePaths": [],
       "AreaMaps": {},
       "IterationMaps": {},
@@ -330,7 +341,7 @@
       "PrefixProjectToNodes": false,
       "UpdateCreatedDate": true,
       "UpdateCreatedBy": true,
-      "WIQLQueryBit": "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.ChangedDate] > @Today - 75 AND [System.ChangedDate] <= @Today - 0 ",
+      "WIQLQueryBit": "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') ",
       "WIQLOrderBit": "[System.ChangedDate] desc",
       "LinkMigration": true,
       "AttachmentMigration": true,
@@ -346,14 +357,14 @@
       "GenerateMigrationComment": true,
       "WorkItemIDs": null,
       "MaxRevisions": 0,
-      "UseCommonNodeStructureEnricherConfig": false,
+      "UseCommonNodeStructureEnricherConfig": true,
       "StopMigrationOnMissingAreaIterationNodes": false,
       "NodeBasePaths": [],
       "AreaMaps": {
-        "GL.CL-Logistics": "GL.CL-Elita_migrated"
+        "GL.CL-Logistics": "GL.CL-Elita-migrated"
       },
       "IterationMaps": {
-        "GL.CL-Logistics": "GL.CL-Elita_migrated"
+        "GL.CL-Logistics": "GL.CL-Elita-migrated"
       },
       "MaxGracefulFailures": 0,
       "SkipRevisionWithInvalidIterationPath": true,
