@@ -3,13 +3,13 @@ Write-Host "Step 3 Migrate GL.CL-Elita Project Migration"
 Write-Host " "
 Write-Host " "
 
-# Since the Azure REST API for work items has a query limit if 20,000, calls to the API have been broken up into batches based on the Work item's Changed Date field 
+# Since the Azure REST API for work items has a query limit if 20,000, calls to the API have been broken up into batches based on the Work item's Created Date field 
 # Each batch is listed below with the expected work item count to be migrated. The work item counts may since the work items are being updated daily. 
 # 
 
 
 Write-Host " "
-Write-Host "Since the Azure REST API for work items has a query limit if 20,000, calls to the API have been broken up into batches based on the Work item's Changed Date field"
+Write-Host "Since the Azure REST API for work items has a query limit if 20,000, calls to the API have been broken up into batches based on the Work item's Created Date field"
 Write-Host " "
 
 

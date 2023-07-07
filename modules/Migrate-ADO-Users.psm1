@@ -27,6 +27,7 @@ function Start-ADOUserMigration {
         Write-Log -Message ' '
 
         Write-Log -Message 'Getting ADO Users from Source..'
+        
         $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
