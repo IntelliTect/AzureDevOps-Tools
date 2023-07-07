@@ -211,9 +211,11 @@ function Start-ADOProjectMigration {
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
+        -SourcePAT $SourcePAT `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
         -WhatIf:$SkipMigratePolicies
         # #endregion
 

@@ -27,15 +27,21 @@ function Start-ADOUserMigration {
         Write-Log -Message ' '
 
         Write-Log -Message 'Getting ADO Users from Source..'
+        
         $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
+
+        $targetUsers = Get-ADOUsers `
+            -OrgName $TargetOrgName `
+            -PersonalAccessToken $TargetPat
 
         Write-Log -Message 'Pushing ADO Users to Target..'
         Push-ADOUsers `
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat `
-            -Users $sourceUsers
+            -Users $sourceUsers `
+            -TargetUsers $targetUsers
     }
 }
 
@@ -85,24 +91,24 @@ function Push-ADOUsers {
         [String]$PersonalAccessToken,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_User[]]$Users
+        [ADO_User[]]$Users,
+
+        [Parameter (Mandatory = $TRUE)]
+        [ADO_User[]]$TargetUsers
     )
     if ($PSCmdlet.ShouldProcess($OrgName)) {
 
         Write-Log -Message 'Getting Target ADO Users to verify if users exist already..'
-        [ADO_User[]]$targetUsers = Get-ADOUsers `
-            -OrgName $OrgName `
-            -PersonalAccessToken $PersonalAccessToken
 
         foreach ($user in $Users) {
             # Check for duplicates
-            if ($null -ne ($targetUsers | Where-Object { $_.PrincipalName -ieq $user.PrincipalName } )) {
+            if ($null -ne ($TargetUsers | Where-Object { $_.PrincipalName -ieq $user.PrincipalName } )) {
                 Write-Log -Message "User with PrincipalName [$($user.PrincipalName)] already exists in target org '$OrgName'... "
                 continue
             }
 
             # Add user
-            Write-Log -Message "Add user $($User.DisplayName)"
+            Write-Log -Message "Add user $($user.DisplayName)"
             Add-ADOUser `
                 -OrgName $OrgName `
                 -PersonalAccessToken $PersonalAccessToken `

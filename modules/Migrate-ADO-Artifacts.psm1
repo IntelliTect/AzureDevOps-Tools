@@ -46,6 +46,11 @@ function Start-ADOArtifactsMigration {
         $sourceFeeds = Get-Feeds -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders
         $targetFeeds = Get-Feeds -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders
 
+        $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders 
+
+         # Get the Target Organization ID to be used for the internalUpstreamCollectionId value when creating internal Upstream Sources
+         $targetInternalUpstreamCollectionId = Get-OrganizationId -OrgName $TargetOrgName -Headers $TargetHeaders
+
         # Create all Target Feeds before adding packages to each feed
         $newTargetFeeds = @()
         foreach ($feed in $sourceFeeds) {
@@ -57,17 +62,103 @@ function Start-ADOArtifactsMigration {
             }
 
             Write-Log -Message "Creating New Feed [$($feed.Name)] in target.. "
-            
-            $resultFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedName $feed.Name -UpstreamSources $feed.upstreamSources
+            # Create the target Feed first with public type upstream sources and then update the feeds internal upstream sources after all the feeds have been created 
            
-            if ($null -eq $resultFeed) {
+            $publicUpstreamSources = @()
+            foreach ($source in $feed.upstreamSources) {
+                if($source.upstreamSourceType -eq "public") {
+                    $publicUpstreamSources += $source
+                }
+            }
+
+           $targetFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -SourceFeed $feed -UpstreamSources $publicUpstreamSources
+            if(($NULL -eq $targetFeed) -or ($targetFeed.GetType().Name -eq "FileInfo")) { continue }
+
+            # Make sure that the target view access is the same as the source view access 
+            $sourceViews = Get-Views -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $feed.Id
+            $targetViews = Get-Views -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetFeed.Id
+
+            foreach ($targetView in $targetViews) {
+                    $sourceView = $sourceViews | Where-Object { $_.name -ieq $targetView.name } 
+                    if($NULL -ne $sourceView) {
+                        if($targetView.visibility -ine $sourceView.visibility ) {
+                            Update-View -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetFeed.Id -ViewId $targetView.Id -Visibility $sourceView.visibility
+                        }
+                    }
+            }
+           
+            if ($null -eq $targetFeed) {
                 Write-Log -Message "Could not create a new feed with name '$($feed.Name)'. The feed name may be reserved by the system." -LogLevel ERROR
                continue
             } else {
                 Write-Log -Message "Done!" -LogLevel SUCCESS
-                $newTargetFeeds += $resultFeed
+                $newTargetFeeds += $targetFeed
             }
         }
+
+
+        # DO UPDATE OF THE FEEDS WITH INTERNAL UPSTREAM SOURCES 
+        foreach ($feed in $sourceFeeds) {
+            $internalUpstreamSources = @()
+            foreach ($source in $feed.upstreamSources) {
+                if($source.upstreamSourceType -eq "internal") {
+                    $internalUpstreamSources += $source
+                }
+            }
+
+            
+            if ($internalUpstreamSources.count -gt 0) {
+                Write-Log -Message "Validating and updating Internal Upstream Sources for [$($feed.Name)] in target.. "
+
+                $existingSourceFeed = $newTargetFeeds | Where-Object { $_.Name -ieq $feed.Name }
+
+                $upstreamSources = $existingSourceFeed.upstreamSources
+                foreach ($internalSource in $internalUpstreamSources) {
+                    $existingSounceFeedSource = $existingSourceFeed.upstreamSources | Where-Object { $_.Name -ieq $internalSource.Name }
+                    if ($null -ne $existingSounceFeedSource) {
+                        Write-Log -Message "Feed [$($feed.Name)] internal Upstream Source [$($internalSource.Name)] already exists in target Feed.. "
+                        continue
+                    }
+
+                    if($internalSource.displayLocation -like "*$SourceOrgName/$SourceProjectName*") {
+                        $sourceInternalUpstreamFeed = Get-Feed -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $internalSource.internalUpstreamFeedId
+                        $sourceInternalUpstreamFeedViews = Get-Views -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $sourceInternalUpstreamFeed.Id
+                        $sourceInternalUpstreamFeedView = $sourceInternalUpstreamFeedViews | Where-Object { $_.Id -eq $internalSource.internalUpstreamViewId }
+                        
+                        $targetInternalUpstreamFeed = $newTargetFeeds | Where-Object { $_.name -eq $sourceInternalUpstreamFeed.Name }
+                        $targetInternalUpstreamFeedViews = Get-Views -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetInternalUpstreamFeed.Id
+                        $targetInternalUpstreamFeedView = $targetInternalUpstreamFeedViews | Where-Object { $_.Name -eq $sourceInternalUpstreamFeedView.Name }
+                        
+                        $sourceInternalSourceFeed = Get-Feed -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $internalSource.internalUpstreamFeedId
+                        $targetInternalSourceFeed = $newTargetFeeds | Where-Object { $_.name -eq $sourceInternalSourceFeed.name }
+
+                        if(($NULL -ne $targetInternalUpstreamFeedView) -and ($NULL -ne $targetInternalSourceFeed)) {
+                            $newSource = @{
+                                "name"                          = $internalSource.name
+                                "protocol"                      = $internalSource.protocol
+                                "upstreamSourceType"            = "internal"
+                                "internalUpstreamCollectionId"  = $targetInternalUpstreamCollectionId # $internalSource.internalUpstreamCollectionId 
+                                "internalUpstreamFeedId"        = $targetInternalSourceFeed.Id
+                                "internalUpstreamViewId"        = $targetInternalUpstreamFeedView.id
+                                "internalUpstreamProjectId"     = $targetProject.Id
+                            }
+                            $upstreamSources += $newSource
+                        } else {
+                            Write-Log -Message "Unable to identify upstream source feed in target.. "
+                            Write-Log -Message "Internal Upstream View Id: $internalUpstreamViewId  "
+                            Write-Log -Message "Target's Internal Upstream Feed Id $targetSourceFeedId "
+                        }
+                    } else {
+                        $upstreamSources += $internalSource
+                    }
+
+                    if($upstreamSources.count -gt 0) {
+                        Update-Feed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $existingSourceFeed.Id -UpstreamSources $upstreamSources
+                    }
+                }
+            }
+        }
+
 
         foreach ($newTargetFeed in $newTargetFeeds) {
             $sourceFeed = $sourceFeeds | Where-Object { $_.Name -eq $newTargetFeed.Name }
@@ -94,6 +185,41 @@ function Start-ADOArtifactsMigration {
     }
 }
 
+function Get-OrganizationId {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        try {
+             # Get Context user info 
+            $url = "https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.0"
+            $result1 = Invoke-RestMethod -Method GET -uri $url -Headers $Headers 
+            $id = $result1.id
+
+            # Get organizations for user id
+            $url = "https://app.vssps.visualstudio.com/_apis/accounts?memberId=$($id)&api-version=7.0"
+            $result2 = Invoke-RestMethod -Method GET -uri $url -Headers $Headers 
+            $organizations = $result2.value
+
+            foreach($org in $organizations) {
+                if($org.accountName -eq $OrgName) {
+                    return $org.accountId
+                }
+            }
+        } catch {
+            Write-Log -Message "FAILED!" -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
+            try { Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR } catch {}
+        }
+        return $NULL
+    }
+}
+
 
 function Get-Feeds {
     [CmdletBinding(SupportsShouldProcess)]
@@ -117,6 +243,64 @@ function Get-Feeds {
 }
 
 
+function Get-Feed {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$FeedId
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        $url = "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/Packaging/Feeds/$($FeedId)?api-version=7.0"
+
+        $results = Invoke-RestMethod -Method GET -Uri $url -Headers $headers
+
+        return $results
+    }
+}
+
+
+function Update-Feed {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$FeedId,
+
+        [Parameter (Mandatory = $TRUE)]
+        [AllowEmptyCollection()]
+        [Object[]]$UpstreamSources
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        $url =   "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/packaging/feeds/$($FeedId)?api-version=6.1-preview.1"
+
+        $body = @{
+            upstreamSources = @() + $UpstreamSources
+        } | ConvertTo-Json
+
+        $results = Invoke-RestMethod -Method PATCH -Uri $url -Headers $Headers -Body $body -ContentType "application/json"
+
+        return $results
+    }
+}
+
+
 function New-ADOFeed {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -130,7 +314,7 @@ function New-ADOFeed {
         [Hashtable]$Headers,
 
         [Parameter (Mandatory = $TRUE)]
-        [String]$FeedName,
+        [Object]$SourceFeed,
 
         [Parameter (Mandatory = $TRUE)]
         [AllowEmptyCollection()]
@@ -139,16 +323,23 @@ function New-ADOFeed {
     if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
         
         $url = "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/packaging/feeds?api-version=7.0"
+        # "url"   = $url
+
+        $hideDeletedPackageVersions = $FALSE
+        if(($NULL -ne $SourceFeed.hideDeletedPackageVersions) -and ($SourceFeed.hideDeletedPackageVersions -eq $TRUE)) {
+            $hideDeletedPackageVersions = $TRUE
+        }
 
         $body = @{
-            "name"  =$FeedName
-            "url"   = $url
+            "name"  = $SourceFeed.name
+            "description" = $SourceFeed.description
+            "hideDeletedPackageVersions" = $hideDeletedPackageVersions
+            "capabilities" = $SourceFeed.capabilities
             upstreamSources = @() + $UpstreamSources
         } | ConvertTo-Json
         
         try {
-            $result = Invoke-RestMethod -Method Post -uri $url -Headers $Headers -Body $body -ContentType "application/json"
-            return $result
+            Invoke-RestMethod -Method Post -uri $url -Headers $Headers -Body $body -ContentType "application/json"
         }
         catch {
             Write-Log -Message "FAILED!" -LogLevel ERROR
@@ -158,6 +349,67 @@ function New-ADOFeed {
             } catch {}
             return $NULL
         }
+    }
+}
+
+
+
+function Get-Views {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$FeedId
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        $url =  "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/packaging/Feeds/$feedId/views?api-version=7.0"
+
+        $results = Invoke-RestMethod -Method GET -Uri $url -Headers $headers
+
+        return $results.Value
+    }
+}
+
+
+function Update-View {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$FeedId,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ViewId,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$Visibility
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        $url =   "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/packaging/Feeds/$FeedId/views/$($ViewId)?api-version=6.1-preview.1"
+
+        $body = @{
+             "visibility" = $Visibility
+        } | ConvertTo-Json
+
+        $results = Invoke-RestMethod -Method PATCH -Uri $url -Headers $Headers -Body $body -ContentType "application/json"
+
+        return $results
     }
 }
 

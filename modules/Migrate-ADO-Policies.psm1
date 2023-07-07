@@ -5,9 +5,11 @@ function Start-ADOPoliciesMigration {
         [Parameter (Mandatory = $TRUE)] [String]$SourceOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$SourceProjectName, 
         [Parameter (Mandatory = $TRUE)] [Hashtable]$SourceHeaders,
+        [Parameter (Mandatory = $TRUE)] [String]$SourcePAT,
         [Parameter (Mandatory = $TRUE)] [String]$TargetOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetProjectName, 
-        [Parameter (Mandatory = $TRUE)] [Hashtable]$TargetHeaders
+        [Parameter (Mandatory = $TRUE)] [Hashtable]$TargetHeaders,
+        [Parameter (Mandatory = $TRUE)] [String]$TargetPAT
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -19,17 +21,36 @@ function Start-ADOPoliciesMigration {
         Write-Log -Message '----------------------'
         Write-Log -Message ' '
 
+        Write-Log -Message "Get Source Policies.."
         $sourcePolicies = Get-Policies -ProjectName $SourceProjectName -orgName $SourceOrgName -headers $sourceHeaders
+        Write-Log -Message "Get Target Policies.."
         $targetPolicies = Get-Policies -ProjectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders
        
-        $TargetPipelines = Get-Pipelines -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
+        Write-Log -Message "Get Target Pipelines to do source lookups.."
+        $targetPipelines = Get-Pipelines -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
+
+        Write-Log -Message "Get Target Repositories to do source lookups.."
         $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
 
-        $targetUsers = Get-ADOUsersByAPI -OrgName $targetOrgName -Headers $TargetHeaders
+        # $sourceUsers = Get-ADOUsersByAPI -OrgName $SourceOrgName -Headers $SourceHeaders
+        # Write-Log -Message "Get Source Users to do source lookups.."
+        Write-Log -Message "Get Target Users to do source lookups.."
+        $targetUsers = Get-ADOUsersByAPI -OrgName $TargetOrgName -Headers $TargetHeaders
+
+        Write-Log -Message "Get Source Groups to do source lookups.."
+        $sourceGroups = Get-ADOGroups -OrgName $SourceOrgName -ProjectName $SourceProjectName -PersonalAccessToken $SourcePAT
+        Write-Log -Message "Get Target Groups to do source lookups.."
+        $targetGroups = Get-ADOGroups -OrgName $TargetOrgName -ProjectName $TargetProjectName -PersonalAccessToken $TargetPAT
+
 
         Write-Log -Message "Found $($sourcePolicies.Count) policies in source.. "
         
         foreach ($policy in $sourcePolicies) {
+
+            if($policy.id -ne 360) {
+                continue
+            }
+
             Write-Log -Message "Attempting to find $($policy.type.displayName) [$($policy.id)] in target.. "
             try {
                 foreach ($entry in $policy.settings.scope) {
@@ -37,12 +58,12 @@ function Start-ADOPoliciesMigration {
 
                         $sourceRepo = Get-Repo -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $TargetHeaders -repoId $entry.repositoryId
                         if ($null -eq $sourceRepo) {
-                            Write-Error "Could not find $($entry.repositoryId) in source while attempting to migrate policy." -ErrorAction SilentlyContinue
+                            Write-Log -Message "Could not find $($entry.repositoryId) in source while attempting to migrate policy." -LogLevel ERROR
                         }
 
                         $targetRepo = ($targetRepos | Where-Object { $_.name -ieq $sourceRepo.name })
                         if ($null -eq $targetRepo) {
-                            Write-Error "Could not find $($entry.name) [$($entry.repositoryId)] in target while attempting to migrate policy." -ErrorAction SilentlyContinue
+                            Write-Log -Message "Could not find $($entry.name) [$($entry.repositoryId)] in target while attempting to migrate policy." -LogLevel ERROR
                         }
 
                         $entry.repositoryId = $targetRepo.id
@@ -51,26 +72,38 @@ function Start-ADOPoliciesMigration {
 
                 if($NULL -ne $policy.settings.buildDefinitionId) {
                     $sourcePipeline = Get-Pipeline -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName -DefinitionId $policy.settings.buildDefinitionId
-                    $targetPipeline = ($TargetPipelines | Where-Object {$_.Name -ceq $sourcePipeline.Name})
+                    $targetPipeline = ($targetPipelines | Where-Object {$_.Name -ceq $sourcePipeline.Name})
                     if ($null -ne $targetPipeline) {
                         $policy.settings.buildDefinitionId = $targetPipeline.id
                     } else {
-                        Write-Error "Could not find Target pipeline in settings.buildDefinitionId $($policy.settings.buildDefinitionId) in Policy ID [$($policy.id)] while attempting to migrate policy." -ErrorAction SilentlyContinue
+                        Write-Log -Message "Could not find Target pipeline in settings.buildDefinitionId $($policy.settings.buildDefinitionId) in Policy ID [$($policy.id)] while attempting to migrate policy." -LogLevel ERROR
                         continue
                     }
                 }
 
                 if($NULL -ne $policy.settings.requiredReviewerIds) {
-                    $failedToFindUser = $FALSE
-                    foreach($userId in $policy.settings.requiredReviewerIds){
-                        $targetUser = ($targetUsers | Where-Object {$_.id -ceq $userId})
+                    $failedToFindReviewerId = $FALSE
+                    $newRequiredReviewerIds = @()
+                    foreach($Id in $policy.settings.requiredReviewerIds){
+                        # Search Users for the requiredReviewerId 
+                        $targetUser = ($targetUsers | Where-Object { $_.Id -ceq $Id })
                         if ($null -eq $targetUser) {
-                            Write-Error "Could not find map Target User in settings.requiredReviewerIds $($policy.settings.requiredReviewerIds) in Policy ID [$($policy.id)] while attempting to migrate policy." -ErrorAction SilentlyContinue
-                            $failedToFindUser = $TRUE
+                            # Search Groups for the requiredReviewerId 
+                            $existingGroup = $sourceGroups | Where-Object { $_.Id -ceq $Id }
+                            $migratedGroup = $targetGroups | Where-Object { $_.Name -ceq $existingGroup.Name }
+                            if ($null -eq $migratedGroup) {
+                                $failedToFindReviewerId = $TRUE
+                            } else {
+                                $newRequiredReviewerIds += $migratedGroup.Id
+                            }
                         }
                     }
-                    if($failedToFindUser -eq $TRUE) {
+
+                    if($failedToFindReviewerId -eq $TRUE) {
+                        Write-Log -Message "Could not find one or more of the Required Reviewer Ids ($($policy.settings.requiredReviewerIds)) in Policy ID [$($policy.id)] while attempting to migrate policy." -LogLevel ERROR
                         continue
+                    } else {
+                        $policy.settings.requiredReviewerIds = $newRequiredReviewerIds
                     }
                 }
 

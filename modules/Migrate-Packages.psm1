@@ -161,7 +161,7 @@ function Move-MyGetNuGetPackages
     }
 
     if ($versionsMissingInDestination.Length -gt 0) {
-        Write-Log -Message "Migrating $($versionsMissingInDestination.Length) package versions."
+        Write-Log -Message "Migrating $($versionsMissingInDestination.Count) package versions."
 
         # Migrates packages from sources to Azure DevOps feed
         $versionContentUrls = $versionsMissingInDestination.Url

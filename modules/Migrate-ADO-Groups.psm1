@@ -70,17 +70,24 @@ function Start-ADOGroupsMigration {
         Write-Log -Message ' '
 
         Write-Log -Message 'Get ADO Groups'
-        $groups = Get-ADOGroups `
+        $sourceGroups = Get-ADOGroups `
             -OrgName $SourceOrgName `
             -ProjectName $SourceProjectName `
             -PersonalAccessToken $SourcePAT
+
+        $targetGroups = Get-ADOGroups `
+            -OrgName $TargetOrgName `
+            -ProjectName $TargetProjectName `
+            -PersonalAccessToken $TargetPAT
+
 
         Write-Log -Message 'Migrate ADO Groups'
         Push-ADOGroups `
             -PersonalAccessToken $TargetPAT `
             -OrgName $TargetOrgName `
             -ProjectName $TargetProjectName `
-            -Groups $groups
+            -SourceGroups $sourceGroups `
+            -TargetGroups $targetGroups
     }
 }
 
@@ -117,6 +124,7 @@ function Get-ADOGroups {
         
         [ADO_Group[]]$groupsFound = @() 
         foreach ($group in $groups) {
+             Write-Host ".." -NoNewline
             $group = [ADO_Group]::new($group.originId, $group.displayName, $group.principalName, $group.description, $group.descriptor)
             $members = Get-ADOGroupMembers `
                 -OrgName $OrgName `
@@ -161,6 +169,7 @@ function Get-ADOGroupMembers {
             $descriptors = $members | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
     
             foreach ($descriptor in $descriptors) {
+                Write-Host ".." -NoNewline
                 $member = $members.$descriptor
                 if ($member.subjectKind -eq "user") {
                     $GroupUserMembers += [ADO_GroupMember]::new($member.originId, $member.displayName, $member.principalName)
@@ -191,7 +200,10 @@ function Push-ADOGroups {
         [String]$ProjectName,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_Group[]]$Groups
+        [ADO_Group[]]$SourceGroups,
+
+        [Parameter (Mandatory = $TRUE)]
+        [ADO_Group[]]$TargetGroups
     )
     if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
         Set-AzDevOpsContext `
@@ -206,7 +218,7 @@ function Push-ADOGroups {
 
         # Create all groups before adding members to each group
         [ADO_Group[]]$newTargetGroups = @()
-        foreach ($group in $Groups) {
+        foreach ($group in $SourceGroups) {
             $existingGroup = $targetGroups | Where-Object { $_.Name -ieq $group.Name }
             if ($null -ine $existingGroup) {
                 Write-Log -Message "Group [$($group.Name)] already exists in target.. "
@@ -228,7 +240,8 @@ function Push-ADOGroups {
         }
 
         foreach ($newTargetGroup in $newTargetGroups) {
-            [ADO_Group]$sourceGroup = $Groups | Where-Object { $_.Name -ieq $newTargetGroup.Name }
+            [ADO_Group]$sourceGroup = $SourceGroups | Where-Object { $_.Name -ieq $newTargetGroup.Name }
+            
             Push-GroupMembers `
                 -OrgName $OrgName `
                 -ProjectName $ProjectName `
