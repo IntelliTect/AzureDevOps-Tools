@@ -13,5 +13,6 @@ jobs:
         shell: pwsh # Use 'powershell' for Windows runners
         run: |
           # Here's an example of running a simple PowerShell script without parameters: ("path/to/test-script.ps1")
-          $scriptPath = "/test-script.ps1"
+          $scriptPath = "test-script.ps1"
           pwsh -Command "Write-Host 'Hello, PowerShell!'"
+          # & ./$scriptPath
