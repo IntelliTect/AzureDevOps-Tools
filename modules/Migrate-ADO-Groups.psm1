@@ -1,42 +1,5 @@
-class ADO_Group {
-    [String]$Id
-    [String]$Name
-    [String]$PrincipalName
-    [String]$Description
-    [String]$Descriptor
-    [ADO_GroupMember[]]$UserMembers = @()
-    [ADO_Group[]]$GroupMembers = @()
-    
-    ADO_Group(
-        [String]$id,
-        [String]$name,
-        [String]$principalName,
-        [String]$description,
-        [String]$descriptor
-    ) {
-        $this.Id = $id
-        $this.Name = $name
-        $this.PrincipalName = $principalName
-        $this.Description = $description
-        $this.Descriptor = $descriptor
-    }
-}
 
-class ADO_GroupMember {
-    [String]$Id
-    [String]$Name
-    [String]$PrincipalName
-    
-    ADO_GroupMember(
-        [String]$id,
-        [String]$name,
-        [String]$principalName
-    ) {
-        $this.Id = $id
-        $this.Name = $name
-        $this.PrincipalName = $principalName
-    }
-}
+Using Module ".\Migrate-ADO-Common.psm1"
 
 function Start-ADOGroupsMigration {
     [CmdletBinding(SupportsShouldProcess)]
@@ -73,13 +36,27 @@ function Start-ADOGroupsMigration {
         $sourceGroups = Get-ADOGroups `
             -OrgName $SourceOrgName `
             -ProjectName $SourceProjectName `
-            -PersonalAccessToken $SourcePAT
+            -PersonalAccessToken $SourcePAT `
+            -GroupDisplayName $GroupDisplayName
 
+        # # # TEMP TESTING TESTING TESTING 
+        # $GroupDisplayName = "AllTeamCapacityMangers"
+        # $sourceGroups = @($sourceGroups)
+        # # 3929e778-1ed7-46a7-b932-3b57f0ab5fb1
+        # $sourceGroups = Get-ADOGroups `
+        #     -OrgName $SourceOrgName `
+        #     -ProjectName $SourceProjectName `
+        #     -PersonalAccessToken $SourcePAT `
+        #     -GroupDisplayName $GroupDisplayName
+        # # # TEMP TESTING TESTING TESTING 
+
+            
+            
+        
         $targetGroups = Get-ADOGroups `
             -OrgName $TargetOrgName `
             -ProjectName $TargetProjectName `
-            -PersonalAccessToken $TargetPAT
-
+            -PersonalAccessToken $TargetPAT 
 
         Write-Log -Message 'Migrate ADO Groups'
         Push-ADOGroups `
@@ -88,102 +65,6 @@ function Start-ADOGroupsMigration {
             -ProjectName $TargetProjectName `
             -SourceGroups $sourceGroups `
             -TargetGroups $targetGroups
-    }
-}
-
-function Get-ADOGroups {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$PersonalAccessToken,
-
-        [Parameter (Mandatory = $FALSE)]
-        [String]$GroupDisplayName
-    )
-    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
-        Set-AzDevOpsContext `
-            -PersonalAccessToken $PersonalAccessToken `
-            -OrgName $OrgName `
-            -ProjectName $ProjectName
-
-        if ($GroupDisplayName) {
-            $groups = az devops security group list --query "graphGroups[?displayName == '$($GroupDisplayName)']" --detect $false | ConvertFrom-Json
-            if (!$groups) {
-                throw "Group called '$GroupDisplayName' cannot be found in '$OrgName/$ProjectName'"
-            }
-        }
-        else {
-            $groups = (az devops security group list --detect $false | ConvertFrom-Json).graphGroups
-        }
-        
-        [ADO_Group[]]$groupsFound = @() 
-        foreach ($group in $groups) {
-             Write-Host ".." -NoNewline
-            $group = [ADO_Group]::new($group.originId, $group.displayName, $group.principalName, $group.description, $group.descriptor)
-            $members = Get-ADOGroupMembers `
-                -OrgName $OrgName `
-                -ProjectName $ProjectName `
-                -PersonalAccessToken $PersonalAccessToken `
-                -GroupDescriptor $group.Descriptor
-
-            $group.GroupMembers = $members.GroupGroupMembers
-            $group.UserMembers = $members.GroupUserMembers
-
-            $groupsFound += $group
-        }
-        return $groupsFound
-    }
-}
-
-function Get-ADOGroupMembers {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$PersonalAccessToken,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$GroupDescriptor
-    )
-    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
-        Set-AzDevOpsContext `
-            -PersonalAccessToken $PersonalAccessToken `
-            -OrgName $OrgName `
-            -ProjectName $ProjectName
-
-        [ADO_GroupMember[]]$GroupUserMembers = @()
-        [ADO_Group[]]$GroupGroupMembers = @()
-        $members = az devops security group membership list --id $GroupDescriptor --detect $false | ConvertFrom-Json
-        if ($members) {
-            $descriptors = $members | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-    
-            foreach ($descriptor in $descriptors) {
-                Write-Host ".." -NoNewline
-                $member = $members.$descriptor
-                if ($member.subjectKind -eq "user") {
-                    $GroupUserMembers += [ADO_GroupMember]::new($member.originId, $member.displayName, $member.principalName)
-                }
-                else {
-                    $GroupGroupMembers += [ADO_Group]::new($member.originId, $member.displayName, $member.principalName, $member.description, $member.descriptor)
-                }
-            }
-        }
-
-        return @{
-            "GroupUserMembers"  = $GroupUserMembers
-            "GroupGroupMembers" = $GroupGroupMembers
-        }
     }
 }
 
@@ -200,10 +81,10 @@ function Push-ADOGroups {
         [String]$ProjectName,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_Group[]]$SourceGroups,
+        [Object]$SourceGroups, 
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_Group[]]$TargetGroups
+        [Object]$TargetGroups
     )
     if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
         Set-AzDevOpsContext `
@@ -211,18 +92,13 @@ function Push-ADOGroups {
             -OrgName $OrgName `
             -ProjectName $ProjectName
 
-        $targetGroups = Get-ADOGroups `
-            -OrgName $OrgName `
-            -ProjectName $ProjectName `
-            -PersonalAccessToken $PersonalAccessToken
-
         # Create all groups before adding members to each group
-        [ADO_Group[]]$newTargetGroups = @()
+        [ADO_Group[]]$processSourceGroups = @()
         foreach ($group in $SourceGroups) {
-            $existingGroup = $targetGroups | Where-Object { $_.Name -ieq $group.Name }
+            $existingGroup = $TargetGroups | Where-Object { $_.Name -ieq $group.Name }
             if ($null -ine $existingGroup) {
                 Write-Log -Message "Group [$($group.Name)] already exists in target.. "
-                $newTargetGroups += $existingGroup
+                $processSourceGroups += $group
                 continue
             }
 
@@ -233,21 +109,25 @@ function Push-ADOGroups {
                 -ProjectName $ProjectName `
                 -GroupName $group.Name `
                 -GroupDescription $group.Description
+
+             # If we created new target Groups then add the Group the targetGroups to do lookups for populating Members
+            $newGroup = [ADO_Group]::new($result.NewGroup.originId, $result.NewGroup.displayName, $result.NewGroup.principalName, $result.NewGroup.description, $result.NewGroup.descriptor)
+            $targetGroup.Add($newGroup)
             
             if ($null -ine $result.NewGroup) {
-                $newTargetGroups += $result.NewGroup
+                $processSourceGroups += $result.NewGroup
             }
         }
 
-        foreach ($newTargetGroup in $newTargetGroups) {
-            [ADO_Group]$sourceGroup = $SourceGroups | Where-Object { $_.Name -ieq $newTargetGroup.Name }
+        foreach ($processGroup in $processSourceGroups) {
+            [ADO_Group]$targetGroup = $TargetGroups | Where-Object { $_.Name -ieq $processGroup.Name }
             
             Push-GroupMembers `
                 -OrgName $OrgName `
                 -ProjectName $ProjectName `
                 -PersonalAccessToken $PersonalAccessToken `
-                -SourceGroup $sourceGroup `
-                -TargetGroup $newTargetGroup
+                -SourceGroup $processGroup `
+                -TargetGroup $targetGroup
         }
     }
 }
@@ -276,11 +156,20 @@ function New-ADOGroup {
             -OrgName $OrgName `
             -ProjectName $ProjectName
 
+        $GroupDescription = $GroupDescription.Replace('"',"'")
         if ($Group.Description) {
-            $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false
+            $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false 2>"$env:temp\err_group1.txt"
+            Get-Content "$env:temp\err_group1.txt"
+            $ers = Get-Content "$env:temp\err_group1.txt"
+            Write-Log -Message $ers -LogLevel ERROR
+            Remove-Item -Path "$env:temp\err_group1.txt"
         }
         else {
-            $result = az devops security group create --name $GroupName --detect $false
+            $result = az devops security group create --name $GroupName --detect $false 2>"$env:temp\err_group2.txt"
+            Get-Content "$env:temp\err_group2.txt"
+            $ers = Get-Content "$env:temp\err_group2.txt"
+            Write-Log -Message $ers -LogLevel ERROR
+            Remove-Item -Path "$env:temp\err_group2.txt"
         }
         if (!$result) {
             Write-Log -Message "Could not create a new group with name '$($GroupName)'. The group name may be reserved by the system." -LogLevel ERROR
@@ -323,10 +212,26 @@ function Push-GroupMembers {
         # Add user members
         foreach ($userMember in $SourceGroup.UserMembers) {
             if ($null -ne ($TargetGroup.UserMembers | Where-Object { $_.PrincipalName -ieq $userMember.PrincipalName } )) {
-                Write-Log -Message "Member [$($userMember.Name)] already exists in target group.. "
+                Write-Log -Message "User Member [$($userMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
                 continue
             }
-            az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false --debug --verbose
+
+            try{
+                az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false --debug --verbose 2>"$env:temp\error_group1.txt" 3>"$env:temp\debug_group1.txt" 4>"$env:temp\verbos_group1.txt"
+                $error_message = Get-Content "$env:temp\error_group1.txt"
+                $debug_message = Get-Content "$env:temp\debug_group1.txt"
+                $verbos_message = Get-Content "$env:temp\verbos_group1.txt"
+                if ($error_message) {Write-Log -Message $error_message -LogLevel ERROR}
+                if ($debug_message) {Write-Log -Message $debug_message -LogLevel ERROR}
+                if ($debug_message) {Write-Log -Message $verbos_message -LogLevel ERROR}
+                Remove-Item -Path "$env:temp\error_group1.txt"
+                Remove-Item -Path "$env:temp\debug_group1.txt"
+                Remove-Item -Path "$env:temp\verbos_group1.txt"
+
+            } catch {
+                Write-Log -Message $_.Exception.Message -LogLevel ERROR
+            }
+            
         }
         # Add group members
         foreach ($groupMember in $SourceGroup.GroupMembers) {
@@ -338,12 +243,20 @@ function Push-GroupMembers {
                     -GroupDisplayName $groupMember.Name
 
                 if ($null -ne ($TargetGroup.GroupMembers | Where-Object { $_.Name -ieq $groupMember.Name } )) {
-                    Write-Log -Message "Member [$($groupMember.Name)] already exists in target group.. "
+                    Write-Log -Message "Group Member [$($groupMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
                     continue
                 }
-                az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.PrincipalName --detect $false --debug --verbose
-            }
-            catch {
+                az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.PrincipalName --detect $false --debug --verbose 2>"$env:temp\error_group2.txt" 3>"$env:temp\debug_group2.txt" 4>"$env:temp\verbos_group2.txt"
+                $error_message = Get-Content "$env:temp\error_group2.txt"
+                $debug_message = Get-Content "$env:temp\debug_group2.txt"
+                $verbos_message = Get-Content "$env:temp\verbos_group2.txt"
+                if ($error_message) {Write-Log -Message $error_message -LogLevel ERROR}
+                if ($debug_message) {Write-Log -Message $debug_message -LogLevel ERROR}
+                if ($debug_message) {Write-Log -Message $verbos_message -LogLevel ERROR}
+                Remove-Item -Path "$env:temp\error_group2.txt"
+                Remove-Item -Path "$env:temp\debug_group2.txt"
+                Remove-Item -Path "$env:temp\verbos_group2.txt"
+            } catch {
                 Write-Log -Message $_.Exception.Message -LogLevel ERROR
             }
         }

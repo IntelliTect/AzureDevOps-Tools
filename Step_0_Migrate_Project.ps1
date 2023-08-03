@@ -4,6 +4,8 @@ Write-Host "-------------------------------------------"
 Write-Host "    Begin Project Migration    "    
 Write-Host "-------------------------------------------"
 
+# Best to do a user migration first since all of the other items can reference users and groups 
+
 <#
   Step #1 migrate 
     - Build Queues (Project Agent Pools)

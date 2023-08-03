@@ -1,3 +1,6 @@
+
+Using Module ".\Migrate-ADO-Common.psm1"
+
 function Start-ADOWikiMigration {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -32,56 +35,10 @@ function Start-ADOWikiMigration {
         Write-Log -Message '-------------------'
         Write-Log -Message ' '
 
-        $wikiReposToPush = Copy-Wikis `
-            -SourceProjectName $SourceProjectName `
-            -SourceOrgName $SourceOrgName `
-            -SourceHeaders $sourceHeaders `
-            -TargetProjectName $TargetProjectName `
-            -TargetOrgName $TargetOrgName `
-            -TargetHeaders $TargetHeaders `
-            -ReposPath $ReposPath
-
-            if($NULL -ne $wikiReposToPush) {
-                Push-Wikis `
-                    -ProjectName $TargetProjectName `
-                    -OrgName $TargetOrgName `
-                    -Repos $wikiReposToPush `
-                    -Headers $TargetHeaders `
-                    -ReposPath $ReposPath
-            }
-    }
-}
-
-function Copy-Wikis {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$SourceProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$SourceOrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$SourceHeaders,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$TargetProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$TargetOrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$TargetHeaders,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ReposPath
-    )
-    if ($PSCmdlet.ShouldProcess("path $ReposPath")) {
-        try {
-            $final = [object[]]@()
-
+       try {
             $sourceWikis = Get-Wikis -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
             $targetWikis = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
+            $savedPath = $(Get-Location).Path
 
             foreach ($sourceWiki in $sourceWikis) {
                 
@@ -92,112 +49,46 @@ function Copy-Wikis {
                     continue
                 }
         
-                Write-Log -Message "Cloning $($sourceWiki.name)"
-                git clone $sourceRepo.remoteURL "$ReposPath\$($sourceWiki.name)"
-                $final += $sourceWiki
+                try {
+                    Write-Log -Message 'Initializing new wiki repository ... '
+                    New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                }
+                catch {
+                    Write-Log -Message "Error initializing new wiki repo: $_ " -LogLevel ERROR
+                    Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
+                    continue
+                }
+
+                try {
+                    Write-Log -Message "Cloning wiki repository $($sourceRepo.name)"
+                    git clone --mirror $sourceRepo.remoteURL "$ReposPath\$($sourceRepo.name)"
+                    
+                    Write-Log -Message "Entering path `"$ReposPath\$($sourceRepo.name)`""
+                    Set-Location "$ReposPath\$($sourceRepo.name)"
+
+                    Write-Log -Message 'Pushing repo ...'
+                    $gitTarget = "https://$TargetOrgName@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
+                    git push --mirror $gitTarget
+
+                    # Write-Log -Message 'Remove local copy of repo ...'
+                    # remove-Item "$ReposPath\$($sourceRepo.name)" -Force -Recurse
+                }
+                catch {
+                    Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
+                }
+                finally {
+                    Set-Location $savedPath
+                }
             } 
-            return $final
         }
         catch {
             Write-Log -Message "Error cloning wiki/repo from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR
-            Write-Error -Messsage $_ -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
             return
         }
     }
 }
 
-function Push-Wikis {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Object[]]$Repos,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ReposPath
-    )
-    if ($PSCmdlet.ShouldProcess($ProjectName, "Push repos from $ReposPath")) {
-        $savedPath = $(Get-Location).Path
-        $targetRepos = Get-Repos -ProjectName $ProjectName -OrgName $OrgName -Headers $Headers
-        
-        foreach ($repo in $Repos) {
-            Write-Log -Message "Pushing repo $($repo.Name)"
-        
-            $targetRepo = $targetRepos | Where-Object { $_.name -ieq $repo.name }
-            if ($null -eq $targetRepo) {
-                try {
-                    Write-Log -Message 'Initializing repository ... '
-                    New-GitRepository -ProjectName $ProjectName -OrgName $Orgname -RepoName $repo.name -Headers $Headers
-                }
-                catch {
-                    Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR
-                }
-            }
-        
-            try {
-                Write-Log -Message 'Pushing repo ...'
-                Write-Log -Message "Entering path `"$ReposPath\$($repo.name)`""
-                Set-Location "$ReposPath\$($repo.name)"
-
-                $gitTarget = "https://$TargetOrgName@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $repo.name
-        
-                git remote add target $gitTarget
-                git push -u target --all
-            }
-            catch {
-                Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
-            }
-            finally {
-                Set-Location $savedPath
-            }
-        }
-    }
-}
-
-function New-GitRepository {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$RepoName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers
-    )
-    if ($PSCmdlet.ShouldProcess($ProjectName, "Push repos from $ReposPath")) {
-        $url = "$org/_apis/git/repositories?api-version=5.1"
-    }
-    $url = "https://dev.azure.com/$OrgName/_apis/git/repositories?api-version=5.1"
-
-    $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers
-
-    $requestBody = @{
-        name    = $RepoName
-        project = @{
-            id = $project.id
-        }
-    } | ConvertTo-Json
-
-    try {
-        Invoke-RestMethod -Method post -uri $url -Headers $Headers -Body $requestBody -ContentType 'application/json'
-    }
-    catch {
-        Write-Log -Message "Error creating repo $RepoName in project $projectId : $($_.Exception) " 
-    }
-}
 
 # Wikis
 function Get-Wikis([string]$projectName, [string]$orgName, $headers) {

@@ -21,4 +21,4 @@ Write-Host " "
 -SkipMigrateServiceHooks $FALSE `
 -SkipMigratePolicies $FALSE `
 -SkipMigrateDashboards $FALSE `
--SkipMigratDeliveryPlans $FALSE
+-SkipMigrateDeliveryPlans $FALSE

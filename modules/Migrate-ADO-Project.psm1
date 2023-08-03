@@ -98,11 +98,17 @@ function Start-ADOProjectMigration {
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
+        -SourcePat $SourcePAT `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
+        -ReplacePipelinePermissions $TRUE `
         -WhatIf:$SkipMigrateBuildQueues
         #endregion
+
+       
+        
 
         # ========================================
         # ============ Migrate Repos =============
@@ -145,6 +151,7 @@ function Start-ADOProjectMigration {
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
+        -MigrateAzurermConnections $TRUE `
         -WhatIf:$SkipMigrateServiceConnections
         #endregion
 

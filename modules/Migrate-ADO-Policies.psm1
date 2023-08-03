@@ -1,4 +1,6 @@
 
+Using Module ".\Migrate-ADO-Common.psm1"
+
 function Start-ADOPoliciesMigration {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -22,131 +24,157 @@ function Start-ADOPoliciesMigration {
         Write-Log -Message ' '
 
         Write-Log -Message "Get Source Policies.."
-        $sourcePolicies = Get-Policies -ProjectName $SourceProjectName -orgName $SourceOrgName -headers $sourceHeaders
-        Write-Log -Message "Get Target Policies.."
-        $targetPolicies = Get-Policies -ProjectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders
+        $sourcePolicies = Get-Policies -ProjectName $SourceProjectName -orgName $SourceOrgName -headers $SourceHeaders
+        # Write-Log -Message "Get Target Policies.."
+        # $targetPolicies = Get-Policies -ProjectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders
        
-        Write-Log -Message "Get Target Pipelines to do source lookups.."
+        # Write-Log -Message "Get Source Pipelines for source to target mapping.."
+        $sourcePipelines = Get-Pipelines -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName
+        # Write-Log -Message "Get Target Pipelines for source to target mapping.."
         $targetPipelines = Get-Pipelines -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
 
-        Write-Log -Message "Get Target Repositories to do source lookups.."
+        # Write-Log -Message "Get Target Repositories for source to target mapping.."
+        $sourceRepos = Get-Repos -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
+        Write-Log -Message "Get Target Repositories for source to target mapping.."
         $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
 
+        # Write-Log -Message "Get Source Users for source to target mapping.."
         # $sourceUsers = Get-ADOUsersByAPI -OrgName $SourceOrgName -Headers $SourceHeaders
-        # Write-Log -Message "Get Source Users to do source lookups.."
-        Write-Log -Message "Get Target Users to do source lookups.."
-        $targetUsers = Get-ADOUsersByAPI -OrgName $TargetOrgName -Headers $TargetHeaders
+        # # Write-Log -Message "Get Target Users for source to target mapping.."
+        # $targetUsers = Get-ADOUsersByAPI -OrgName $TargetOrgName -Headers $TargetHeaders
 
-        Write-Log -Message "Get Source Groups to do source lookups.."
-        $sourceGroups = Get-ADOGroups -OrgName $SourceOrgName -ProjectName $SourceProjectName -PersonalAccessToken $SourcePAT
-        Write-Log -Message "Get Target Groups to do source lookups.."
-        $targetGroups = Get-ADOGroups -OrgName $TargetOrgName -ProjectName $TargetProjectName -PersonalAccessToken $TargetPAT
+        Write-Log -Message 'Getting ADO Users from Source..'
+        $sourceUsers = Get-ADOUsers  -OrgName $SourceOrgName -PersonalAccessToken $SourcePat
+        Write-Log -Message 'Getting ADO Users from Target..'
+        $targetUsers = Get-ADOUsers -OrgName $TargetOrgName -PersonalAccessToken $TargetPat
 
+        Write-Log -Message "Get Source Groups for source to target mapping.."
+        $sourceGroups = Get-ADOGroups -OrgName $SourceOrgName -ProjectName $SourceProjectName -PersonalAccessToken $SourcePAT -GetGroupMembers $FALSE
+        Write-Log -Message "Get Target Groups for source to target mapping.."
+        $targetGroups = Get-ADOGroups -OrgName $TargetOrgName -ProjectName $TargetProjectName -PersonalAccessToken $TargetPAT -GetGroupMembers $FALSE
 
         Write-Log -Message "Found $($sourcePolicies.Count) policies in source.. "
-        
+
+        # # # TEMP TESTING TESTING TESTING 
+        # $testingPolicies = $sourcePolicies | Where-Object { $_.Id -eq 1076 } #  ($s_policy | Where-Object { ($_.Id -eq 370) }
+        # #     # foreach ($policy in $sourcePolicies) {
+        # # # TEMP TESTING TESTING TESTING 
+
         foreach ($policy in $sourcePolicies) {
-
-            if($policy.id -ne 360) {
-                continue
-            }
-
-            Write-Log -Message "Attempting to find $($policy.type.displayName) [$($policy.id)] in target.. "
+            Write-Log -Message "Processing Policy $($policy.Id).. "
+            $strMsg = ""
+            $processPolicy = $policy
             try {
-                foreach ($entry in $policy.settings.scope) {
+                $haveMissingComponents = $FALSE
+                foreach ($entry in $processPolicy.settings.scope) {
                     if ($null -ne $entry.repositoryId) {
-
-                        $sourceRepo = Get-Repo -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $TargetHeaders -repoId $entry.repositoryId
+                        Write-Log -Message "Mapping  repository id $($entry.repositoryId).. "
+                        # $sourceRepo = Get-Repo -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $TargetHeaders -repoId $entry.repositoryId
+                        $sourceRepo = $sourceRepos | Where-Object { $_.Id -eq $entry.repositoryId }
                         if ($null -eq $sourceRepo) {
-                            Write-Log -Message "Could not find $($entry.repositoryId) in source while attempting to migrate policy." -LogLevel ERROR
+                            $sourceRepo = Get-Repo -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $TargetHeaders -repoId $entry.repositoryId
                         }
 
-                        $targetRepo = ($targetRepos | Where-Object { $_.name -ieq $sourceRepo.name })
-                        if ($null -eq $targetRepo) {
-                            Write-Log -Message "Could not find $($entry.name) [$($entry.repositoryId)] in target while attempting to migrate policy." -LogLevel ERROR
+                        if ($null -ne $sourceRepo) {
+                            $targetRepo = ($targetRepos | Where-Object { $_.name -ieq $sourceRepo.name })
+                            if ($null -eq $targetRepo) {
+                                $strMsg += ("Could not find the repositoryId $($entry.name) [$($entry.repositoryId)] in target while attempting to migrate policy." + "`n")
+                                # Write-Log -Message "Could not find the repositoryId $($entry.name) [$($entry.repositoryId)] in target while attempting to migrate policy." -LogLevel WARNING
+                                $haveMissingComponents = $TRUE
+                                $entry.repositoryId = $NULL
+                            } else {
+                                $entry.repositoryId = $targetRepo.id
+                            }
+                        } else {
+                            $strMsg += ("Could not find the repositoryId $($entry.repositoryId) in source while attempting to migrate policy." + "`n")
+                            # Write-Log -Message "Could not find the repositoryId $($entry.repositoryId) in source while attempting to migrate policy." -LogLevel WARNING
+                            $haveMissingComponents = $TRUE
                         }
-
-                        $entry.repositoryId = $targetRepo.id
                     }
                 }
 
-                if($NULL -ne $policy.settings.buildDefinitionId) {
-                    $sourcePipeline = Get-Pipeline -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName -DefinitionId $policy.settings.buildDefinitionId
-                    $targetPipeline = ($targetPipelines | Where-Object {$_.Name -ceq $sourcePipeline.Name})
-                    if ($null -ne $targetPipeline) {
-                        $policy.settings.buildDefinitionId = $targetPipeline.id
+                if($NULL -ne $processPolicy.settings.buildDefinitionId) {
+                    Write-Log -Message "Mapping  buildDefinitionId id $($processPolicy.settings.buildDefinitionId).. "
+                    # $sourcePipeline = Get-Pipeline -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName -DefinitionId $processPolicy.settings.buildDefinitionId
+                    $sourcePipeline = $sourcePipelines | Where-Object { $_.Id -eq $processPolicy.settings.buildDefinitionId }
+                    if($NULL -eq $sourcePipeline) {
+                        $sourcePipeline = Get-Pipeline -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName -DefinitionId $processPolicy.settings.buildDefinitionId
+                    }
+
+                    if($NULL -ne $sourcePipeline) {
+                        $targetPipeline = ($targetPipelines | Where-Object {$_.Name -eq $sourcePipeline.Name})
+                        if ($null -ne $targetPipeline) {
+                            $processPolicy.settings.buildDefinitionId = $targetPipeline.id
+                        } else {
+                            $strMsg += ("Could not find Target pipeline for settings.buildDefinitionId $($processPolicy.settings.buildDefinitionId) in Policy ID [$($processPolicy.id)] while attempting to migrate policy." + "`n")
+                            # Write-Log -Message "Could not find Target pipeline in settings.buildDefinitionId $($processPolicy.settings.buildDefinitionId) in Policy ID [$($processPolicy.id)] while attempting to migrate policy." -LogLevel WARNING
+                            $haveMissingComponents = $TRUE
+                            #continue
+                            # $processPolicy.settings.buildDefinitionId = $NULL
+                        }
                     } else {
-                        Write-Log -Message "Could not find Target pipeline in settings.buildDefinitionId $($policy.settings.buildDefinitionId) in Policy ID [$($policy.id)] while attempting to migrate policy." -LogLevel ERROR
-                        continue
+                        $strMsg += ("Could not find Source pipeline for settings.buildDefinitionId $($processPolicy.settings.buildDefinitionId) in Policy ID [$($processPolicy.id)] while attempting to migrate policy." + "`n")
+                        $haveMissingComponents = $TRUE
                     }
+                    
                 }
 
-                if($NULL -ne $policy.settings.requiredReviewerIds) {
+                if($NULL -ne $processPolicy.settings.requiredReviewerIds) {
+                    Write-Log -Message "Mapping Required Reviewer Ids ($($policy.settings.requiredReviewerIds)) in Policy ID [$($policy.id)] from source to target."
                     $failedToFindReviewerId = $FALSE
                     $newRequiredReviewerIds = @()
-                    foreach($Id in $policy.settings.requiredReviewerIds){
+                    foreach($Id in $processPolicy.settings.requiredReviewerIds){
                         # Search Users for the requiredReviewerId 
-                        $targetUser = ($targetUsers | Where-Object { $_.Id -ceq $Id })
-                        if ($null -eq $targetUser) {
-                            # Search Groups for the requiredReviewerId 
-                            $existingGroup = $sourceGroups | Where-Object { $_.Id -ceq $Id }
-                            $migratedGroup = $targetGroups | Where-Object { $_.Name -ceq $existingGroup.Name }
-                            if ($null -eq $migratedGroup) {
-                                $failedToFindReviewerId = $TRUE
+                        # Write-Log -Message "Attempting to locate Required Reviewer Id ($($Id)) in Policy ID [$($policy.id)] while attempting to migrate policy."
+                        $existingGroup = $sourceGroups | Where-Object { $_.Id -eq $Id }
+                        $migratedGroup = $targetGroups | Where-Object { $_.Name -eq $existingGroup.Name }
+                        if ($NULL -ne $migratedGroup) {
+                            $newRequiredReviewerIds += $migratedGroup.Id
+                        } else {
+                            $sourceUser = ($sourceUsers | Where-Object { $_.Id -eq $Id })
+                            $targetUser = ($targetUsers | Where-Object { $_.MailAddress -eq $sourceUser.MailAddress })
+                            if ($NULL -ne $targetUser) {
+                                $newRequiredReviewerIds += $targetUser.Id
                             } else {
-                                $newRequiredReviewerIds += $migratedGroup.Id
+                                $strMsg += ("Could not find Required Reviewer Id: ($($Id)) for Policy ID [$($policy.id)] in target Groups or users." + "`n")
+                                # Write-Log -Message "Could not find Required Reviewer Id: ($($Id)) for Policy ID [$($policy.id)] in target Groups or users." -LogLevel WARNING
+                                $failedToFindReviewerId = $TRUE
                             }
                         }
                     }
 
                     if($failedToFindReviewerId -eq $TRUE) {
-                        Write-Log -Message "Could not find one or more of the Required Reviewer Ids ($($policy.settings.requiredReviewerIds)) in Policy ID [$($policy.id)] while attempting to migrate policy." -LogLevel ERROR
-                        continue
+                        $haveMissingComponents = $TRUE
                     } else {
-                        $policy.settings.requiredReviewerIds = $newRequiredReviewerIds
+                        $processPolicy.settings.requiredReviewerIds = $newRequiredReviewerIds
                     }
                 }
 
-                # See if Policy exists in Target with the same Policy Type ID and matching settings.Scopes
-                $likePolicies = $targetPolicies | Where-Object {(($_.type.id -eq $policy.type.id) -and ($_.settings.scope.Count -eq $policy.settings.scope.Count))} 
-                $matchedItems = New-Object Collections.Generic.List[Int]
-                if($NULL -ne $likePolicies) {
-                    foreach($likePolicy in $likePolicies) {
-                        $policyFound = $TRUE
-                        foreach($likePolicyScope in $likePolicy.settings.scope) {
-                            $scopeFound = $FALSE
-                            foreach($policyScope in $policy.settings.scope) {
-                                if(($policyScope.refName -ceq $likePolicyScope.refName) -and ($policyScope.matchKind -eq $likePolicyScope.matchKind) -and ($policyScope.repositoryId -eq $likePolicyScope.repositoryId)) {
-                                    $scopeFound = $TRUE
-                                    break
-                                }
-                            }
-                            if($scopeFound) {
-                                continue
-                            } else {
-                                $policyFound = $FALSE
-                                break
-                            }
-                        }
-                    
-                        if($policyFound -eq $TRUE) {
-                            $matchedItems.Add($likePolicy.id)
-                        }
+                if($haveMissingComponents) {
+                    Write-Log -Message "Unable to create NEW Policy for Source Policy '$($processPolicy.type.displayName)' [Id: $($processPolicy.id)] in target!" -LogLevel ERROR
+                    Write-Log -Message $strMsg -LogLevel ERROR
+                    # $policyJson = ConvertTo-Json -Depth 100 $processPolicy
+                    # Write-Log -Message $policyJson -LogLevel INFO
+                    continue
+                }
+
+                Write-Log -Message "Attempting to create or locate migrated Policy '$($processPolicy.type.displayName)' [Id: $($processPolicy.id)] in target!"
+                try {
+                    $result = New-Policy -projectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders -policy $processPolicy
+                    Write-Log -Message "Created NEW Policy '$($processPolicy.type.displayName)' [Id: $($processPolicy.id)] in target!"
+                    Write-Log -Message "Done!" -LogLevel SUCCESS
+                    Write-Host $result
+                } catch {
+                    $err = ConvertFrom-json -Depth 100 $_
+                    if($err.typeKey -eq "PolicyChangeRejectedByPolicyException") {
+                        Write-Log -Message "Policy '$($processPolicy.type.displayName)' [Id: $($processPolicy.id)] already exist in target."
+                    } else {
+                        Write-Log -Message ($_) -LogLevel ERROR
+                        Write-Log -Message $_.Exception -LogLevel ERROR
                     }
                 }
                 
-                if ($matchedItems.Count -gt 0) {
-                    Write-Log -Message "Policy $($policy.type.displayName) [$($policy.id)] already exists in target.. "
-                    if ($matchedItems.Count -gt 1) {
-                        Write-Log -Message "Found more than one Policy in Target that matches Source Policy $($policy.type.displayName) [$($policy.id)]... "
-                    }
-                    continue
-                } 
-
-                Write-Log -Message "Creating NEW $($policy.type.displayName) [Id: $($policy.id)] policy in target !" -LogLevel SUCCESS
-                $result = New-Policy -projectName $targetProjectName -orgName $targetOrgName -headers $targetHeaders -policy $policy
-                Write-Host $result
-                Write-Log -Message "Done!" -LogLevel SUCCESS
+                Write-Host " "
             } catch {
                 Write-Log -Message "FAILED!" -LogLevel ERROR
                 Write-Log -Message $_.Exception -LogLevel ERROR
@@ -155,14 +183,13 @@ function Start-ADOPoliciesMigration {
                 } catch {}
             }
         }
-       
     }
 }
 
 
 function Get-Policies([string]$projectName, [string]$orgName, $headers) {
 
-    $url = "https://dev.azure.com/$orgName/$projectName/_apis/policy/configurations?api-version=7.0"
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/policy/configurations"
     
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     
@@ -170,16 +197,45 @@ function Get-Policies([string]$projectName, [string]$orgName, $headers) {
 
 }
 
+function Get-UserIdentity ([string]$projectName, [string]$orgName, $headers, $identityId) {
+
+    $url = "https://vssps.dev.azure.com/$orgName/_apis/identities?identityIds=$($identityId)&api-version=7.0"
+           
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+
+    return $results.Value
+
+}
+
+function Get-UserByDescriptor ([string]$projectName, [string]$orgName, $headers, $descriptorId) {
+
+    $url = "https://vssps.dev.azure.com/$orgName/_apis/Graph/Users/$($descriptorId)?api-version=7.0-preview"
+           
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+
+    return $results
+
+}
+
 function New-Policy([string]$projectName, [string]$orgName, $headers, $policy) {
 
     $url = "https://dev.azure.com/$orgName/$projectName/_apis/policy/configurations?api-version=7.0"
     
-    $body = $policy | ConvertTo-Json -Depth 10
+    $body = ConvertTo-Json -Depth 100 $policy 
 
-    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    $results = Invoke-RestMethod -Method POST -uri $url -Headers $headers -Body $body -ContentType "application/json"
     
     return $results
 }
 
+function Edit-Policy([string]$projectName, [string]$orgName, $headers, $policy) {
 
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/policy/configurations/$($policy.Id)?api-version=7.0"
+    
+    $body = ConvertTo-Json -Depth 100 $policy
+
+    $results = Invoke-RestMethod -Method PUT -uri $url -Headers $headers -Body $body -ContentType "application/json"
+    
+    return $results
+}
 

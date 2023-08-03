@@ -1,4 +1,6 @@
 
+Using Module ".\Migrate-ADO-Common.psm1"
+
 function Start-ADOServiceHooksMigration {
     [CmdletBinding(SupportsShouldProcess)]
     param(

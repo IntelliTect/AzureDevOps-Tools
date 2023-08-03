@@ -27,57 +27,21 @@ function Start-ADOUserMigration {
         Write-Log -Message ' '
 
         Write-Log -Message 'Getting ADO Users from Source..'
-        
         $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
 
+        Write-Log -Message 'Getting ADO Users from Target..'
         $targetUsers = Get-ADOUsers `
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat
 
-        Write-Log -Message 'Pushing ADO Users to Target..'
+        Write-Log -Message 'Pushing ADO Source Users to Target..'
         Push-ADOUsers `
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat `
             -Users $sourceUsers `
             -TargetUsers $targetUsers
-    }
-}
-
-function Get-ADOUsers {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-        
-        [Parameter (Mandatory = $TRUE)]
-        [String]$PersonalAccessToken
-    )
-    if ($PSCmdlet.ShouldProcess($OrgName)) {
-        Set-AzDevOpsContext -PersonalAccessToken $PersonalAccessToken -OrgName $OrgName
-
-        Write-Host "Calling az devops user list.." -NoNewline
-        $results = az devops user list --detect $False | ConvertFrom-Json
-
-        $members = $results.members
-        $totalCount = $results.totalCount
-        $counter = $members.Count
-        do {
-            $UserResponse = az devops user list --detect $False --skip $counter | ConvertFrom-Json
-            Write-Host ".." -NoNewline
-            $members += $UserResponse.members
-            $counter += $UserResponse.members.Count
-        } while ($counter -lt $totalCount)
-        Write-Host " "
-
-        # Convert to ADO User objects
-        [ADO_User[]]$users = @()
-        foreach ($orgUser in $members ) {
-            $users += [ADO_User]::new($orgUser.user.originId, $orgUser.user.principalName, $orgUser.user.displayName, $orgUser.user.mailAddress, $orgUser.accessLevel.accountLicenseType)
-        }
-
-        return $users
     }
 }
 
@@ -91,10 +55,10 @@ function Push-ADOUsers {
         [String]$PersonalAccessToken,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_User[]]$Users,
+        [Object[]]$Users,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_User[]]$TargetUsers
+        [Object[]]$TargetUsers
     )
     if ($PSCmdlet.ShouldProcess($OrgName)) {
 
@@ -139,17 +103,29 @@ function Add-ADOUser {
             -PersonalAccessToken $PersonalAccessToken `
             -OrgName $OrgName
 
-        $response = az devops user add --email-id $User.PrincipalName --license-type $User.LicenseType --detect $false
+        try{
+            $response = az devops user add --email-id $User.PrincipalName --license-type $User.LicenseType --detect $false 2>"$env:temp\err1.txt"
+            $ers = Get-Content "$env:temp\err1.txt"
+            if ($ers) {Write-Log -Message $ers -LogLevel ERROR}
+            Remove-Item -Path "$env:temp\err1.txt"
+            
+            if ($ForceStakeholderIfNeeded -and !$response) {
+                # Lower subscription plan detected
+                $newLicense = "stakeholder"
+                $response = az devops user add --email-id $User.PrincipalName --license-type $newLicense --detect $false 2>"$env:temp\err2.txt"
+                $ers = Get-Content "$env:temp\err2.txt"
+                if ($ers) { Write-Log -Message $ers -LogLevel ERROR}
+                Remove-Item -Path "$env:temp\err2.txt"
 
-        if ($ForceStakeholderIfNeeded -and !$response) {
-            # Lower subscription plan detected
-            $newLicense = "stakeholder"
-            $response = az devops user add --email-id $User.PrincipalName --license-type $newLicense --detect $false
-            if ($response) {
-                Write-Log `
-                    -Message "User '$($User.DisplayName)' has been demoted from license $($User.LicenseType) to $newLicense because your subscription does not support that license type." `
-                    -LogLevel ERROR
+                if ($response) {
+                    Write-Log `
+                        -Message "User '$($User.DisplayName)' has been demoted from license $($User.LicenseType) to $newLicense because your subscription does not support that license type." `
+                        -LogLevel ERROR
+                }
             }
+            
+        } catch {
+            Write-Log -Message $_.Exception.Message -LogLevel ERROR
         }
     }
 }
