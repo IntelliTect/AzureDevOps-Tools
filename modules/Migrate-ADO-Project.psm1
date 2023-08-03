@@ -156,6 +156,7 @@ function Start-ADOProjectMigration {
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
+        -MigrateAzurermConnections $TRUE `
         -WhatIf:$SkipMigrateServiceConnections
         #endregion
 

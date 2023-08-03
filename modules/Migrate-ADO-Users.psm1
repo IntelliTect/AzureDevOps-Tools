@@ -27,7 +27,6 @@ function Start-ADOUserMigration {
         Write-Log -Message ' '
 
         Write-Log -Message 'Getting ADO Users from Source..'
-        
         $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
@@ -43,42 +42,6 @@ function Start-ADOUserMigration {
             -PersonalAccessToken $TargetPat `
             -Users $sourceUsers `
             -TargetUsers $targetUsers
-    }
-}
-
-function Get-ADOUsers {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-        
-        [Parameter (Mandatory = $TRUE)]
-        [String]$PersonalAccessToken
-    )
-    if ($PSCmdlet.ShouldProcess($OrgName)) {
-        Set-AzDevOpsContext -PersonalAccessToken $PersonalAccessToken -OrgName $OrgName
-
-        Write-Host "Calling az devops user list.." -NoNewline
-        $results = az devops user list --detect $False | ConvertFrom-Json
-
-        $members = $results.members
-        $totalCount = $results.totalCount
-        $counter = $members.Count
-        do {
-            $UserResponse = az devops user list --detect $False --skip $counter | ConvertFrom-Json
-            Write-Host ".." -NoNewline
-            $members += $UserResponse.members
-            $counter += $UserResponse.members.Count
-        } while ($counter -lt $totalCount)
-        Write-Host " "
-
-        # Convert to ADO User objects
-        [ADO_User[]]$users = @()
-        foreach ($orgUser in $members ) {
-            $users += [ADO_User]::new($orgUser.user.originId, $orgUser.user.principalName, $orgUser.user.displayName, $orgUser.user.mailAddress, $orgUser.accessLevel.accountLicenseType)
-        }
-
-        return $users
     }
 }
 

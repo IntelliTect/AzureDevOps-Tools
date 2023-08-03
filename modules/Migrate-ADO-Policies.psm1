@@ -178,7 +178,6 @@ function Start-ADOPoliciesMigration {
                 } catch {}
             }
         }
-       
     }
 }
 
