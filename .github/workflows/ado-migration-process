@@ -1,0 +1,17 @@
+name: Run ADO Migration PowerShell Scripts
+
+on:
+  workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
+
+jobs:
+  run-powershell-script:
+    name: Run PowerShell Script
+    runs-on: ubuntu-latest # You can change the runner to your preferred OS
+
+    steps:
+      - name: Run Migrate-Project PowerShell script
+        shell: pwsh # Use 'powershell' for Windows runners
+        run: |
+          # Here's an example of running a simple PowerShell script without parameters: ("path/to/test-script.ps1")
+          $scriptPath = "/test-script.ps1"
+          pwsh -Command "Write-Host 'Hello, PowerShell!'"
