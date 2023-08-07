@@ -7,8 +7,7 @@ function Start-ADOServiceConnectionsMigration {
         [Parameter (Mandatory = $TRUE)] [Hashtable]$SourceHeaders,
         [Parameter (Mandatory = $TRUE)] [String]$TargetOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetProjectName, 
-        [Parameter (Mandatory = $TRUE)] [Hashtable]$TargetHeaders,
-        [Parameter (Mandatory = $False)] [bool]$MigrateAzurermConnections = $FALSE
+        [Parameter (Mandatory = $TRUE)] [Hashtable]$TargetHeaders
 
     )
     if ($PSCmdlet.ShouldProcess(
@@ -76,11 +75,7 @@ function Start-ADOServiceConnectionsMigration {
                 }
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
-                # 500 Errors!!! 
-                if($MigrateAzurermConnections -eq $FALSE) {
-                    Write-Log -Message "$($endpoint.name) is an azurerm Service Connection these connection types need to be migrated manually.. "
-                    continue
-                }
+                # Azurerm Service Connection types will need to be edited after migration to adhere to org/project naming conventions.
             } elseif ($endpoint.type -eq "externaltfs") {
                 $parameters = @{
                     "apitoken" = "0123456789" 

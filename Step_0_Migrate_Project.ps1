@@ -1,4 +1,8 @@
 
+Param (
+        [Parameter (Mandatory=$FALSE)] [Boolean]$WhatIf = $TRUE
+)
+
 Write-Host " "
 Write-Host "-------------------------------------------"
 Write-Host "    Begin Project Migration    "    
@@ -14,7 +18,7 @@ Write-Host "-------------------------------------------"
     - Wikis
     - Service Connections 
 #>
-& .\Step_1_Migrate_Project.ps1
+& .\Step_1_Migrate_Project.ps1 -WhatIf $WhatIf
 
 <#
   Step #2 migrate 
@@ -26,7 +30,7 @@ Write-Host "-------------------------------------------"
     - Release Pipelines
     - Task Groups
 #>
-& .\Step_2_Migrate_Project.ps1
+& .\Step_2_Migrate_Project.ps1 -WhatIf $WhatIf
 
 <#
   Step #3 migrate 
@@ -40,7 +44,7 @@ Write-Host "-------------------------------------------"
         1000 - 2000 - 19821
 
 #>
-& .\Step_3_Migrate_Project.ps1
+& .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf
 
 <#
   Step #4 migrate 
@@ -53,13 +57,13 @@ Write-Host "-------------------------------------------"
     - Dashbaords
     - Delivery Plans 
 #>
-& .\Step_4_Migrate_Project.ps1
+& .\Step_4_Migrate_Project.ps1 -WhatIf $WhatIf
 
 <#
   Step #5 migrate 
     - Artifacts 
 #>
-& .\Step_5_Migrate_Project.ps1
+& .\Step_5_Migrate_Project.ps1 -WhatIf $WhatIf
 
 
 Write-Host "------------------------------------------------"

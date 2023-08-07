@@ -1,16 +1,16 @@
 {
     "SourceProject": {
-        "Organization": "https://dev.azure.com/AIZ-GL/",
-        "ProjectName": "GL.CL-Elita",
-        "OrgName": "AIZ-GL"
+        "Organization": "",
+        "ProjectName": "",
+        "OrgName": ""
     },
     "TargetProject": {
-        "Organization": "https://dev.azure.com/AIZ-Sandbox/",
-        "ProjectName": "GL.CL-Elita_migrated",
-        "OrgName": "AIZ-Sandbox"
+        "Organization": "",
+        "ProjectName": "",
+        "OrgName": ""
     },
-    "ProjectDirectory": "C:\\Users\\JohnEvans\\Working\\Assurant AIZ-GT- ADO Migration Tools\\DevOps-Enablement-ADO-migration",
-    "WorkItemMigratorDirectory": "C:\\tools\\MigrationTools",
-    "DevOpsMigrationToolConfigurationFile": "migrator-configuration.json",
-    "ArtifactFeedPackageVersionLimit": 5
+    "ProjectDirectory": "",
+    "WorkItemMigratorDirectory": "",
+    "DevOpsMigrationToolConfigurationFile": "",
+    "ArtifactFeedPackageVersionLimit": -1
 }

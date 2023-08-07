@@ -120,7 +120,7 @@ if($NULL -eq $filePath) {
 }
 
 Write-Host "Configuration.json file found.."
-$configuration = [Object](Get-Content "$configPath$configFile" | Out-String | ConvertFrom-Json)
+$configuration = [Object](Get-Content "$configPath$configFile" | Out-String | ConvertFrom-Json -Depth 100)
 
 $SourceProject = $configuration.SourceProject
 $TargetProject = $configuration.TargetProject
@@ -132,19 +132,8 @@ $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
 $ArtifactFeedPackageVersionLimit = $configuration.ArtifactFeedPackageVersionLimit
 
-
 Write-Host "CONFIGURATION:"
-$SourceProject
-$TargetProject
-$ProjectDirectory
-$WorkItemMigratorDirectory
-
-# Organization Level Project Folder Path
-# $projectPath = Get-ProjectFolderPath `
-#     -RunDate $runDate `
-#     -Root $ProjectDirectory
-
-# $env:MIGRATION_LOGS_PATH = $projectPath
+Write-Host $configuration
 
 # Get project folder & set logging path w/ env variable
 $projectPath = Get-ProjectFolderPath `
@@ -168,8 +157,11 @@ If ($NULL -eq $targetPat) {$targetPat = $pat }
 #   Martin's Tool
 #region ====================================
 
+Write-Host "Configure Azure DevOps Migration Tool (Martin's Tool).."
+
 $martinConfigPath = "$($ProjectDirectory)\$($ScriptDirectoryName)\$($configPath)$DevOpsMigrationToolConfigurationFile"
-$martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 32)
+$martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
+$martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinConfigFileChanged = $FALSE
 
 # ------------------
@@ -381,7 +373,7 @@ $SkipAzureDevOpsMigrationTool = (  `
 
 
 if($martinConfigFileChanged) {
-    $martinConfiguration | ConvertTo-Json -Depth 32 | Set-Content $martinConfigPath
+    $martinConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
 }
 #endregion
 
@@ -422,3 +414,10 @@ Start-ADOProjectMigration `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers
 #endregion
+
+
+# Clean up old martin's tool Configuration
+Write-Host "Clean up Configuration file for Azure DevOps Migration Tool (Martin's Tool).."
+if($martinConfigFileChanged) {
+    $martinPreviousConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
+}
