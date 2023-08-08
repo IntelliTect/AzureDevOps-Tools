@@ -15,7 +15,7 @@
   
 - Install any extensions etc used in Source that are not installed already in the target organization. 
   
-- Delete any unneeded/unused Service Connections, Agent Pools, Teams, Groups, Pipelines, Dashbaords etc. so that they are not migrated minimizing chances for failures. 
+- Delete any unneeded/unused Service Connections, Agent Pools, Teams, Groups, Pipelines, Dashboards etc. so that they are not migrated minimizing chances for failures. 
 
 This tool is used for migrating an Azure DevOps (ADO) project to another project location either within the same organization or to another. 
 It consists of a set of PowerShell and an external .NET application that handles to migration of various components of the ADO project. 

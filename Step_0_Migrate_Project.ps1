@@ -54,7 +54,7 @@ Write-Host "-------------------------------------------"
     - Test Plans and Suites
     - Service Hooks 
     - Policies
-    - Dashbaords
+    - Dashboards
     - Delivery Plans 
 #>
 & .\Step_4_Migrate_Project.ps1 -WhatIf $WhatIf
