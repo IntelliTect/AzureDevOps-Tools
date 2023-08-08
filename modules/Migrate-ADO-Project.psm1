@@ -30,7 +30,7 @@ function Start-ADOProjectMigration {
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
-            "Migrate teams from source project $SourceOrg/$SourceProjectName")
+            "Migrate from source project $SourceOrg/$SourceProjectName")
     ) {
         
         # Get Headers

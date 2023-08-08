@@ -10,7 +10,7 @@ Write-Host "   - Test Variables"
 Write-Host "   - Test Plans and Suites"
 Write-Host "   - Service Hooks"
 Write-Host "   - Policies"
-Write-Host "   - Dashbaords"
+Write-Host "   - Dashboards"
 Write-Host "   - Delivery Plans "
 Write-Host " "
 Write-Host " "
@@ -26,7 +26,7 @@ Write-Host " "
 
 
 Write-Host " "
-Write-Host "Migrate Groups, Service hooks, Policies, Dashbaords, and Delivery Plans"
+Write-Host "Migrate Groups, Service hooks, Policies, Dashboards, and Delivery Plans"
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateGroups $WhatIf `
