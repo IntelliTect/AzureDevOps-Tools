@@ -21,7 +21,7 @@ on:
 jobs:
   run-powershell-script:
     name: Run PowerShell Script
-    runs-on: ['self-hosted','windows']
+    runs-on: 'AEC0WGEMP001'
     env:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
 

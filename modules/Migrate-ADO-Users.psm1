@@ -72,7 +72,7 @@ function Push-ADOUsers {
             }
 
             # Add user
-            Write-Log -Message "Add user $($user.DisplayName)"
+            Write-Log -Message ("Add user $($user.DisplayName)")
             Add-ADOUser `
                 -OrgName $OrgName `
                 -PersonalAccessToken $PersonalAccessToken `
