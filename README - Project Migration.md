@@ -11,7 +11,7 @@
 - Users in source organization that are not also in the target organization need to be migrated
 	- There is a script to perform this user migration.
     
-- Token needs to be created that can access both source and target organizations and has Basic + Test Plans licensing access.
+- Token needs to be created that can access both source and target organizations and has "Basic + Test Plans" licensing access.
   
 - Install any extensions etc used in Source that are not installed already in the target organization. 
   
