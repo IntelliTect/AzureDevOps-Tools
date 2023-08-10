@@ -33,7 +33,7 @@ function Start-ADOBuildEnvironmentsMigration {
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
-            "Migrate build queries from source project $SourceOrg/$SourceProjectName")
+            "Migrate build Environments from source project $SourceOrg/$SourceProjectName")
     ) {
         Write-Log -Message ' '
         Write-Log -Message '--------------------------------'

@@ -30,7 +30,7 @@ on:
           - Artifacts
           - Build Pipelines
           - Build Queues & Build Environments
-          - Dashbaords
+          - Dashboards
           - Delivery Plans
           - Groups
           - Release Pipelines
@@ -45,7 +45,7 @@ on:
           - Work-Items (Including 'Test Cases')
       WhatIf:
         type: boolean
-        description: "WhatIf: Dry Run"
+        description: "WhatIf: Simulated Run"
         required: false
         default: true
 
@@ -57,8 +57,22 @@ jobs:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
 
     steps:
+      - name: Verify Azure CLI installation
+        run: |
+          $env:PATH
+          if ($env:PATH -notcontains "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin") {
+            $env:PATH += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+          }
+
+          az --version
+
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Clean Azure DevOps Migration Tools Log Directory
+        shell: pwsh
+        run: |
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
         shell: pwsh
