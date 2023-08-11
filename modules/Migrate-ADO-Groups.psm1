@@ -39,20 +39,6 @@ function Start-ADOGroupsMigration {
             -PersonalAccessToken $SourcePAT `
             -GroupDisplayName $GroupDisplayName
 
-        # # # TEMP TESTING TESTING TESTING 
-        # $GroupDisplayName = "AllTeamCapacityMangers"
-        # $sourceGroups = @($sourceGroups)
-        # # 3929e778-1ed7-46a7-b932-3b57f0ab5fb1
-        # $sourceGroups = Get-ADOGroups `
-        #     -OrgName $SourceOrgName `
-        #     -ProjectName $SourceProjectName `
-        #     -PersonalAccessToken $SourcePAT `
-        #     -GroupDisplayName $GroupDisplayName
-        # # # TEMP TESTING TESTING TESTING 
-
-            
-            
-        
         $targetGroups = Get-ADOGroups `
             -OrgName $TargetOrgName `
             -ProjectName $TargetProjectName `
@@ -159,16 +145,14 @@ function New-ADOGroup {
         $GroupDescription = $GroupDescription.Replace('"',"'")
         if ($Group.Description) {
             $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false 2>"$env:temp\err_group1.txt"
-            Get-Content "$env:temp\err_group1.txt"
             $ers = Get-Content "$env:temp\err_group1.txt"
-            Write-Log -Message $ers -LogLevel ERROR
+            if ($ers) { Write-Log -Message $ers -LogLevel ERROR }
             Remove-Item -Path "$env:temp\err_group1.txt"
         }
         else {
             $result = az devops security group create --name $GroupName --detect $false 2>"$env:temp\err_group2.txt"
-            Get-Content "$env:temp\err_group2.txt"
             $ers = Get-Content "$env:temp\err_group2.txt"
-            Write-Log -Message $ers -LogLevel ERROR
+            if ($ers) { Write-Log -Message $ers -LogLevel ERROR }
             Remove-Item -Path "$env:temp\err_group2.txt"
         }
         if (!$result) {

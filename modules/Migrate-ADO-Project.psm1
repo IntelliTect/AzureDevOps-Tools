@@ -117,9 +117,11 @@ function Start-ADOProjectMigration {
         Start-ADORepoMigration `
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
+        -SourcePat $SourcePAT `
         -SourceHeaders $sourceHeaders `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
+        -TargetPAT $TargetPAT `
         -TargetHeaders $targetHeaders `
         -ReposPath $projectPath `
         -WhatIf:$SkipMigrateRepos
@@ -133,9 +135,11 @@ function Start-ADOProjectMigration {
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
+        -SourcePat $SourcePAT `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
+        -TargetPAT $TargetPAT `
         -ReposPath $projectPath `
         -WhatIf:$SkipMigrateWikis
         #endregion

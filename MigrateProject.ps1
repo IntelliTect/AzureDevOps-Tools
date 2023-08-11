@@ -110,11 +110,6 @@ $configPath = 'configuration\'
 $filePath = Resolve-Path -Path "$configPath$configFile"
 
 if($NULL -eq $filePath) {
-    Write-Host "Checking in project root directory for configuration.json file.."
-    $configPath = ''
-    $filePath = Resolve-Path -Path "$configPath$configFile"
-}
-if($NULL -eq $filePath) {
     Write-Log -Message 'Unable to locate configuration.json file which is required!' -LogLevel ERROR
     exit
 }
@@ -126,8 +121,7 @@ $SourceProject = $configuration.SourceProject
 $TargetProject = $configuration.TargetProject
 $SourceProjectName = $configuration.SourceProject.ProjectName
 $TargetProjectName = $configuration.TargetProject.ProjectName
-$ProjectDirectory = $configuration.ProjectDirectory
-$ScriptDirectoryName = $configuration.ScriptDirectoryName
+$ProjectDirectory = Get-Location 
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
 $ArtifactFeedPackageVersionLimit = $configuration.ArtifactFeedPackageVersionLimit
@@ -159,7 +153,7 @@ If ($NULL -eq $targetPat) {$targetPat = $pat }
 
 Write-Host "Configure Azure DevOps Migration Tool (Martin's Tool).."
 
-$martinConfigPath = "$($ProjectDirectory)\$($ScriptDirectoryName)\$($configPath)$DevOpsMigrationToolConfigurationFile"
+$martinConfigPath = "$($ProjectDirectory)\$($configPath)$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinConfigFileChanged = $FALSE

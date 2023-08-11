@@ -10,6 +10,9 @@ function Start-ADOWikiMigration {
         [Parameter (Mandatory = $TRUE)]
         [String]$SourceOrgName,
 
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$SourcePAT,
+
         [Parameter (Mandatory = $TRUE)]
         [Hashtable]$SourceHeaders,
 
@@ -18,6 +21,9 @@ function Start-ADOWikiMigration {
 
         [Parameter (Mandatory = $TRUE)]
         [String]$TargetOrgName,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$TargetPAT,
 
         [Parameter (Mandatory = $TRUE)]
         [Hashtable]$TargetHeaders,
@@ -61,13 +67,14 @@ function Start-ADOWikiMigration {
 
                 try {
                     Write-Log -Message "Cloning wiki repository $($sourceRepo.name)"
-                    git clone --mirror $sourceRepo.remoteURL "$ReposPath\$($sourceRepo.name)"
+                    $remoteUrl =  $sourceRepo.remoteURL.Replace("@",":$SourcePAT@")
+                    git clone --mirror $remoteUrl "$ReposPath\$($sourceRepo.name)"
                     
                     Write-Log -Message "Entering path `"$ReposPath\$($sourceRepo.name)`""
                     Set-Location "$ReposPath\$($sourceRepo.name)"
 
                     Write-Log -Message 'Pushing repo ...'
-                    $gitTarget = "https://$TargetOrgName@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
+                    $gitTarget = "https://$($TargetOrgName):$($TargetPAT)@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
                     git push --mirror $gitTarget
 
                     # Write-Log -Message 'Remove local copy of repo ...'

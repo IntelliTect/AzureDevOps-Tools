@@ -36,11 +36,13 @@ on:
           - Release Pipelines
           - Repositories
           - Service Hooks
+          - Task Groups
           - Teams
           - Test Configurations
           - Test Plans and Suites
           - Test Variables
           - Variable Groups
+          - Wikis
           - Work Item Querys
           - Work-Items (Including 'Test Cases')
       WhatIf:
@@ -134,6 +136,8 @@ jobs:
                   { & .\MigrateProject.ps1 -SkipMigrateRepos $WhatIf } 
               "Service Hooks" 
                   { & .\MigrateProject.ps1 -SkipMigrateServiceHooks $WhatIf }
+              "Task Groups"
+                  { & .\MigrateProject.ps1 -SkipMigrateTaskGroups $WhatIf }
               "Teams"
                   { & .\MigrateProject.ps1 -SkipMigrateTeams $WhatIf } 
               "Test Configurations" 
@@ -144,6 +148,8 @@ jobs:
                   { & .\MigrateProject.ps1 -SkipMigrateTestVariables $WhatIf }
               "Variable Groups" 
                   { & .\MigrateProject.ps1 -SkipMigrateVariableGroups $WhatIf }
+              "Wikis"
+              { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
               "Work Item Querys" 
                   { & .\MigrateProject.ps1 --SkipMigrateWorkItemQuerys $WhatIf }
               "Work-Items (Including 'Test Cases')"  
