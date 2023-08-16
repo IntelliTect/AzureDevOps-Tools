@@ -9,6 +9,7 @@
         "ProjectName": "",
         "OrgName": ""
     },
+    "ProjectDirectory": "",
     "WorkItemMigratorDirectory": "",
     "DevOpsMigrationToolConfigurationFile": "",
     "ArtifactFeedPackageVersionLimit": -1

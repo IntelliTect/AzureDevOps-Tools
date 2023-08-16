@@ -379,7 +379,7 @@ function Get-ADOUsers {
         $counter = $members.Count
         do {
             $UserResponse = az devops user list --detect $False --skip $counter | ConvertFrom-Json
-            Write-Host ".." -NoNewline
+            Write-Host "." -NoNewline
             $members += $UserResponse.members
             $counter += $UserResponse.members.Count
         } while ($counter -lt $totalCount)
@@ -445,21 +445,20 @@ function Get-ADOGroups {
             -OrgName $OrgName `
             -ProjectName $ProjectName
 
-        # $organization = "https://dev.azure.com/$OrgName/"
-        # --organization $organization
+        $organization = "https://dev.azure.com/$OrgName/"
         if ($GroupDisplayName) {
-            $groups = az devops security group list --query "graphGroups[?displayName == '$($GroupDisplayName)']" --detect $false | ConvertFrom-Json
+            $groups = az devops security group list --query "graphGroups[?displayName == '$($GroupDisplayName)']" --organization $organization --project $ProjectName --detect $false | ConvertFrom-Json
             if (!$groups) {
                 throw "Group called '$GroupDisplayName' cannot be found in '$OrgName/$ProjectName'"
             }
         }
         else {
-            $groups = (az devops security group list --detect $false | ConvertFrom-Json).graphGroups
+            $groups = (az devops security group list --organization $organization --project $ProjectName --detect $false --subject-types vssgp | ConvertFrom-Json).graphGroups
         }
        
         [ADO_Group[]]$groupsFound = @() 
         foreach ($group in $groups) {
-            Write-Host ".." -NoNewline
+            Write-Host "." -NoNewline
             $group = [ADO_Group]::new($group.originId, $group.displayName, $group.principalName, $group.description, $group.descriptor)
 
             if ($GetGroupMembers -eq $TRUE) { 
@@ -475,7 +474,7 @@ function Get-ADOGroups {
             
             $groupsFound += $group
         }
-        Write-Host ".."
+        Write-Host "."
         return $groupsFound
     }
 }
@@ -506,7 +505,7 @@ function Get-ADOGroupMembers {
 
         $organization = "https://dev.azure.com/$OrgName/"
         try {
-            $members = az devops security group membership list --id $GroupDescriptor --detect $false | ConvertFrom-Json
+            $members = az devops security group membership list --id $GroupDescriptor --organization $organization --detect $false | ConvertFrom-Json
         } catch {
             Write-Log -Message "FAILED!" -LogLevel ERROR
             Write-Log -Message $_.Exception -LogLevel ERROR
@@ -519,7 +518,7 @@ function Get-ADOGroupMembers {
             $descriptors = $members | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
     
             foreach ($descriptor in $descriptors) {
-                Write-Host ".." -NoNewline
+                Write-Host "." -NoNewline
                 $member = $members.$descriptor
                 if ($member.subjectKind -eq "user") {
                     $GroupUserMembers += [ADO_GroupMember]::new($member.originId, $member.displayName, $member.principalName)
@@ -528,7 +527,6 @@ function Get-ADOGroupMembers {
                     $GroupGroupMembers += [ADO_Group]::new($member.originId, $member.displayName, $member.principalName, $member.description, $member.descriptor)
                 }
             }
-            Write-Host ".." 
         }
 
         return @{

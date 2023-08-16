@@ -104,18 +104,12 @@ function Add-ADOUser {
             -OrgName $OrgName
 
         try{
-            $response = az devops user add --email-id $User.PrincipalName --license-type $User.LicenseType --detect $false 2>"$env:temp\err1.txt"
-            $ers = Get-Content "$env:temp\err1.txt"
-            if ($ers) { Write-Log -Message $ers -LogLevel ERROR }
-            Remove-Item -Path "$env:temp\err1.txt"
+            $response = az devops user add --email-id $User.PrincipalName --license-type $User.LicenseType --detect $false --debug --verbose
             
             if ($ForceStakeholderIfNeeded -and !$response) {
                 # Lower subscription plan detected
                 $newLicense = "stakeholder"
-                $response = az devops user add --email-id $User.PrincipalName --license-type $newLicense --detect $false 2>"$env:temp\err2.txt"
-                $ers = Get-Content "$env:temp\err2.txt"
-                if ($ers) { Write-Log -Message $ers -LogLevel ERROR }
-                Remove-Item -Path "$env:temp\err2.txt"
+                $response = az devops user add --email-id $User.PrincipalName --license-type $newLicense --detect $false --debug --verbose
 
                 if ($response) {
                     Write-Log `

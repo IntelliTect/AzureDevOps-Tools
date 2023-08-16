@@ -20,25 +20,29 @@ function Start-ADOGroupsMigration {
         [String]$TargetOrgName, 
 
         [Parameter (Mandatory = $TRUE)]
-        [String]$TargetPAT
+        [String]$TargetPAT,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$VerboseOutput = $FALSE
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
             "Migrate groups & members from source project $SourceOrg/$SourceProjectName")
     ) {
         Write-Log -Message ' '
-        Write-Log -Message '--------------------'
-        Write-Log -Message '-- Migrate Groups --'
-        Write-Log -Message '--------------------'
+        Write-Log -Message '------------------------'
+        Write-Log -Message '-- Migrate ADO Groups --'
+        Write-Log -Message '------------------------'
         Write-Log -Message ' '
 
-        Write-Log -Message 'Get ADO Groups'
+        Write-Log -Message 'Get Source ADO Groups'
         $sourceGroups = Get-ADOGroups `
             -OrgName $SourceOrgName `
             -ProjectName $SourceProjectName `
             -PersonalAccessToken $SourcePAT `
             -GroupDisplayName $GroupDisplayName
 
+        Write-Log -Message 'Get target ADO Groups'
         $targetGroups = Get-ADOGroups `
             -OrgName $TargetOrgName `
             -ProjectName $TargetProjectName `
@@ -50,7 +54,8 @@ function Start-ADOGroupsMigration {
             -OrgName $TargetOrgName `
             -ProjectName $TargetProjectName `
             -SourceGroups $sourceGroups `
-            -TargetGroups $targetGroups
+            -TargetGroups $targetGroups `
+            -VerboseOutput $VerboseOutput
     }
 }
 
@@ -70,7 +75,10 @@ function Push-ADOGroups {
         [Object]$SourceGroups, 
 
         [Parameter (Mandatory = $TRUE)]
-        [Object]$TargetGroups
+        [Object]$TargetGroups,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$VerboseOutput = $FALSE
     )
     if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
         Set-AzDevOpsContext `
@@ -94,14 +102,16 @@ function Push-ADOGroups {
                 -OrgName $OrgName `
                 -ProjectName $ProjectName `
                 -GroupName $group.Name `
-                -GroupDescription $group.Description
+                -GroupDescription $group.Description `
+                -VerboseOutput $VerboseOutput
 
-             # If we created new target Groups then add the Group the targetGroups to do lookups for populating Members
-            $newGroup = [ADO_Group]::new($result.NewGroup.originId, $result.NewGroup.displayName, $result.NewGroup.principalName, $result.NewGroup.description, $result.NewGroup.descriptor)
-            $targetGroup.Add($newGroup)
-            
-            if ($null -ine $result.NewGroup) {
-                $processSourceGroups += $result.NewGroup
+            # If we created new target Group then add the Group to the targetGroups to do lookups for populating Members
+            if ($null -ne $result.NewGroup) {
+                $newGroup = [ADO_Group]::new($result.NewGroup.originId, $result.NewGroup.displayName, $result.NewGroup.principalName, $result.NewGroup.description, $result.NewGroup.descriptor)
+                $targetGroups += $newGroup
+                $processSourceGroups += $group
+            } else {
+                Write-Log -Message "unable to Create New Group [$($group.Name)] in target, it may need to be migrated manually.. "
             }
         }
 
@@ -113,7 +123,8 @@ function Push-ADOGroups {
                 -ProjectName $ProjectName `
                 -PersonalAccessToken $PersonalAccessToken `
                 -SourceGroup $processGroup `
-                -TargetGroup $targetGroup
+                -TargetGroup $targetGroup `
+                -VerboseOutput $VerboseOutput
         }
     }
 }
@@ -134,7 +145,10 @@ function New-ADOGroup {
         [String]$GroupName,
 
         [Parameter (Mandatory = $FALSE)]
-        [String]$GroupDescription = ""
+        [String]$GroupDescription = "",
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$VerboseOutput = $FALSE
     )
     if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
         Set-AzDevOpsContext `
@@ -143,18 +157,22 @@ function New-ADOGroup {
             -ProjectName $ProjectName
 
         $GroupDescription = $GroupDescription.Replace('"',"'")
+
         if ($Group.Description) {
-            $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false 2>"$env:temp\err_group1.txt"
-            $ers = Get-Content "$env:temp\err_group1.txt"
-            if ($ers) { Write-Log -Message $ers -LogLevel ERROR }
-            Remove-Item -Path "$env:temp\err_group1.txt"
+            if($VerboseOutput -eq $TRUE) {
+                $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false --debug --verbose
+            } else {
+                $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false 
+            }
         }
         else {
-            $result = az devops security group create --name $GroupName --detect $false 2>"$env:temp\err_group2.txt"
-            $ers = Get-Content "$env:temp\err_group2.txt"
-            if ($ers) { Write-Log -Message $ers -LogLevel ERROR }
-            Remove-Item -Path "$env:temp\err_group2.txt"
+            if($VerboseOutput -eq $TRUE) {
+                $result = az devops security group create --name $GroupName --detect $false --debug --verbose
+            } else {
+                $result = az devops security group create --name $GroupName --detect $false 
+            }
         }
+
         if (!$result) {
             Write-Log -Message "Could not create a new group with name '$($GroupName)'. The group name may be reserved by the system." -LogLevel ERROR
             return @{
@@ -185,7 +203,10 @@ function Push-GroupMembers {
         [ADO_Group]$SourceGroup,
 
         [Parameter (Mandatory = $FALSE)]
-        [ADO_Group]$TargetGroup = $null
+        [ADO_Group]$TargetGroup = $null,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$VerboseOutput = $FALSE
     )
     if ($PSCmdlet.ShouldProcess("$GroupDisplayName")) {
         Set-AzDevOpsContext `
@@ -195,23 +216,18 @@ function Push-GroupMembers {
 
         # Add user members
         foreach ($userMember in $SourceGroup.UserMembers) {
-            if ($null -ne ($TargetGroup.UserMembers | Where-Object { $_.PrincipalName -ieq $userMember.PrincipalName } )) {
-                Write-Log -Message "User Member [$($userMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
-                continue
-            }
-
-            try{
-                az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false --debug --verbose 2>"$env:temp\error_group1.txt" 3>"$env:temp\debug_group1.txt" 4>"$env:temp\verbos_group1.txt"
-                $error_message = Get-Content "$env:temp\error_group1.txt"
-                $debug_message = Get-Content "$env:temp\debug_group1.txt"
-                $verbos_message = Get-Content "$env:temp\verbos_group1.txt"
-                if ($error_message) {Write-Log -Message $error_message -LogLevel ERROR}
-                if ($debug_message) {Write-Log -Message $debug_message -LogLevel ERROR}
-                if ($debug_message) {Write-Log -Message $verbos_message -LogLevel ERROR}
-                Remove-Item -Path "$env:temp\error_group1.txt"
-                Remove-Item -Path "$env:temp\debug_group1.txt"
-                Remove-Item -Path "$env:temp\verbos_group1.txt"
-
+            try {
+                if ($null -ne ($TargetGroup.UserMembers | Where-Object { $_.PrincipalName -ieq $userMember.PrincipalName } )) {
+                    Write-Log -Message "User Member [$($userMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
+                    continue
+                }
+            
+                Write-Log -Message "Adding User Member [$($userMember.Name)] in target group [$($SourceGroup.Name)].. "
+                if($VerboseOutput -eq $TRUE) {
+                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false --debug --verbose
+                } else {
+                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false 
+                }
             } catch {
                 Write-Log -Message $_.Exception.Message -LogLevel ERROR
             }
@@ -230,16 +246,13 @@ function Push-GroupMembers {
                     Write-Log -Message "Group Member [$($groupMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
                     continue
                 }
-                az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.PrincipalName --detect $false --debug --verbose 2>"$env:temp\error_group2.txt" 3>"$env:temp\debug_group2.txt" 4>"$env:temp\verbos_group2.txt"
-                $error_message = Get-Content "$env:temp\error_group2.txt"
-                $debug_message = Get-Content "$env:temp\debug_group2.txt"
-                $verbos_message = Get-Content "$env:temp\verbos_group2.txt"
-                if ($error_message) {Write-Log -Message $error_message -LogLevel ERROR}
-                if ($debug_message) {Write-Log -Message $debug_message -LogLevel ERROR}
-                if ($debug_message) {Write-Log -Message $verbos_message -LogLevel ERROR}
-                Remove-Item -Path "$env:temp\error_group2.txt"
-                Remove-Item -Path "$env:temp\debug_group2.txt"
-                Remove-Item -Path "$env:temp\verbos_group2.txt"
+
+                Write-Log -Message "Adding Group Member [$($groupMember.Name)] in target group [$($SourceGroup.Name)].. "
+                if($VerboseOutput -eq $TRUE) {
+                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.PrincipalName --detect $false --debug --verbose
+                } else {
+                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.Descriptor --detect $false 
+                }
             } catch {
                 Write-Log -Message $_.Exception.Message -LogLevel ERROR
             }

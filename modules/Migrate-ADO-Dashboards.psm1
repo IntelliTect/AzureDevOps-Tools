@@ -108,12 +108,12 @@ function Start-ADODashboardsMigration {
             }
             $fullSourceDashboard = Get-Dashboard -orgName $SourceOrgName -projectName $sourceProjectName -dashboardId $dashboard.Id -headers $SourceHeaders
 
-            if($SourceDashboard.Name -ne "") {
-                Write-Log -Message "Dashboards with name [$($targetDashboard.Name)] was not found with Team Dashboards and has a dashboard scope of project_Team."
+            if($dashboard.dashboardScope -eq "project_Team") {
+                Write-Log -Message "Dashboards with name [$($dashboard.Name)] was not found with Team Dashboards and has a dashboard scope of project_Team."
                 Write-Log -Message "Something is wrong with this dashboard and will need to be migrated manually.."
                 continue
             }
-
+            
             if ($null -ine $targetDashboard) {
                 Write-Log -Message "Dashboard [$($targetDashboard.Name) ($($targetDashboard.Id))] already exists in target.. "
 
