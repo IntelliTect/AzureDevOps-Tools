@@ -45,66 +45,81 @@ function Start-ADORepoMigration {
         Write-Log -Message ' '
         
         try {
-            $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
+            
             $sourceRepos = Get-Repos -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
-            $savedPath = $(Get-Location).Path
+            Write-Log -Message "Source repository Count $($sourceRepos.Count).."
+            $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
+            Write-Log -Message "Target repository Count $($targetRepos.Count).."
 
-            # $RepoIds = $("94705fe6-ba88-4e86-83e6-03212e8644d5")
+            $savedPath = $(Get-Location).Path
 
             $repos 
             if ($RepoIds.Count -gt 0) {
                 $repos = $sourceRepos | Where-Object { $_.Id -in $RepoIds }
+                Write-Log -Message "Repo Ids passed in Count $($repos.Count).."
             } else {
-                $repos = $repositories
+                $repos = $sourceRepos
             }
 
-            foreach ($sourceRepo in $repos ) {
-                Write-Log -Message "Copying repo $($sourceRepo.Name).."
+            if($repos.Count -gt 0) {
 
-                $targetReposExists = $FALSE
-                $targetRepo = $targetRepos | Where-Object { $_.name -ieq $sourceRepo.name }
-                if ($null -ne $targetRepo) {
-                    Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
-                    $targetReposExists = $TRUE
+                # First clean out the temp repo directory
+                $tempPath = "$ReposPath\temp"
+
+                if (-not (Test-Path -Path $tempPath)) {
+                    New-Item -Path $tempPath -ItemType Directory
+                } else {
+                    Get-ChildItem -Path $tempPath | Remove-Item -Recurse -Force
                 }
 
-                try {
-                    if($targetReposExists) {
-                        Write-Log -Message 'Updating existing repository.. '
-                    } else {
-                        Write-Log -Message 'Initializing new repository.. '
-                        New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                foreach ($sourceRepo in $repos ) {
+                    Write-Log -Message "Copying repo $($sourceRepo.Name).."
+
+                    $targetReposExists = $FALSE
+                    $targetRepo = $targetRepos | Where-Object { $_.name -ieq $sourceRepo.name }
+                    if ($null -ne $targetRepo) {
+                        Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
+                        $targetReposExists = $TRUE
                     }
-                }
-                catch {
-                    Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR
-                    Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
-                    continue
-                }
 
-                try {
-                    Write-Log -Message "Cloning repository $($sourceRepo.name)"
+                    try {
+                        if($targetReposExists) {
+                            Write-Log -Message 'Updating existing repository.. '
+                        } else {
+                            Write-Log -Message 'Initializing new repository.. '
+                            New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                        }
+                    }
+                    catch {
+                        Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR
+                        Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
+                        continue
+                    }
 
-                    $remoteUrl =  $sourceRepo.remoteURL.Replace("@",":$SourcePAT@")
-                    git clone --mirror $remoteUrl "$ReposPath\$($sourceRepo.name)"
-                    
-                    Write-Log -Message "Entering path `"$ReposPath\$($sourceRepo.name)`""
-                    Set-Location "$ReposPath\$($sourceRepo.name)"
+                    try {
+                        Write-Log -Message "Cloning repository $($sourceRepo.name)"
 
-                    Write-Log -Message 'Pushing repo ...'
-                    $gitTarget = "https://$($TargetOrgName):$($TargetPAT)@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
-                    git push --mirror $gitTarget
+                        $remoteUrl =  $sourceRepo.remoteURL.Replace("@",":$SourcePAT@")
+                        git clone --mirror $remoteUrl "$tempPath\$($sourceRepo.name)"
+                        
+                        Write-Log -Message "Entering path `"$tempPath\$($sourceRepo.name)`""
+                        Set-Location "$tempPath\$($sourceRepo.name)"
 
-                    # Write-Log -Message 'Remove local copy of repo ...'
-                    # remove-Item "$ReposPath\$($sourceRepo.name)" -Force -Recurse
-                }
-                catch {
-                    Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
-                }
-                finally {
-                    Set-Location $savedPath
-                }
-            } 
+                        Write-Log -Message 'Pushing repo ...'
+                        $gitTarget = "https://$($TargetOrgName):$($TargetPAT)@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
+                        git push --mirror $gitTarget
+
+                        # Write-Log -Message 'Remove local copy of repo ...'
+                        # remove-Item "$tempPath\$($sourceRepo.name)" -Force -Recurse
+                    }
+                    catch {
+                        Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
+                    }
+                    finally {
+                        Set-Location $savedPath
+                    }
+                } 
+            }
         }
         catch {
             Write-Log -Message "Fatal-Error cloning repos from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR

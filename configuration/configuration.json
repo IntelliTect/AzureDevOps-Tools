@@ -11,6 +11,7 @@
     },
     "ProjectDirectory": "",
     "WorkItemMigratorDirectory": "",
+    "RepositoryCloneTempDirectory": "",
     "DevOpsMigrationToolConfigurationFile": "",
     "ArtifactFeedPackageVersionLimit": -1
 }

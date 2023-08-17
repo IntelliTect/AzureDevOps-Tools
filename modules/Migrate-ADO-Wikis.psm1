@@ -43,50 +43,65 @@ function Start-ADOWikiMigration {
 
        try {
             $sourceWikis = Get-Wikis -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
+            Write-Log -Message "Source wikis Count $($sourceWikis.Count).."
             $targetWikis = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
+            Write-Log -Message "Target wikis Count $($targetWikis.Count).."
+            
             $savedPath = $(Get-Location).Path
 
-            foreach ($sourceWiki in $sourceWikis) {
-                
-                $sourceRepo = Get-Repo -ProjectName $SourceProjectName -org $SourceOrgName -headers $sourceHeaders -repoId $sourceWiki.name
+            if($sourceWikis.Count -gt 0) {
 
-                if ($null -ne ($targetWikis | Where-Object { $_.name -ieq $sourceWiki.name })) {
-                    Write-Log -Message "Wiki/repo [$($sourceWiki.name)] already exists in target.. "
-                    continue
-                }
-        
-                try {
-                    Write-Log -Message 'Initializing new wiki repository ... '
-                    New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
-                }
-                catch {
-                    Write-Log -Message "Error initializing new wiki repo: $_ " -LogLevel ERROR
-                    Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
-                    continue
+                # First clean out the temp repo directory
+                $tempPath = "$ReposPath\temp"
+
+                if (-not (Test-Path -Path $tempPath)) {
+                    New-Item -Path $tempPath -ItemType Directory
+                } else {
+                    Get-ChildItem -Path $tempPath | Remove-Item -Recurse -Force
                 }
 
-                try {
-                    Write-Log -Message "Cloning wiki repository $($sourceRepo.name)"
-                    $remoteUrl =  $sourceRepo.remoteURL.Replace("@",":$SourcePAT@")
-                    git clone --mirror $remoteUrl "$ReposPath\$($sourceRepo.name)"
+                foreach ($sourceWiki in $sourceWikis) {
                     
-                    Write-Log -Message "Entering path `"$ReposPath\$($sourceRepo.name)`""
-                    Set-Location "$ReposPath\$($sourceRepo.name)"
+                    $sourceRepo = Get-Repo -ProjectName $SourceProjectName -org $SourceOrgName -headers $sourceHeaders -repoId $sourceWiki.name
 
-                    Write-Log -Message 'Pushing repo ...'
-                    $gitTarget = "https://$($TargetOrgName):$($TargetPAT)@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
-                    git push --mirror $gitTarget
+                    if ($null -ne ($targetWikis | Where-Object { $_.name -ieq $sourceWiki.name })) {
+                        Write-Log -Message "Wiki/repo [$($sourceWiki.name)] already exists in target.. "
+                        continue
+                    }
+            
+                    try {
+                        Write-Log -Message 'Initializing new wiki repository ... '
+                        New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                    }
+                    catch {
+                        Write-Log -Message "Error initializing new wiki repo: $_ " -LogLevel ERROR
+                        Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
+                        continue
+                    }
 
-                    # Write-Log -Message 'Remove local copy of repo ...'
-                    # remove-Item "$ReposPath\$($sourceRepo.name)" -Force -Recurse
-                }
-                catch {
-                    Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
-                }
-                finally {
-                    Set-Location $savedPath
-                }
-            } 
+                    try {
+                        Write-Log -Message "Cloning wiki repository $($sourceRepo.name)"
+                        $remoteUrl =  $sourceRepo.remoteURL.Replace("@",":$SourcePAT@")
+                        git clone --mirror $remoteUrl "$tempPath\$($sourceRepo.name)"
+                        
+                        Write-Log -Message "Entering path `"$tempPath\$($sourceRepo.name)`""
+                        Set-Location "$tempPath\$($sourceRepo.name)"
+
+                        Write-Log -Message 'Pushing repo ...'
+                        $gitTarget = "https://$($TargetOrgName):$($TargetPAT)@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
+                        git push --mirror $gitTarget
+
+                        # Write-Log -Message 'Remove local copy of repo ...'
+                        # remove-Item "$tempPath\$($sourceRepo.name)" -Force -Recurse
+                    }
+                    catch {
+                        Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
+                    }
+                    finally {
+                        Set-Location $savedPath
+                    }
+                } 
+            }
         }
         catch {
             Write-Log -Message "Error cloning wiki/repo from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR

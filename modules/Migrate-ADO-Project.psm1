@@ -9,6 +9,7 @@ function Start-ADOProjectMigration {
         [Parameter (Mandatory = $TRUE)] [String]$TargetOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetPAT,
         [Parameter (Mandatory = $TRUE)] [String]$ProjectPath,
+        [Parameter (Mandatory = $TRUE)] [String]$RepositoryCloneTempDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$MartinsToolConfigurationFile,
         [Parameter (Mandatory = $TRUE)] [String]$WorkItemMigratorDirectory,
         [Parameter (Mandatory = $TRUE)] [String]$DevOpsMigrationToolConfigurationFile,
@@ -123,7 +124,7 @@ function Start-ADOProjectMigration {
         -TargetProjectName $TargetProjectName `
         -TargetPAT $TargetPAT `
         -TargetHeaders $targetHeaders `
-        -ReposPath $projectPath `
+        -ReposPath $RepositoryCloneTempDirectory `
         -WhatIf:$SkipMigrateRepos
         #endregion
 
@@ -140,7 +141,7 @@ function Start-ADOProjectMigration {
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
-        -ReposPath $projectPath `
+        -ReposPath $RepositoryCloneTempDirectory `
         -WhatIf:$SkipMigrateWikis
         #endregion
         

@@ -96,6 +96,7 @@ jobs:
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
           $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
           $configuration | ConvertTo-Json -Depth 100 | Set-Content $LocalConfigPath
@@ -151,7 +152,7 @@ jobs:
               "Wikis"
               { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
               "Work Item Querys" 
-                  { & .\MigrateProject.ps1 --SkipMigrateWorkItemQuerys $WhatIf }
+                  { & .\MigrateProject.ps1 -SkipMigrateWorkItemQuerys $WhatIf }
               "Work-Items (Including 'Test Cases')"  
                 { & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf}
           }
