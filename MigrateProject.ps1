@@ -123,6 +123,7 @@ $SourceProjectName = $configuration.SourceProject.ProjectName
 $TargetProjectName = $configuration.TargetProject.ProjectName
 $ProjectDirectory = Get-Location 
 $WorkItemMigratorDirectory = $configuration.WorkItemMigratorDirectory
+$RepositoryCloneTempDirectory = $configuration.RepositoryCloneTempDirectory
 $DevOpsMigrationToolConfigurationFile = $configuration.DevOpsMigrationToolConfigurationFile
 $ArtifactFeedPackageVersionLimit = $configuration.ArtifactFeedPackageVersionLimit
 
@@ -391,6 +392,7 @@ Start-ADOProjectMigration `
     -TargetProjectName $TargetProjectName `
     -TargetPAT $targetPat `
     -ProjectPath $projectPath `
+    -RepositoryCloneTempDirectory $RepositoryCloneTempDirectory `
     -MartinsToolConfigurationFile $martinConfigPath `
     -WorkItemMigratorDirectory $WorkItemMigratorDirectory `
     -DevOpsMigrationToolConfigurationFile $DevOpsMigrationToolConfigurationFile `
