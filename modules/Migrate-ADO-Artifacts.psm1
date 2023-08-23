@@ -45,7 +45,6 @@ function Start-ADOArtifactsMigration {
 
         $sourceFeeds = Get-Feeds -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders
         $targetFeeds = Get-Feeds -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders
-
         $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders 
 
          # Get the Target Organization ID to be used for the internalUpstreamCollectionId value when creating internal Upstream Sources
@@ -72,25 +71,25 @@ function Start-ADOArtifactsMigration {
             }
 
            $targetFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -SourceFeed $feed -UpstreamSources $publicUpstreamSources
-            if(($NULL -eq $targetFeed) -or ($targetFeed.GetType().Name -eq "FileInfo")) { continue }
-
-            # Make sure that the target view access is the same as the source view access 
-            $sourceViews = Get-Views -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $feed.Id
-            $targetViews = Get-Views -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetFeed.Id
-
-            foreach ($targetView in $targetViews) {
-                    $sourceView = $sourceViews | Where-Object { $_.name -ieq $targetView.name } 
-                    if($NULL -ne $sourceView) {
-                        if($targetView.visibility -ine $sourceView.visibility ) {
-                            Update-View -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetFeed.Id -ViewId $targetView.Id -Visibility $sourceView.visibility
-                        }
-                    }
-            }
-           
-            if ($null -eq $targetFeed) {
-                Write-Log -Message "Could not create a new feed with name '$($feed.Name)'. The feed name may be reserved by the system." -LogLevel ERROR
-               continue
+            if(($NULL -eq $targetFeed) -or ($targetFeed.GetType().Name -eq "FileInfo")) { 
+                if ($null -eq $targetFeed) {
+                    Write-Log -Message "Could not create a new feed with name '$($feed.Name)'. The feed name may be reserved by the system." -LogLevel ERROR
+                } 
+                continue 
             } else {
+                # Make sure that the target view access is the same as the source view access 
+                $sourceViews = Get-Views -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $feed.Id
+                $targetViews = Get-Views -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetFeed.Id
+
+                foreach ($targetView in $targetViews) {
+                        $sourceView = $sourceViews | Where-Object { $_.name -ieq $targetView.name } 
+                        if($NULL -ne $sourceView) {
+                            if($targetView.visibility -ine $sourceView.visibility ) {
+                                Update-View -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -FeedId $targetFeed.Id -ViewId $targetView.Id -Visibility $sourceView.visibility
+                            }
+                        }
+                }
+
                 Write-Log -Message "Done!" -LogLevel SUCCESS
                 $newTargetFeeds += $targetFeed
             }
