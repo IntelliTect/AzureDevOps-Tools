@@ -29,6 +29,7 @@ jobs:
   run-powershell-script:
     name: Run PowerShell Script
     runs-on: 'AEC0WGEMP001'
+    timeout-minutes: 7200
     env:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
 
@@ -79,7 +80,6 @@ jobs:
           Write-Host (ConvertTo-Json -Depth 100 $configuration2)
 
       - name: Run Migrate-Project PowerShell script
-        timeout-minutes: 1440
         shell: pwsh
         run: |
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
