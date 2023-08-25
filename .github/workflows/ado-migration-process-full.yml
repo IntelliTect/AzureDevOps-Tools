@@ -80,7 +80,6 @@ jobs:
           Write-Host (ConvertTo-Json -Depth 100 $configuration2)
 
       - name: Run Migrate-Project PowerShell script
-        timeout-minutes: 1440
         shell: pwsh
         run: |
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
