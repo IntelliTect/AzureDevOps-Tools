@@ -130,6 +130,12 @@ function Move-MyGetNuGetPackages
 
     # Collects and compares packages from source to Azure DevOps feed
     $sourceVersions = Get-ContentUrls -IndexUrl $SourceIndexUrl -Credential $sourceCredential
+    if($NULL -eq $sourceVersions) {
+        Write-Log -Message "Found no package versions in source.."
+        return $NULL
+    }
+
+
     $destinationVersions = Get-Packages -IndexUrl $DestinationIndexUrl -Credential $destinationCredential
     $versionsMissingInDestination = Get-MissingVersions -SourceVersions $sourceVersions -DestinationVersions $destinationVersions
 
