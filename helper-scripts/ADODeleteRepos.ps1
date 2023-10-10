@@ -1,3 +1,4 @@
+Using Module "..\modules\Migrate-ADO-Common.psm1"
 
 Param (
         [Parameter (Mandatory=$TRUE)] [String]$OrgName, 
@@ -7,10 +8,9 @@ Param (
         [Parameter (Mandatory=$FALSE)] [Object[]]$RepoIds = $()
 )
 
-
 Write-Host "Begin process to Delete Repositories for Organization $OrgName and Project $ProjectName.."
 
- # Create Headers
+# Create Headers
 $headers = New-HTTPHeaders -PersonalAccessToken $PAT
 
 
@@ -31,22 +31,27 @@ Write-Host " "
 
 foreach ($repository in $repos) {
         try {
-                Write-Log -Message "Deleting Repository $($repository.type.displayName) [$($repository.id)].. "
+                if($repository.name -eq $ProjectName) {
+                        Write-Log -Message "Skipping the Default Repository `"$($repository.name)`" [$($repository.id)] because there must be at least one repository defined at all times.. "
+                        continue
+                }
+
+                Write-Log -Message "Deleting Repository `"$($repository.name)`" [$($repository.id)].. "
 
                 # Delete Repo to recycle bin due to soft delete 
                 if($DoDelete) {
                         $url1 = "https://dev.azure.com/$OrgName/$ProjectName/_apis/git/repositories/$($repository.id)?api-version=7.0"
-                        $result1 = Invoke-RestMethod -Method DELETE -Uri $url1 -Headers $headers
+                        Invoke-RestMethod -Method DELETE -Uri $url1 -Headers $headers
                 } else {
-                        Write-Log -Message "TESTING - Test call to delete repo $($repository.id)"
+                        Write-Log -Message "TESTING - Test call to delete repo`"$($repository.name)`" [$($repository.id)]"
                 }
 
                 # Delete Repo from recycle bin for permanent deletion 
                 if($DoDelete) {
                         $url2 = "https://dev.azure.com/$OrgName/$ProjectName/_apis/git/recycleBin/repositories/$($repository.id)?api-version=7.0"
-                        $result12 = Invoke-RestMethod -Method DELETE -Uri $url2 -Headers $headers
+                        Invoke-RestMethod -Method DELETE -Uri $url2 -Headers $headers
                 } else {
-                        Write-Log -Message "TESTING - Test call to delete repo $($repository.id) from recylce bin"
+                        Write-Log -Message "TESTING - Test call to delete repo `"$($repository.name)`" [$($repository.id)] from recylce bin"
                 }
         }
         catch {

@@ -1,3 +1,4 @@
+Using Module "..\modules\Migrate-ADO-Common.psm1"
 
 Param (
         [Parameter (Mandatory=$TRUE)] [String]$OrgName, 
@@ -9,7 +10,7 @@ Param (
 
 Write-Host "Begin Delete ALL Policies for Organization and Project"
 
- # Create Headers
+# Create Headers
 $headers = New-HTTPHeaders -PersonalAccessToken $PAT
 
  
@@ -34,10 +35,9 @@ if ($PolicyIds.Count -gt 0) {
 
 foreach ($policy in $policies) {
         try {
-                Write-Log -Message "Deleting Policy with policy type display name: '$($policy.type.displayName)' and id: [$($policy.id)].. "
-                $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/policy/configurations/$($policy.id)?api-version=7.0"
-
                 if($DoDelete) {
+                        Write-Log -Message "Deleting Policy with policy type display name: '$($policy.type.displayName)' and id: [$($policy.id)].. "
+                        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/policy/configurations/$($policy.id)?api-version=7.0"
                         Invoke-RestMethod -Method DELETE -Uri $url -Headers $headers
                 } else {
                         Write-Log -Message "TESTING - Test call to delete Policy with policy type display name: '$($policy.type.displayName)' and id: [$($policy.id)]"

@@ -87,7 +87,7 @@ function Move-MyGetNuGetPackages
         $NumVersions = -1
     )
 
-    Write-Log -Message "Migrate Package Versions for Feed [$($DestinationFeedName)] in target.. " -LogLevel WARNING
+    Write-Log -Message "Migrate Package Versions for Feed [$($DestinationFeedName)] in target.. " -LogLevel INFO
 
     if ($null -eq $TempFilePath)
     {
@@ -137,7 +137,10 @@ function Move-MyGetNuGetPackages
 
 
     $destinationVersions = Get-Packages -IndexUrl $DestinationIndexUrl -Credential $destinationCredential
-    $versionsMissingInDestination = Get-MissingVersions -SourceVersions $sourceVersions -DestinationVersions $destinationVersions
+    $versionsMissingInDestination = $NULL 
+    if($NULL -ne $sourceVersions) {
+        $versionsMissingInDestination = Get-MissingVersions -SourceVersions $sourceVersions -DestinationVersions $destinationVersions
+    }
 
     Write-Log -Message "Found $($sourceVersions.Count) package versions in source, $($destinationVersions.Count) package versions in destination, and $($versionsMissingInDestination.Count) packages versions need to be copied"
 
@@ -397,7 +400,9 @@ function Get-Packages
                         Id      = $package.id
                         Version = $version.version
                     }
-                    $null = $result.add($packageObject)
+                    if ($result -notcontains $packageObject) {
+                        $null = $result.add($packageObject)
+                    }
                 }
             }
 
@@ -406,9 +411,9 @@ function Get-Packages
         catch
         {
             Write-Log -Message "FAILED!" -LogLevel ERROR
-            Write-Log -Message $_.Exception -LogLevel ERROR
+            Write-Log -Message "Exception: $($_.Exception)" -LogLevel ERROR
             try {
-                Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
+                Write-Log -Message "Exception Message: $(($_ | ConvertFrom-Json).message)" -LogLevel ERROR
             } catch {}
             
             break
@@ -451,7 +456,7 @@ function Read-CatalogUrl
     }
     else
     {
-        Write-Log -Message "Request: $RegistrationUrl" -LogLevel WARNING
+        Write-Log -Message "Request: $RegistrationUrl" -LogLevel INFO
 
         $response = Invoke-RestMethod -Uri $RegistrationUrl -Credential $Credential
 
@@ -646,14 +651,15 @@ function Start-Migration
         return $return
     }
     
-    # Writes packacke content bytes to temporary .nupkg file during migration
+    # Writes package content bytes to temporary .nupkg file during migration
     [io.file]::WriteAllBytes($TempFilePath, $response.Content)
-    $arguments = "push -Source $DestinationIndexUrl -ApiKey Migration $TempFilePath"
+    $arguments = "push -Source $DestinationIndexUrl -ApiKey Migration $TempFilePath -SkipDuplicate"
 
     $location = Get-Location
     $exepath = "$location\nuget.exe"
 
     $result = Start-Command -CommandTitle $exepath -CommandArguments $arguments
+
     $return = @{
         Url         = $ContentUrl
         HttpStatus  = $response.StatusCode
@@ -710,16 +716,21 @@ function Out-Result
         $StdErr
     )
 
-    Write-Log -Message "$Url, --> fetchContent $HttpStatus, publish $NugetStatus" -LogLevel WARNING
+    $level = "INFO"
+    if($NugetStatus -ne 0) {
+        $level = "WARNING"
+    }
 
-    if ($NugetStatus -ne 0 -and $null -ne $Stdout)
+    Write-Log -Message "Url: $Url, --> fetchContent HttpStatus: $HttpStatus, publish NugetStatus: $NugetStatus" -LogLevel $level
+
+    if ($StdOut)
     {
-        Write-Log -Message $StdOut -LogLevel WARNING
+        Write-Log -Message "StdOut Message: $StdOut" -LogLevel $level
     }
 
     if ($StdErr)
     {
-        Write-Log -Message $StdErr -LogLevel ERROR
+        Write-Log -Message "StdErr Message: $StdErr" -LogLevel ERROR
     }
 }
 
@@ -740,12 +751,12 @@ function Out-Results
     )
 
     $errors = $Results | Where-Object -FilterScript {$_.HttpStatus -ne 200 -or $_.NuGetStatus -ne 0}
+    $pushedCount = $Results.Count - $errors.Count
 
-    Write-Log -Message "$($Results.Count - $errors.Count) packages pushed successfully"
-
+    Write-Log -Message "Package Count: $($pushedCount) packages pushed successfully"
     if ($errors.Count -gt 0)
     {
-        Write-Log -Message "$($errors.Count) errors. See error variable for more information." -LogLevel WARNING
+        Write-Log -Message "Error Count: $($errors.Count) errors." -LogLevel WARNING
     }
 }
 
@@ -772,19 +783,37 @@ function Get-MissingVersions
         $DestinationVersions
     )
 
-    # hashtable of name____id for fast lookup.  Powershell hashtables are not case sensitive.
-    $destHash = @{}
-    $sep = "_____"
-    $DestinationVersions | ForEach-Object {$destHash.Add("$($_.Id)$sep$($_.Version)", $null)}
-
     $missingPackages = [System.Collections.ArrayList]@()
-    foreach ($sourceVersion in $SourceVersions)
-    {
-        $key = "$($sourceVersion.Name)$sep$($sourceVersion.Version)"
-        if (-not $destHash.ContainsKey($key))
-        {
-            $null = $missingPackages.Add($sourceVersion);
+    try {
+        # hashtable of name____id for fast lookup.  Powershell hashtables are not case sensitive.
+        $destHash = @{}
+        $sep = "_____"
+
+        foreach ($DestinationVersion in $DestinationVersions) {
+            $dKey = "$($DestinationVersion.Id)$sep$($DestinationVersion.Version)"
+            if (-not $destHash.ContainsKey($dKey))
+            {
+                $destHash.Add($dKey, $null)
+            }
         }
+
+        foreach ($sourceVersion in $SourceVersions)
+        {
+            $sKey = "$($sourceVersion.Name)$sep$($sourceVersion.Version)"
+            if (-not $destHash.ContainsKey($sKey))
+            {
+                $null = $missingPackages.Add($sourceVersion);
+            }
+        }
+    }catch
+    {
+        Write-Log -Message "FAILED!" -LogLevel ERROR
+        Write-Log -Message "Exception: $($_.Exception)" -LogLevel ERROR
+        try {
+            Write-Log -Message "Exception Message: $(($_ | ConvertFrom-Json).message)" -LogLevel ERROR
+        } catch {}
+        
+        break
     }
 
     return $missingPackages;
@@ -876,13 +905,14 @@ function Update-NuGetSource
     $sourceAdd = Start-Command -CommandTitle $exepath -CommandArguments "sources Add -Name $FeedName -Source $DevOpsSourceUrl"
     if ($sourceAdd.ExitCode -eq 1)
     {
+        # If Feed already contains the package just output a warning else output the error
         if ($sourceAdd.StdErr -match ".*name specified has already been added to the list of available package sources.*")
         {
-            Write-Log -Message $sourceAdd.StdErr -LogLevel WARNING
+            Write-Log -Message "Message: $($sourceAdd.StdErr)" -LogLevel WARNING
         }
         else
         {
-            Write-Log -Message $sourceAdd.StdErr -LogLevel ERROR
+            Write-Log -Message "Message: $($sourceAdd.StdErr)" -LogLevel ERROR
             throw
         }
     }
@@ -891,7 +921,7 @@ function Update-NuGetSource
 
     if ($sourceUpdate.ExitCode -eq 1)
     {
-        Write-Log -Message $sourceUpdate.StdErr -LogLevel ERROR
+        Write-Log -Message "Message: $($sourceUpdate.StdErr)" -LogLevel ERROR
         throw
     }
 }

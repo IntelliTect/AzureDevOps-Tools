@@ -55,13 +55,8 @@ function Start-ADOPoliciesMigration {
 
         Write-Log -Message "Found $($sourcePolicies.Count) policies in source.. "
 
-        # # # TEMP TESTING TESTING TESTING 
-        # $testingPolicies = $sourcePolicies | Where-Object { $_.Id -eq 1076 } #  ($s_policy | Where-Object { ($_.Id -eq 370) }
-        # #     # foreach ($policy in $sourcePolicies) {
-        # # # TEMP TESTING TESTING TESTING 
-
         foreach ($policy in $sourcePolicies) {
-            Write-Log -Message "Processing Policy $($policy.Id).. "
+            Write-Log -Message "Processing Policy `"$($policy.type.displayName)`" [$($policy.Id)].. "
             $strMsg = ""
             $processPolicy = $policy
             try {

@@ -33,8 +33,10 @@ on:
           - Dashboards
           - Delivery Plans
           - Groups
+          - Policies
           - Release Pipelines
           - Repositories
+          - Service Connections
           - Service Hooks
           - Task Groups
           - Teams
@@ -43,7 +45,7 @@ on:
           - Test Variables
           - Variable Groups
           - Wikis
-          - Work Item Querys
+          - Work Item Queries
           - Work-Items (Including 'Test Cases')
       WhatIf:
         type: boolean
@@ -114,7 +116,6 @@ jobs:
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
           $WhatIf = $whatIfDryRun -match "true"
 
-
           switch -Exact ($selection)
           {
               "Select an area to migrate" { return }
@@ -126,16 +127,26 @@ jobs:
                   { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf }  
               "Build Queues & Build Environments" 
                   { & .\MigrateProject.ps1 -SkipMigrateBuildQueues $WhatIf }
-              "Dashbaords" 
+              "Dashboards" 
                   { & .\MigrateProject.ps1 -SkipMigrateDashboards $WhatIf }
-              "Delivery Plans " 
+              "Delivery Plans" 
                   { & .\MigrateProject.ps1 -SkipMigrateDeliveryPlans $WhatIf }
               "Groups" 
                   { & .\MigrateProject.ps1 -SkipMigrateGroups $WhatIf }
+              "Policies" 
+                  { 
+                    & .\helper-scripts\ADODeletePolicies.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
+                    & .\MigrateProject.ps1 -SkipMigratePolicies $WhatIf
+                  }
               "Release Pipelines" 
                   { & .\MigrateProject.ps1 -SkipMigrateReleasePipelines $WhatIf }
               "Repositories" 
-                  { & .\MigrateProject.ps1 -SkipMigrateRepos $WhatIf } 
+                  { 
+                    & .\helper-scripts\ADODeleteRepos.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
+                    & .\MigrateProject.ps1 -SkipMigrateRepos $WhatIf
+                  } 
+              "Service Connections" 
+                  { & .\MigrateProject.ps1 -SkipMigrateServiceConnections $WhatIf }
               "Service Hooks" 
                   { & .\MigrateProject.ps1 -SkipMigrateServiceHooks $WhatIf }
               "Task Groups"
@@ -149,7 +160,10 @@ jobs:
               "Test Variables" 
                   { & .\MigrateProject.ps1 -SkipMigrateTestVariables $WhatIf }
               "Variable Groups" 
-                  { & .\MigrateProject.ps1 -SkipMigrateVariableGroups $WhatIf }
+                  { 
+                    & .\helper-scripts\ADODeleteVariableGroups.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
+                    & .\MigrateProject.ps1 -SkipMigrateVariableGroups $WhatIf
+                  }
               "Wikis"
               { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
               "Work Item Querys" 

@@ -75,20 +75,21 @@ function Start-ADORepoMigration {
                 foreach ($sourceRepo in $repos ) {
                     Write-Log -Message "Copying repo $($sourceRepo.Name).."
 
-                    $targetReposExists = $FALSE
+                    # $targetReposExists = $FALSE
                     $targetRepo = $targetRepos | Where-Object { $_.name -ieq $sourceRepo.name }
                     if ($null -ne $targetRepo) {
                         Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
-                        $targetReposExists = $TRUE
+                        continue
+                        # $targetReposExists = $TRUE
                     }
 
                     try {
-                        if($targetReposExists) {
-                            Write-Log -Message 'Updating existing repository.. '
-                        } else {
-                            Write-Log -Message 'Initializing new repository.. '
-                            New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
-                        }
+                        # if($targetReposExists) {
+                        #     Write-Log -Message 'Updating existing repository.. '
+                        # } else {
+                        Write-Log -Message 'Initializing new repository.. '
+                        New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                        # }
                     }
                     catch {
                         Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR

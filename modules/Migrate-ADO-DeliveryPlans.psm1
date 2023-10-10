@@ -35,8 +35,6 @@ function Start-ADODeliveryPlansMigration {
                 continue
             }
             
-            Write-Log -Message "MIgrating DeliveryPlan [$($deliveryplan.Name)] to target.. "
-
             try {
 
                 $plan = Get-DeliveryPlan -ProjectName $sourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders -Id $deliveryplan.Id

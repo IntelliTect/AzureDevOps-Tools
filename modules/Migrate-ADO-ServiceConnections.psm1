@@ -76,6 +76,28 @@ function Start-ADOServiceConnectionsMigration {
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
                 # Azurerm Service Connection types will need to be edited after migration to adhere to org/project naming conventions.
+                if($endpoint.data.creationMode -eq "Automatic") {
+                    if($null -ne $endpoint.data.azureSpnRoleAssignmentId){
+                        $endpoint.data.azureSpnRoleAssignmentId = $null
+                    }
+                    $endpoint.data.azureSpnPermissions = $null
+                    $endpoint.data.spnObjectId = $null
+                    $endpoint.data.appObjectId = $null
+                    $endpoint.authorization.parameters.serviceprincipalid = $NULL
+                    if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
+                        $endpoint.authorization.parameters.authenticationType = $NULL
+                    }
+                } elseif($endpoint.data.creationMode -eq "Manual") {
+                    Write-Log -Message "Service endpoints of type `"azurerm`" with a creationMode of `"Manual`" cannot be migrated as is .. "
+                    Write-Log -Message "setting the  creationMode to `"Automatic`", this will need to be updated manually after migration.. "
+
+                    $endpoint.data.creationMode = "Automatic"
+                    $endpoint.authorization.parameters.serviceprincipalid = $NULL
+                    if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
+                        $endpoint.authorization.parameters.authenticationType = $NULL
+                    }
+                }
+
             } elseif ($endpoint.type -eq "externaltfs") {
                 $parameters = @{
                     "apitoken" = "0123456789" 
