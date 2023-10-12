@@ -1,4 +1,4 @@
-name: Run ADO Organization User Migration
+name: ADO Organization User Migration
 
 on:
   workflow_dispatch:

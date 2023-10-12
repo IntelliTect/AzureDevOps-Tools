@@ -1,6 +1,9 @@
 
 Param (
-        [Parameter (Mandatory=$FALSE)] [String]$NumberOfDays = "0",
+        [Parameter (Mandatory=$FALSE)] [String]$NumberOfDays =  "",
+        [Parameter (Mandatory=$FALSE)] [String]$StartDate =  "",
+        [Parameter (Mandatory=$FALSE)] [String]$EndDate =  "",
+        [Parameter (Mandatory=$FALSE)] [String]$ItemType = "",
         [Parameter (Mandatory=$FALSE)] [Boolean]$WhatIf = $TRUE
 )
 
@@ -16,9 +19,21 @@ Write-Host " "
 Write-Host "Migrate Work Items with Changed Date between 0 days Today and 'Number of Days Changed' ago"
 Write-Host " "
 
-& .\MigrateProject.ps1 `
--SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.ChangedDate] > @Today - $($NumberOfDays) "
+$queryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
+
+if($NumberOfDays -ne "") {
+        $queryBit += "AND [System.ChangedDate] > @Today - $($NumberOfDays) "
+} elseif(($StartDate -ne "" -and $EndDate -ne "") -and ($startDate -ne $endDate)) {
+        $queryBit += "AND [System.ChangedDate] > '$($StartDate)' AND [System.ChangedDate] <= '$($endDate)' "
+} elseif($StartDate -ne "") {
+        $queryBit += "AND [System.ChangedDate] > '$($StartDate)' "
+}
+
+if($ItemType -ne "") {
+        $queryBit += "AND [System.WorkItemType] = '$($ItemType)' "
+}
+
+& .\MigrateProject.ps1 -SkipMigrateWorkItems $WhatIf -WorkItemQueryBit $queryBit
 
 
 

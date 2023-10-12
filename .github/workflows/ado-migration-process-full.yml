@@ -1,4 +1,4 @@
-name: Run Full ADO Project Migration
+name: Full ADO Project Migration
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: Work Item Backfill ADO Project Migration
+name: sBetween Dates Work Item Backfill ADO Project Migration
 
 on:
   workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
@@ -19,10 +19,14 @@ on:
         description: "Name of the Target Project"
         required: true
         default: "GL.CL-Elita-migrated"
-      NumberOfDays:
-        description: "Number of days with Changes"
+      StartDate:
+        description: "Start Changed Date (dd/mm/yyyy)"
+        required: true
+        default: "Today"
+      EndDate:
+        description: "End Changed Date (dd/mm/yyyy)"
         required: false
-        default: "0"
+        default: ""
       WorkItemSelection:
         description: "Work-Item Type Selection"
         required: false
@@ -112,30 +116,55 @@ jobs:
           $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
           Write-Host (ConvertTo-Json -Depth 100 $configuration2)
 
-      - name: Run Migrate-Project PowerShell script
-        shell: pwsh
-        run: |
+          run: |
           $selection = "${{ github.event.inputs.WorkItemSelection }}"
           if($selection -eq "Any") {
             $selection = ""
           }
+          $start = "${{ github.event.inputs.StartDate }}"
+          $end = "${{ github.event.inputs.EndDate }}"
+          $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
+          $WhatIf = $whatIfDryRun -match "true"
+          $format = "dd/MM/yyyy"
+          
+          echo $selection
+          echo $start
+          echo $end
+          echo $WhatIf 
 
-          $numOfDays = "${{ github.event.inputs.NumberOfDays }}"
-          $number = $NULL
-          $isNum = [int]::TryParse($numOfDays, [ref]$number)
-          if($isNum -eq $FALSE) { 
-            echo "Number of Days is not a number, defaulting to 0..."
-          } 
-          $numOfDays = "$number"
-          echo "Number of Days Changed: $numOfDays"
+          if($start -eq "Today") { 
+            $start = (get-date).ToString($format)
+          }
+          if($end -eq "Today") { 
+            $end = (get-date).ToString($format)
+          }
 
+          [DateTime] $startDate = New-Object DateTime
+          $isDateStart = [DateTime]::TryParse($start, [ref]$startDate)
+          if($isDateStart -eq $FALSE) { 
+            echo "Start Date is not a valid date value in the format ($format)..."
+          }
+
+          [DateTime] $endDate = $startDate
+          $isDateEnd = $TRUE
+          if($end -ne "") {
+            $isDateEnd = [DateTime]::TryParse($end, [ref]$endDate)
+            if($isDateEnd -eq $FALSE) { 
+              echo "End Date is not a valid date value in the format ($format)..."
+            }
+          }
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
           $WhatIf = $whatIfDryRun -match "true"
 
-          & .\Work-Item-Backfill_Migrate_Project.ps1 -NumberOfDays $numOfDays -ItemType $selection -WhatIf $WhatIf
+          if($isDateStart -and $isDateEnd) {
+            $startDateString = $startDate.ToString($format)
+            $endDateString = $endDate.ToString($format)
+            & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate -endDateString -ItemType $selection -WhatIf $WhatIf
+          }
 
       - name: Archive code coverage results
         uses: actions/upload-artifact@v3
         with:
           name: migration-run-logs
           path: "./Projects"
+

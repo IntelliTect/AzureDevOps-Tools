@@ -18,7 +18,10 @@ Write-Host "         800 - 900"
 Write-Host "         900 - 1000"
 Write-Host "        1000 - 1100"
 Write-Host "        1100 - 1200"
-Write-Host "        1200 - 5000"
+Write-Host "        1200 - 1300"
+Write-Host "        1300 - 1500"
+Write-Host "        1500 - 3000"
+Write-Host "        3000 +     "
 Write-Host " "
 
 # Since the Azure REST API for work items has a query limit if 20,000, calls to the API have been broken up into batches based on the Work item's Created Date field 

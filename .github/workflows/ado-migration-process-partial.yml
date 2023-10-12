@@ -1,4 +1,4 @@
-name: Run Partial ADO Project Migration
+name: Partial ADO Project Migration
 
 on:
   workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
