@@ -1,3 +1,4 @@
+Using Module "..\modules\Migrate-ADO-Common.psm1"
 
 Param (
         [Parameter (Mandatory=$TRUE)] [String]$OrgName, 
