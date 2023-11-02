@@ -120,18 +120,32 @@ There is also a script that will esecute the entire process by calling the step 
 	Release Pipelines
 	Task Groups
 #### Step_3_Migrate_Project.ps1
-	Work Items
-	- Work items are batched due to the limitation of the Azure DevOps REST API
-	- Items are migrated based on the ChangedDate attribute. 
-	
-	Between x and y days old based on ChangedDate 
-	    0 -   75
-	   75 -  200 
-	  200 -  400 
-	  400 -  575 
-	  575 -  800 
-	  800 - 1000 
-	 1000 - 2000 
+	Work Items (Including 'Test Cases')
+	- Work items are batched due to the limitation of the Azure DevOps REST API which is 20,000 items.
+	- When doing a full Work-Item migration, items are migrated based on the CreatedDate attribute. 
+  	  This is because the query used to search for Work-Items is executed both on the Source and Target
+	  projects. Since all items will have a changed date of the date the migration took place, the query 
+	  will include all items when run against the Target project. If there are over 20,000 items, this 
+	  will results in an error because there is a limit of 20,000 items for the REST API dealing with 
+	  work-items.
+
+	In steps where CreatedDate Between
+		   0 -  100
+		 100 -  200 
+		 200 -  300 
+		 300 -  400 
+		 400 -  500 
+		 500 -  600 
+		 600 -  700
+		 800 -  800
+		 800 -  900
+		 900 - 1000
+		1000 - 1100
+		1100 - 1200
+		1200 - 1300
+		1300 - 1500
+		1500 - 3000
+		3000 + 
 
 #### Step_4_Migrate_Project.ps1
 	This step is executed in two parts 4A and 4B. The first step is performed by "Martin's Tool" and the second half is performed by PowerShell scripts. 

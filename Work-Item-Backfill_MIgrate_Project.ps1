@@ -22,7 +22,7 @@ Write-Host " "
 $queryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
 
 if($NumberOfDays -ne "") {
-        $queryBit += "AND [System.ChangedDate] > @Today - $($NumberOfDays) "
+        $queryBit += "AND [System.ChangedDate] >= @Today - $($NumberOfDays) "
 } elseif(($StartDate -ne "" -and $EndDate -ne "") -and ($startDate -ne $endDate)) {
         $queryBit += "AND [System.ChangedDate] > '$($StartDate)' AND [System.ChangedDate] <= '$($endDate)' "
 } elseif($StartDate -ne "") {
