@@ -37,6 +37,7 @@ Param (
         [parameter(Mandatory=$FALSE)] [String]$WorkItemQueryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
 )
 
+
 # Import-Module Migrate-ADO -Force
 
 Import-Module .\modules\Migrate-ADO-AreaPaths.psm1
@@ -63,11 +64,6 @@ Import-Module .\modules\Migrate-ADO-DeliveryPlans.psm1
 Import-Module .\modules\ADO-AddCustomField.psm1
 Import-Module .\modules\Migrate-Packages.psm1
 
-# IntelliTect AzureDevOps-Tools Items
-Write-Log ' '
-Write-Log ' '
-
- 
 
 Write-Log -Message "SkipMigrateBuildQueues $($SkipMigrateBuildQueues)"
 Write-Log -Message "SkipMigrateRepos $($SkipMigrateRepos)"
@@ -80,7 +76,6 @@ Write-Log -Message "SkipMigrateDashboards $($SkipMigrateDashboards)"
 Write-Log -Message "SkipMigrateDeliveryPlans $($SkipMigrateDeliveryPlans)"
 Write-Log -Message "SkipMigrateArtifacts $($SkipMigrateArtifacts)"
 
- 
 
 # Azure DevOps Migration Tool Items
 Write-Log -Message "SkipMigrateTfsAreaAndIterations $($SkipMigrateTfsAreaAndIterations)"
