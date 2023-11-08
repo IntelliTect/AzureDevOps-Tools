@@ -110,7 +110,7 @@
     "TfsWorkItemEndpoints": [
       {
         "Name": "WorkItemSource",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc",
           "Parameters": {
@@ -121,7 +121,7 @@
         "Project": "GL.CL-Elita",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "PersonalAccessToken": null,
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
@@ -129,7 +129,7 @@
       },
       {
         "Name": "WorkItemTarget",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc"
         },
@@ -137,7 +137,7 @@
         "Project": "GL.CL-Elita-migrated",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "PersonalAccessToken": null,
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
@@ -151,7 +151,7 @@
         "Direction": "Source",
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
           "$type": "TfsLanguageMapOptions",
@@ -166,7 +166,7 @@
         "Direction": "Target",
         "Organisation": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
           "$type": "TfsLanguageMapOptions",
@@ -182,7 +182,7 @@
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -195,7 +195,7 @@
         "Organisation": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -211,7 +211,7 @@
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "EndpointEnrichers": null
       },
       {
@@ -220,7 +220,7 @@
         "Organisation": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
         "AuthenticationMode": "AccessToken",
-        "AccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+        "AccessToken": null,
         "EndpointEnrichers": null
       }
     ]
@@ -232,7 +232,7 @@
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+    "PersonalAccessToken": null,
     "LanguageMaps": {
       "AreaPath": "Area",
       "IterationPath": "Iteration"
@@ -245,7 +245,7 @@
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": "oltlmvyhhzmi5wacj4awkaly7ahhptkp2wtyeu3ppeypfwgqktmq",
+    "PersonalAccessToken": null,
     "LanguageMaps": {
       "AreaPath": "Area",
       "IterationPath": "Iteration"
@@ -321,17 +321,15 @@
     },
     {
       "$type": "AzureDevOpsPipelineProcessorOptions",
-      "Enabled": true,
+      "Enabled": false,
       "MigrateBuildPipelines": false,
       "MigrateReleasePipelines": false,
-      "MigrateTaskGroups": true,
+      "MigrateTaskGroups": false,
       "MigrateVariableGroups": false,
       "MigrateServiceConnections": false,
       "BuildPipelines": null,
       "ReleasePipelines": null,
-      "RepositoryNameMaps": {
-        "GL.CL-Elita": "GL.CL-Elita-migrated"
-      },
+      "RepositoryNameMaps": null,
       "ProcessorEnrichers": null,
       "SourceName": "PipelineSource",
       "TargetName": "PipelineTarget"
