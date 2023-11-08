@@ -24,9 +24,9 @@ $queryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared 
 if($NumberOfDays -ne "") {
         $queryBit += "AND [System.ChangedDate] >= @Today - $($NumberOfDays) "
 } elseif(($StartDate -ne "" -and $EndDate -ne "") -and ($startDate -ne $endDate)) {
-        $queryBit += "AND [System.ChangedDate] > '$($StartDate)' AND [System.ChangedDate] <= '$($endDate)' "
+        $queryBit += "AND [System.ChangedDate] >= '$($StartDate)' AND [System.ChangedDate] <= '$($endDate)' "
 } elseif($StartDate -ne "") {
-        $queryBit += "AND [System.ChangedDate] > '$($StartDate)' "
+        $queryBit += "AND [System.ChangedDate] >= '$($StartDate)' "
 }
 
 if($ItemType -ne "") {
