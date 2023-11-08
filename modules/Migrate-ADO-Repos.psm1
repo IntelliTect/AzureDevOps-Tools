@@ -1,3 +1,6 @@
+
+Using Module ".\Migrate-ADO-Common.psm1"
+
 function Start-ADORepoMigration {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -6,6 +9,9 @@ function Start-ADORepoMigration {
 
         [Parameter (Mandatory = $TRUE)]
         [String]$SourceOrgName,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$SourcePAT,
 
         [Parameter (Mandatory = $TRUE)]
         [Hashtable]$SourceHeaders,
@@ -16,11 +22,17 @@ function Start-ADORepoMigration {
         [Parameter (Mandatory = $TRUE)]
         [String]$TargetOrgName,
 
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$TargetPAT,
+
         [Parameter (Mandatory = $TRUE)]
         [Hashtable]$TargetHeaders,
 
         [Parameter (Mandatory = $TRUE)]
-        [String]$ReposPath
+        [String]$ReposPath,
+
+        [Parameter (Mandatory=$FALSE)] 
+        [Object[]]$RepoIds = $()
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -31,194 +43,89 @@ function Start-ADORepoMigration {
         Write-Log -Message '-- Migrate Repos --'
         Write-Log -Message '-------------------'
         Write-Log -Message ' '
-
-        $reposToPush = Copy-Repos `
-            -SourceProjectName $SourceProjectName `
-            -SourceOrgName $SourceOrgName `
-            -SourceHeaders $sourceHeaders `
-            -TargetProjectName $TargetProjectName `
-            -TargetOrgName $TargetOrgName `
-            -TargetHeaders $TargetHeaders `
-            -ReposPath $ReposPath
-
-        Push-Repos `
-            -ProjectName $TargetProjectName `
-            -OrgName $TargetOrgName `
-            -Repos $reposToPush `
-            -Headers $TargetHeaders `
-            -ReposPath $ReposPath
-    }
-}
-
-function Get-Repos {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers
-    )
-    if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/git/repositories?api-version=5.0"
-    
-        $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
-
-        return $results.value
-    }
-}
-
-function Copy-Repos {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$SourceProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$SourceOrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$SourceHeaders,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$TargetProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$TargetOrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$TargetHeaders,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ReposPath
-    )
-    if ($PSCmdlet.ShouldProcess("path $ReposPath")) {
+        
         try {
-            $final = [object[]]@()
+            
+            $sourceRepos = Get-Repos -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders
+            Write-Log -Message "Source repository Count $($sourceRepos.Count).."
+            $targetRepos = Get-Repos -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
+            Write-Log -Message "Target repository Count $($targetRepos.Count).."
 
-            $targetRepos = Get-Repos `
-                -ProjectName $TargetProjectName `
-                -OrgName $TargetOrgName `
-                -Headers $TargetHeaders
-            $sourceRepos = Get-Repos `
-                -ProjectName $SourceProjectName `
-                -OrgName $SourceOrgName `
-                -Headers $SourceHeaders
+            $savedPath = $(Get-Location).Path
 
-            foreach ($sourceRepo in $sourceRepos) {
-        
-                if ($null -ne ($targetRepos | Where-Object { $_.name -ieq $sourceRepo.name })) {
-                    Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
-                    continue
+            $repos 
+            if ($RepoIds.Count -gt 0) {
+                $repos = $sourceRepos | Where-Object { $_.Id -in $RepoIds }
+                Write-Log -Message "Repo Ids passed in Count $($repos.Count).."
+            } else {
+                $repos = $sourceRepos
+            }
+
+            if($repos.Count -gt 0) {
+
+                # First clean out the temp repo directory
+                $tempPath = "$ReposPath\temp"
+
+                if (-not (Test-Path -Path $tempPath)) {
+                    New-Item -Path $tempPath -ItemType Directory
+                } else {
+                    Get-ChildItem -Path $tempPath | Remove-Item -Recurse -Force
                 }
-        
-                Write-Log -Message "Cloning $($sourceRepo.name)"
-                git clone $sourceRepo.remoteURL "`"$ReposPath\$($sourceRepo.name)`""
-                $final += $sourceRepo
-            } 
-            return $final
+
+                foreach ($sourceRepo in $repos ) {
+                    Write-Log -Message "Copying repo $($sourceRepo.Name).."
+
+                    # $targetReposExists = $FALSE
+                    $targetRepo = $targetRepos | Where-Object { $_.name -ieq $sourceRepo.name }
+                    if ($null -ne $targetRepo) {
+                        Write-Log -Message "Repo [$($sourceRepo.name)] already exists in target.. "
+                        continue
+                        # $targetReposExists = $TRUE
+                    }
+
+                    try {
+                        # if($targetReposExists) {
+                        #     Write-Log -Message 'Updating existing repository.. '
+                        # } else {
+                        Write-Log -Message 'Initializing new repository.. '
+                        New-GitRepository -ProjectName $TargetProjectName -OrgName $TargetOrgName -RepoName $sourceRepo.name -Headers $TargetHeaders
+                        # }
+                    }
+                    catch {
+                        Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR
+                        Write-Log -Message 'Repository cannot be migrated, please migrate manually ... '
+                        continue
+                    }
+
+                    try {
+                        Write-Log -Message "Cloning repository $($sourceRepo.name)"
+
+                        $remoteUrl =  $sourceRepo.remoteURL.Replace("@",":$SourcePAT@")
+                        git clone --mirror $remoteUrl "$tempPath\$($sourceRepo.name)"
+                        
+                        Write-Log -Message "Entering path `"$tempPath\$($sourceRepo.name)`""
+                        Set-Location "$tempPath\$($sourceRepo.name)"
+
+                        Write-Log -Message 'Pushing repo ...'
+                        $gitTarget = "https://$($TargetOrgName):$($TargetPAT)@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $sourceRepo.name
+                        git push --mirror $gitTarget
+
+                        # Write-Log -Message 'Remove local copy of repo ...'
+                        # remove-Item "$tempPath\$($sourceRepo.name)" -Force -Recurse
+                    }
+                    catch {
+                        Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
+                    }
+                    finally {
+                        Set-Location $savedPath
+                    }
+                } 
+            }
         }
         catch {
-            Write-Log -Message "Error cloning repos from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR
-            Write-Error -Messsage $_ -LogLevel ERROR
+            Write-Log -Message "Fatal-Error cloning repos from org $SourceOrgName and project $SourceProjectName" -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
             return
         }
     }
-}
-
-function Push-Repos {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Object[]]$Repos,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ReposPath
-    )
-    if ($PSCmdlet.ShouldProcess($ProjectName, "Push repos from $ReposPath")) {
-        $savedPath = $(Get-Location).Path
-        $targetRepos = Get-Repos -ProjectName $ProjectName -OrgName $OrgName -Headers $Headers
-        
-        foreach ($repo in $Repos) {
-            Write-Log -Message "Pushing repo $($repo.Name)"
-        
-            $targetRepo = $targetRepos | Where-Object { $_.name -ieq $repo.name }
-            if ($null -eq $targetRepo) {
-                try {
-                    Write-Log -Message 'Initializing repository ... '
-                    New-GitRepository -ProjectName $ProjectName -OrgName $Orgname -RepoName $repo.name -Headers $Headers
-                }
-                catch {
-                    Write-Log -Message "Error initializing repo: $_ " -LogLevel ERROR
-                }
-            }
-        
-            try {
-                Write-Log -Message 'Pushing repo ...'
-                Write-Log -Message "Entering path `"$ReposPath\$($repo.name)`""
-                Set-Location "$ReposPath\$($repo.name)"
-
-                $gitTarget = "https://$TargetOrgName@dev.azure.com/$TargetOrgName/$TargetProjectName/_git/" + $repo.name
-        
-                git remote add target $gitTarget
-                git push -u target --all
-            }
-            catch {
-                Write-Log -Message "Error adding remote: $_" -LogLevel ERROR
-            }
-            finally {
-                Set-Location $savedPath
-            }
-        }
-    }
-}
-
-function New-GitRepository {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$RepoName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers
-    )
-    if ($PSCmdlet.ShouldProcess($ProjectName, "Push repos from $ReposPath")) {
-        $url = "$org/_apis/git/repositories?api-version=5.1"
-    }
-    $url = "https://dev.azure.com/$OrgName/_apis/git/repositories?api-version=5.1"
-
-    $project = Get-ADOProjects -OrgName $OrgName -Headers $Headers -ProjectName $ProjectName
-
-    $requestBody = @{
-        name    = $RepoName
-        project = @{
-            id = $project.id
-        }
-    } | ConvertTo-Json
-
-    try {
-        Invoke-RestMethod -Method post -uri $url -Headers $Headers -Body $requestBody -ContentType 'application/json'
-    }
-    catch {
-        Write-Log -Message "Error creating repo $RepoName in project $projectId : $($_.Exception) " 
-    }
-
 }

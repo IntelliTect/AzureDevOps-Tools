@@ -6,6 +6,89 @@
     ERROR
 }
 
+
+class ADO_Team {
+    [String]$Id
+    [String]$Name
+    [String]$Description
+    
+    ADO_Team(
+        [String]$id,
+        [String]$name,
+        [String]$description
+    ) {
+        $this.Id = $id
+        $this.Name = $name
+        $this.Description = $description
+    }
+}
+
+class ADO_User {
+    [String]$Id
+    [String]$OriginId
+    [String]$PrincipalName
+    [String]$DisplayName
+    [String]$MailAddress
+    [String]$LicenseType
+    
+    ADO_User(
+        [String]$id,
+        [String]$originId,
+        [String]$principalName,
+        [String]$displayName,
+        [String]$mailAddress,
+        [String]$licenseType
+    ) {
+        $this.Id = $id
+        $this.OriginId = $originId
+        $this.PrincipalName = $principalName
+        $this.DisplayName = $displayName
+        $this.MailAddress = $mailAddress
+        $this.LicenseType = $licenseType
+    }
+}
+
+class ADO_Group {
+    [String]$Id
+    [String]$Name
+    [String]$PrincipalName
+    [String]$Description
+    [String]$Descriptor
+    [ADO_GroupMember[]]$UserMembers = @()
+    [ADO_Group[]]$GroupMembers = @()
+    
+    ADO_Group(
+        [String]$id,
+        [String]$name,
+        [String]$principalName,
+        [String]$description,
+        [String]$descriptor
+    ) {
+        $this.Id = $id
+        $this.Name = $name
+        $this.PrincipalName = $principalName
+        $this.Description = $description
+        $this.Descriptor = $descriptor
+    }
+}
+
+class ADO_GroupMember {
+    [String]$Id
+    [String]$Name
+    [String]$PrincipalName
+    
+    ADO_GroupMember(
+        [String]$id,
+        [String]$name,
+        [String]$principalName
+    ) {
+        $this.Id = $id
+        $this.Name = $name
+        $this.PrincipalName = $principalName
+    }
+}
+
+
 function New-HTTPHeaders {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -36,31 +119,6 @@ function Set-AzDevOpsContext {
     if ($PSCmdlet.ShouldProcess('DevOps PAT', 'Set DevOps environment variable')) {
         $Env:AZURE_DEVOPS_EXT_PAT = $PersonalAccessToken
         az devops configure --defaults "project=$ProjectName" "organization=https://dev.azure.com/$OrgName"
-    }
-}
-
-function Get-ADOProjects {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $FALSE)]
-        [String]$ProjectName
-    )
-    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
-        if ($ProjectName) {
-            $url = "https://dev.azure.com/$OrgName/_apis/projects/$ProjectName"
-            return Invoke-RestMethod -Method Get -uri $url -Headers $Headers
-        }
-        else {
-            $url = "https://dev.azure.com/$OrgName/_apis/projects?`$top=600&api-version=5.1"
-            $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
-            return $results.value
-        }
     }
 }
 
@@ -296,4 +354,360 @@ function Set-ProjectFolders {
     }
 
     Write-Log -Message '-------------------------- Done creating Directories --------------------------' -LogLevel DEBUG
+}
+
+
+# Users
+
+function Get-ADOUsers {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+        
+        [Parameter (Mandatory = $TRUE)]
+        [String]$PersonalAccessToken
+    )
+    if ($PSCmdlet.ShouldProcess($OrgName)) {
+        Set-AzDevOpsContext -PersonalAccessToken $PersonalAccessToken -OrgName $OrgName
+
+        Write-Host "Calling az devops user list.." -NoNewline
+        $results = az devops user list --detect $False | ConvertFrom-Json
+
+        $members = $results.members
+        $totalCount = $results.totalCount
+        $counter = $members.Count
+        do {
+            $UserResponse = az devops user list --detect $False --skip $counter | ConvertFrom-Json
+            Write-Host "." -NoNewline
+            $members += $UserResponse.members
+            $counter += $UserResponse.members.Count
+        } while ($counter -lt $totalCount)
+        Write-Host " "
+
+        # Convert to ADO User objects
+        [ADO_User[]]$users = @()
+        foreach ($orgUser in $members ) {
+            $users += [ADO_User]::new($orgUser.Id, $orgUser.user.originId, $orgUser.user.principalName, $orgUser.user.displayName, $orgUser.user.mailAddress, $orgUser.accessLevel.accountLicenseType)
+        }
+
+        return $users
+    }
+}
+
+function Get-ADOUsersByAPI {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers
+    )
+    if ($PSCmdlet.ShouldProcess($OrgName)) {
+        
+        $url = "https://vssps.dev.azure.com/$OrgName/_apis/graph/users?api-version=7.0-preview.1"
+           
+        $members = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
+
+        # Convert to ADO User objects
+        [ADO_User[]]$users = @()
+        foreach ($orgUser in $members.Value ) {
+            $users += [ADO_User]::new($orgUser.Id, $orgUser.originId, $orgUser.principalName, $orgUser.displayName, $orgUser.mailAddress, "")
+        }
+
+        return $users
+    }
+}
+
+# ADO Groups
+function Get-ADOGroups {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$PersonalAccessToken,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$GroupDisplayName,
+
+        [Parameter (Mandatory = $FALSE)]
+        [Bool]$GetGroupMembers = $TRUE
+    )
+    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
+        Set-AzDevOpsContext `
+            -PersonalAccessToken $PersonalAccessToken `
+            -OrgName $OrgName `
+            -ProjectName $ProjectName
+
+        $organization = "https://dev.azure.com/$OrgName/"
+        if ($GroupDisplayName) {
+            $groups = az devops security group list --query "graphGroups[?displayName == '$($GroupDisplayName)']" --organization $organization --project $ProjectName --detect $false | ConvertFrom-Json
+            if (!$groups) {
+                throw "Group called '$GroupDisplayName' cannot be found in '$OrgName/$ProjectName'"
+            }
+        }
+        else {
+            $groups = (az devops security group list --organization $organization --project $ProjectName --detect $false --subject-types vssgp | ConvertFrom-Json).graphGroups
+        }
+       
+        [ADO_Group[]]$groupsFound = @() 
+        foreach ($group in $groups) {
+            Write-Host "." -NoNewline
+            $group = [ADO_Group]::new($group.originId, $group.displayName, $group.principalName, $group.description, $group.descriptor)
+
+            if ($GetGroupMembers -eq $TRUE) { 
+                $members = Get-ADOGroupMembers `
+                    -OrgName $OrgName `
+                    -ProjectName $ProjectName `
+                    -PersonalAccessToken $PersonalAccessToken `
+                    -GroupDescriptor $group.Descriptor
+
+                $group.GroupMembers = $members.GroupGroupMembers
+                $group.UserMembers = $members.GroupUserMembers
+            }
+            
+            $groupsFound += $group
+        }
+        Write-Host "."
+        return $groupsFound
+    }
+}
+
+function Get-ADOGroupMembers {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$PersonalAccessToken,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$GroupDescriptor
+    )
+    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
+        Set-AzDevOpsContext `
+            -PersonalAccessToken $PersonalAccessToken `
+            -OrgName $OrgName `
+            -ProjectName $ProjectName
+
+        [ADO_GroupMember[]]$GroupUserMembers = @()
+        [ADO_Group[]]$GroupGroupMembers = @()
+
+        $organization = "https://dev.azure.com/$OrgName/"
+        try {
+            $members = az devops security group membership list --id $GroupDescriptor --organization $organization --detect $false | ConvertFrom-Json
+        } catch {
+            Write-Log -Message "FAILED!" -LogLevel ERROR
+            Write-Log -Message $_.Exception -LogLevel ERROR
+            try {
+                Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
+            } catch {}
+        }
+
+        if ($members) {
+            $descriptors = $members | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
+    
+            foreach ($descriptor in $descriptors) {
+                Write-Host "." -NoNewline
+                $member = $members.$descriptor
+                if ($member.subjectKind -eq "user") {
+                    $GroupUserMembers += [ADO_GroupMember]::new($member.originId, $member.displayName, $member.principalName)
+                }
+                else {
+                    $GroupGroupMembers += [ADO_Group]::new($member.originId, $member.displayName, $member.principalName, $member.description, $member.descriptor)
+                }
+            }
+        }
+
+        return @{
+            "GroupUserMembers"  = $GroupUserMembers
+            "GroupGroupMembers" = $GroupGroupMembers
+        }
+    }
+}
+
+
+
+# Projects
+function Get-ADOProjects {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers
+    )
+    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
+        if ($ProjectName) {
+            $url = "https://dev.azure.com/$OrgName/_apis/projects/$ProjectName"
+            return Invoke-RestMethod -Method Get -uri $url -Headers $Headers
+        }
+        else {
+            $url = "https://dev.azure.com/$OrgName/_apis/projects?`$top=600&api-version=5.1"
+            $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
+            return $results.value
+        }
+    }
+}
+
+function Get-ADOProjectTeams {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$TeamDisplayName
+    )
+    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
+        $url = "https://dev.azure.com/$OrgName/_apis/projects/$ProjectName/teams?api-version=6.0"
+        $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
+
+        [ADO_Team[]]$teams = @()
+        foreach ($result in $results.value) {
+            $teams += [ADO_Team]::new($result.id, $result.name, $result.description)
+        }
+
+        if ($TeamDisplayName) {
+            return $teams | Where-Object { $_.Name -eq $TeamDisplayName }
+        }
+        return $teams
+    }
+}
+
+
+# Pipelines
+function Get-Pipelines {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$RepoId = $NULL
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+
+        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/build/definitions?api-version=7.0"
+        if ($RepoId) {
+            $url = "https://dev.azure.com//$OrgName/$ProjectName/_apis/build/definitions?repositoryId=$RepoId&repositoryType=TfsGit";
+        }
+    
+        $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+
+        return $results.value
+    }
+}
+
+function Get-Pipeline {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $FALSE)]
+        [String]$DefinitionId = $NULL
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        $url = "https://dev.azure.com/$OrgName/$ProjectName/_apis/build/definitions/$($DefinitionId)?api-version=7.0";
+
+        $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+
+        return $results
+    }
+}
+
+
+#Repos
+
+function Get-Repos([string]$projectName, [string]$orgName, $headers) {
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/git/repositories?api-version=7.0"
+
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    
+    if ($ProcessName) {
+        return $results.value | Where-Object { $_.name -ieq $ProcessName }
+    }
+    else {
+        return , $results.value
+    }
+}
+
+function Get-Repo([string]$projectName, [string]$orgName, $headers, $repoId) {
+
+    $url = "https://dev.azure.com/$orgName/$projectName/_apis/git/repositories/$repoId"
+    
+    $results =  Invoke-RestMethod -Method Get -uri $url -Headers $headers
+
+    return , $results
+}
+
+
+function New-GitRepository {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$RepoName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers
+    )
+    if ($PSCmdlet.ShouldProcess($ProjectName, "Push repos from $ReposPath")) {
+        $url = "$org/_apis/git/repositories?api-version=5.1"
+    }
+    $url = "https://dev.azure.com/$OrgName/_apis/git/repositories?api-version=5.1"
+
+    $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers
+
+    $requestBody = @{
+        name    = $RepoName
+        project = @{
+            id = $project.id
+        }
+    } | ConvertTo-Json
+
+    try {
+        Invoke-RestMethod -Method post -uri $url -Headers $Headers -Body $requestBody -ContentType 'application/json'
+    }
+    catch {
+        Write-Log -Message "Error creating repo $RepoName in project $projectId : $($_.Exception) " 
+    }
 }

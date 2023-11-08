@@ -1,0 +1,170 @@
+name: sBetween Dates Work Item Backfill ADO Project Migration
+
+on:
+  workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
+    inputs:
+      SourceOrganizationName:
+        description: "Name of the Source Organization"
+        required: true
+        default: "AIZ-GL"
+      SourceProjectName:
+        description: "Name of the Source Project"
+        required: true
+        default: "GL.CL-Elita"
+      TargetOrganizationName:
+        description: "Name of the Target Organization"
+        required: true
+        default: "AIZ-Global"
+      TargetProjectName:
+        description: "Name of the Target Project"
+        required: true
+        default: "GL.CL-Elita-migrated"
+      StartDate:
+        description: "Start Changed Date (dd/mm/yyyy)"
+        required: true
+        default: "Today"
+      EndDate:
+        description: "End Changed Date (dd/mm/yyyy)"
+        required: false
+        default: ""
+      WorkItemSelection:
+        description: "Work-Item Type Selection"
+        required: false
+        default: "Select a Work-Item Type"
+        type: choice
+        options:
+          - Any
+          - Bug
+          - Change Request
+          - Code Review Request
+          - Code Review Response
+          - Epic
+          - Features
+          - Feedback Request
+          - Feedback Response
+          - Impediment
+          - Incident
+          - Issue
+          - Portfolio Epic
+          - Product Backlog Item
+          - Proposal
+          - Requirement
+          - Review
+          - Risk
+          - Shared Parameter
+          - Shared Steps
+          - Tasks
+          - Test Case
+          - User Story
+      WhatIf:
+        type: boolean
+        description: "WhatIf: Simulated Run"
+        required: false
+        default: true
+
+jobs:
+  run-powershell-script:
+    name: Run PowerShell Script
+    runs-on: 'AEC0WGEMP001'
+    timeout-minutes: 7200
+    env:
+      AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
+
+    steps:
+      - name: Verify Azure CLI installation
+        run: |
+          $env:PATH
+          if ($env:PATH -notcontains "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin") {
+            $env:PATH += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+          }
+
+          az --version
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Clean Azure DevOps Migration Tools Log Directory
+        shell: pwsh
+        run: |
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+
+      - name: Set Migration Configuration 
+        shell: pwsh
+        run: |
+          $SourceOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.SourceOrganizationName }}/"
+          $TargetOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.TargetOrganizationName }}/"
+          $projectDirectory = "./"
+
+          $LocalConfigPath = "configuration\configuration.json"
+          $filePath = Resolve-Path -Path "$LocalConfigPath"
+          Write-Host "FILEPATH: $filePath"   
+          
+          $configuration = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
+          $configuration.SourceProject.Organization = "$SourceOrganizationUrl"
+          $configuration.SourceProject.ProjectName = "${{ github.event.inputs.SourceProjectName }}"
+          $configuration.SourceProject.OrgName = "${{ github.event.inputs.SourceOrganizationName }}"
+          $configuration.TargetProject.Organization = "$TargetOrganizationUrl"
+          $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
+          $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
+          $configuration.ProjectDirectory = $projectDirectory
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
+          $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
+          $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
+          $configuration | ConvertTo-Json -Depth 100 | Set-Content $LocalConfigPath
+          
+          $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
+          Write-Host (ConvertTo-Json -Depth 100 $configuration2)
+
+          run: |
+          $selection = "${{ github.event.inputs.WorkItemSelection }}"
+          if($selection -eq "Any") {
+            $selection = ""
+          }
+          $start = "${{ github.event.inputs.StartDate }}"
+          $end = "${{ github.event.inputs.EndDate }}"
+          $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
+          $WhatIf = $whatIfDryRun -match "true"
+          $format = "dd/MM/yyyy"
+          
+          echo $selection
+          echo $start
+          echo $end
+          echo $WhatIf 
+
+          if($start -eq "Today") { 
+            $start = (get-date).ToString($format)
+          }
+          if($end -eq "Today") { 
+            $end = (get-date).ToString($format)
+          }
+
+          [DateTime] $startDate = New-Object DateTime
+          $isDateStart = [DateTime]::TryParse($start, [ref]$startDate)
+          if($isDateStart -eq $FALSE) { 
+            echo "Start Date is not a valid date value in the format ($format)..."
+          }
+
+          [DateTime] $endDate = $startDate
+          $isDateEnd = $TRUE
+          if($end -ne "") {
+            $isDateEnd = [DateTime]::TryParse($end, [ref]$endDate)
+            if($isDateEnd -eq $FALSE) { 
+              echo "End Date is not a valid date value in the format ($format)..."
+            }
+          }
+          $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
+          $WhatIf = $whatIfDryRun -match "true"
+
+          if($isDateStart -and $isDateEnd) {
+            $startDateString = $startDate.ToString($format)
+            $endDateString = $endDate.ToString($format)
+            & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate -endDateString -ItemType $selection -WhatIf $WhatIf
+          }
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-run-logs
+          path: "./Projects"
+

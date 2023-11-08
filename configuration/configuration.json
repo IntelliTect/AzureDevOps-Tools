@@ -1,0 +1,17 @@
+{
+    "SourceProject": {
+        "Organization": "https://dev.azure.com/AIZ-GL/",
+        "ProjectName": "GL.CL-Elita",
+        "OrgName": "AIZ-GL"
+    },
+    "TargetProject": {
+        "Organization": "https://dev.azure.com/AIZ-Global/",
+        "ProjectName": "GL.CL-Elita-migrated",
+        "OrgName": "AIZ-Global"
+    },
+    "ProjectDirectory": "C:\\Users\\JohnEvans\\Working\\Assurant AIZ-GT- ADO Migration Tools\\DevOps-Enablement-ADO-migration",
+    "WorkItemMigratorDirectory": "C:\\tools\\MigrationTool",
+	"RepositoryCloneTempDirectory": "C:\\tools\\RepoCloneTemp",
+    "DevOpsMigrationToolConfigurationFile": "migrator-configuration.json",
+	"ArtifactFeedPackageVersionLimit": 5
+}

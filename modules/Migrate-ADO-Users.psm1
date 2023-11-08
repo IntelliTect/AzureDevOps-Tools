@@ -1,24 +1,5 @@
-class ADO_User {
-    [String]$Id
-    [String]$PrincipalName
-    [String]$DisplayName
-    [String]$MailAddress
-    [String]$LicenseType
-    
-    ADO_User(
-        [String]$id,
-        [String]$principalName,
-        [String]$displayName,
-        [String]$mailAddress,
-        [String]$licenseType
-    ) {
-        $this.Id = $id
-        $this.PrincipalName = $principalName
-        $this.DisplayName = $displayName
-        $this.MailAddress = $mailAddress
-        $this.LicenseType = $licenseType
-    }
-}
+
+Using Module ".\Migrate-ADO-Common.psm1"
 
 function Start-ADOUserMigration {
     [CmdletBinding(SupportsShouldProcess)]
@@ -45,14 +26,22 @@ function Start-ADOUserMigration {
         Write-Log -Message '-----------------------'
         Write-Log -Message ' '
 
-        [ADO_User[]]$sourceUsers = Get-ADOUsers `
+        Write-Log -Message 'Getting ADO Users from Source..'
+        $sourceUsers = Get-ADOUsers `
             -OrgName $SourceOrgName `
             -PersonalAccessToken $SourcePat
 
+        Write-Log -Message 'Getting ADO Users from Target..'
+        $targetUsers = Get-ADOUsers `
+            -OrgName $TargetOrgName `
+            -PersonalAccessToken $TargetPat
+
+        Write-Log -Message 'Pushing ADO Source Users to Target..'
         Push-ADOUsers `
             -OrgName $TargetOrgName `
             -PersonalAccessToken $TargetPat `
-            -Users $sourceUsers
+            -Users $sourceUsers `
+            -TargetUsers $targetUsers
     }
 }
 
@@ -66,22 +55,24 @@ function Push-ADOUsers {
         [String]$PersonalAccessToken,
 
         [Parameter (Mandatory = $TRUE)]
-        [ADO_User[]]$Users
+        [Object[]]$Users,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Object[]]$TargetUsers
     )
     if ($PSCmdlet.ShouldProcess($OrgName)) {
-        [ADO_User[]]$targetUsers = Get-ADOUsers `
-            -OrgName $OrgName `
-            -PersonalAccessToken $PersonalAccessToken
+
+        Write-Log -Message 'Getting Target ADO Users to verify if users exist already..'
 
         foreach ($user in $Users) {
             # Check for duplicates
-            if ($null -ne ($targetUsers | Where-Object { $_.PrincipalName -ieq $user.PrincipalName } )) {
-                Write-Log -Message "User [$($user.PrincipalName)] already exists in target org '$OrgName'... "
+            if ($null -ne ($TargetUsers | Where-Object { $_.PrincipalName -ieq $user.PrincipalName } )) {
+                Write-Log -Message "User with PrincipalName [$($user.PrincipalName)] already exists in target org '$OrgName'... "
                 continue
             }
 
             # Add user
-            Write-Log -Message "Add user $($User.DisplayName)"
+            Write-Log -Message ("Add user $($user.DisplayName)")
             Add-ADOUser `
                 -OrgName $OrgName `
                 -PersonalAccessToken $PersonalAccessToken `
@@ -112,43 +103,23 @@ function Add-ADOUser {
             -PersonalAccessToken $PersonalAccessToken `
             -OrgName $OrgName
 
-        $response = az devops user add --email-id $User.PrincipalName --license-type $User.LicenseType --detect $false
+        try{
+            $response = az devops user add --email-id $User.PrincipalName --license-type $User.LicenseType --detect $false --debug --verbose
+            
+            if ($ForceStakeholderIfNeeded -and !$response) {
+                # Lower subscription plan detected
+                $newLicense = "stakeholder"
+                $response = az devops user add --email-id $User.PrincipalName --license-type $newLicense --detect $false --debug --verbose
 
-        if ($ForceStakeholderIfNeeded -and !$response) {
-            # Lower subscription plan detected
-            $newLicense = "stakeholder"
-            $response = az devops user add --email-id $User.PrincipalName --license-type $newLicense --detect $false
-            if ($response) {
-                Write-Log `
-                    -Message "User '$($User.DisplayName)' has been demoted from license $($User.LicenseType) to $newLicense because your subscription does not support that license type." `
-                    -LogLevel ERROR
+                if ($response) {
+                    Write-Log `
+                        -Message "User '$($User.DisplayName)' has been demoted from license $($User.LicenseType) to $newLicense because your subscription does not support that license type." `
+                        -LogLevel ERROR
+                }
             }
+            
+        } catch {
+            Write-Log -Message $_.Exception.Message -LogLevel ERROR
         }
-    }
-}
-
-function Get-ADOUsers {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-        
-        [Parameter (Mandatory = $TRUE)]
-        [String]$PersonalAccessToken
-    )
-    if ($PSCmdlet.ShouldProcess($OrgName)) {
-        Set-AzDevOpsContext `
-            -PersonalAccessToken $PersonalAccessToken `
-            -OrgName $OrgName
-
-        $orgUsers = az devops user list --detect $False | ConvertFrom-Json
-
-        # Convert to ADO User objects
-        [ADO_User[]]$users = @()
-        foreach ($orgUser in $orgUsers.members) {
-            $users += [ADO_User]::new($orgUser.user.originId, $orgUser.user.principalName, $orgUser.user.displayName, $orgUser.user.mailAddress, $orgUser.accessLevel.accountLicenseType)
-        }
-
-        return $users
     }
 }

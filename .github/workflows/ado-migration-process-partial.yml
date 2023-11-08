@@ -1,0 +1,180 @@
+name: Partial ADO Project Migration
+
+on:
+  workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
+    inputs:
+      SourceOrganizationName:
+        description: "Name of the Source Organization"
+        required: true
+        default: "AIZ-GL"
+      SourceProjectName:
+        description: "Name of the Source Project"
+        required: true
+        default: "GL.CL-Elita"
+      TargetOrganizationName:
+        description: "Name of the Target Organization"
+        required: true
+        default: "AIZ-Global"
+      TargetProjectName:
+        description: "Name of the Target Project"
+        required: true
+        default: "GL.CL-Elita-migrated"
+      MigrationSelection:
+        description: "Migration Selection"
+        required: true
+        default: "Select an area to migrate"
+        type: choice
+        options:
+          - Select an area to migrate
+          - Areas and Iterations
+          - Artifacts
+          - Build Pipelines
+          - Build Queues & Build Environments
+          - Dashboards
+          - Delivery Plans
+          - Groups
+          - Policies
+          - Release Pipelines
+          - Repositories
+          - Service Connections
+          - Service Hooks
+          - Task Groups
+          - Teams
+          - Test Configurations
+          - Test Plans and Suites
+          - Test Variables
+          - Variable Groups
+          - Wikis
+          - Work Item Queries
+          - Work-Items (Including 'Test Cases')
+      WhatIf:
+        type: boolean
+        description: "WhatIf: Simulated Run"
+        required: false
+        default: true
+
+jobs:
+  run-powershell-script:
+    name: Run PowerShell Script
+    runs-on: 'AEC0WGEMP001'
+    timeout-minutes: 7200
+    env:
+      AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
+
+    steps:
+      - name: Verify Azure CLI installation
+        run: |
+          $env:PATH
+          if ($env:PATH -notcontains "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin") {
+            $env:PATH += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+          }
+
+          az --version
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Clean Azure DevOps Migration Tools Log Directory
+        shell: pwsh
+        run: |
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+
+      - name: Set Migration Configuration 
+        shell: pwsh
+        run: |
+          $SourceOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.SourceOrganizationName }}/"
+          $TargetOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.TargetOrganizationName }}/"
+          $projectDirectory = "./"
+
+          $LocalConfigPath = "configuration\configuration.json"
+          $filePath = Resolve-Path -Path "$LocalConfigPath"
+          Write-Host "FILEPATH: $filePath"   
+          
+          $configuration = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
+          $configuration.SourceProject.Organization = "$SourceOrganizationUrl"
+          $configuration.SourceProject.ProjectName = "${{ github.event.inputs.SourceProjectName }}"
+          $configuration.SourceProject.OrgName = "${{ github.event.inputs.SourceOrganizationName }}"
+          $configuration.TargetProject.Organization = "$TargetOrganizationUrl"
+          $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
+          $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
+          $configuration.ProjectDirectory = $projectDirectory
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
+          $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
+          $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
+          $configuration | ConvertTo-Json -Depth 100 | Set-Content $LocalConfigPath
+          
+          $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
+          Write-Host (ConvertTo-Json -Depth 100 $configuration2)
+
+      - name: Run Migrate-Project PowerShell script
+        shell: pwsh
+        run: |
+          $selection = "${{ github.event.inputs.MigrationSelection }}"
+          echo $selection
+
+          $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
+          $WhatIf = $whatIfDryRun -match "true"
+
+          switch -Exact ($selection)
+          {
+              "Select an area to migrate" { return }
+              "Areas and Iterations" 
+                  { & .\MigrateProject.ps1 -SkipMigrateTfsAreaAndIterations $WhatIf }
+              "Artifacts" 
+                  { & .\MigrateProject.ps1 -SkipMigrateArtifacts $WhatIf }
+              "Build Pipelines" 
+                  { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf }  
+              "Build Queues & Build Environments" 
+                  { & .\MigrateProject.ps1 -SkipMigrateBuildQueues $WhatIf }
+              "Dashboards" 
+                  { & .\MigrateProject.ps1 -SkipMigrateDashboards $WhatIf }
+              "Delivery Plans" 
+                  { & .\MigrateProject.ps1 -SkipMigrateDeliveryPlans $WhatIf }
+              "Groups" 
+                  { & .\MigrateProject.ps1 -SkipMigrateGroups $WhatIf }
+              "Policies" 
+                  { 
+                    & .\helper-scripts\ADODeletePolicies.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
+                    & .\MigrateProject.ps1 -SkipMigratePolicies $WhatIf
+                  }
+              "Release Pipelines" 
+                  { & .\MigrateProject.ps1 -SkipMigrateReleasePipelines $WhatIf }
+              "Repositories" 
+                  { 
+                    & .\helper-scripts\ADODeleteRepos.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
+                    & .\MigrateProject.ps1 -SkipMigrateRepos $WhatIf
+                  } 
+              "Service Connections" 
+                  { & .\MigrateProject.ps1 -SkipMigrateServiceConnections $WhatIf }
+              "Service Hooks" 
+                  { & .\MigrateProject.ps1 -SkipMigrateServiceHooks $WhatIf }
+              "Task Groups"
+                  { & .\MigrateProject.ps1 -SkipMigrateTaskGroups $WhatIf }
+              "Teams"
+                  { & .\MigrateProject.ps1 -SkipMigrateTeams $WhatIf } 
+              "Test Configurations" 
+                  { & .\MigrateProject.ps1 -SkipMigrateTestConfigurations $WhatIf }
+              "Test Plans and Suites" 
+                  { & .\MigrateProject.ps1 -SkipMigrateTestPlansAndSuites $WhatIf }
+              "Test Variables" 
+                  { & .\MigrateProject.ps1 -SkipMigrateTestVariables $WhatIf }
+              "Variable Groups" 
+                  { 
+                    & .\helper-scripts\ADODeleteVariableGroups.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
+                    & .\MigrateProject.ps1 -SkipMigrateVariableGroups $WhatIf
+                  }
+              "Wikis"
+              { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
+              "Work Item Querys" 
+                  { & .\MigrateProject.ps1 -SkipMigrateWorkItemQuerys $WhatIf }
+              "Work-Items (Including 'Test Cases')"  
+                { & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf}
+          }
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-run-logs
+          path: "./Projects"
+

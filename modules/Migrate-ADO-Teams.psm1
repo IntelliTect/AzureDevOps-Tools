@@ -1,18 +1,4 @@
-class ADO_Team {
-    [String]$Id
-    [String]$Name
-    [String]$Description
-    
-    ADO_Team(
-        [String]$id,
-        [String]$name,
-        [String]$description
-    ) {
-        $this.Id = $id
-        $this.Name = $name
-        $this.Description = $description
-    }
-}
+Using Module ".\Migrate-ADO-Common.psm1"
 
 function Start-ADOTeamsMigration {
     [CmdletBinding(SupportsShouldProcess)]
@@ -58,36 +44,6 @@ function Start-ADOTeamsMigration {
     }
 }
 
-function Get-ADOProjectTeams {
-    [CmdletBinding(SupportsShouldProcess)]
-    param(
-        [Parameter (Mandatory = $TRUE)]
-        [Hashtable]$Headers,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$OrgName,
-
-        [Parameter (Mandatory = $TRUE)]
-        [String]$ProjectName,
-
-        [Parameter (Mandatory = $FALSE)]
-        [String]$TeamDisplayName
-    )
-    if ($PSCmdlet.ShouldProcess("$org/$ProjectName")) {
-        $url = "https://dev.azure.com/$OrgName/_apis/projects/$ProjectName/teams?api-version=6.0"
-        $results = Invoke-RestMethod -Method Get -uri $url -Headers $Headers
-
-        [ADO_Team[]]$teams = @()
-        foreach ($result in $results.value) {
-            $teams += [ADO_Team]::new($result.id, $result.name, $result.description)
-        }
-
-        if ($TeamDisplayName) {
-            return $teams | Where-Object { $_.Name -eq $TeamDisplayName }
-        }
-        return $teams
-    }
-}
 function Push-ADOTeams {
     [CmdletBinding(SupportsShouldProcess)]
     param(
