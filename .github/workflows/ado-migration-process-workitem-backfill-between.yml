@@ -20,11 +20,11 @@ on:
         required: true
         default: "GL.CL-Elita-migrated"
       StartDate:
-        description: "Start Changed Date (dd/mm/yyyy)"
+        description: "Start Changed Date (month/day/year)"
         required: true
         default: "Today"
       EndDate:
-        description: "End Changed Date (dd/mm/yyyy)"
+        description: "End Changed Date (month/day/year)"
         required: false
         default: ""
       WorkItemSelection:
@@ -116,7 +116,9 @@ jobs:
           $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
           Write-Host (ConvertTo-Json -Depth 100 $configuration2)
 
-          run: |
+      - name: Run Migrate-Project PowerShell script
+        shell: pwsh
+        run: |
           $selection = "${{ github.event.inputs.WorkItemSelection }}"
           if($selection -eq "Any") {
             $selection = ""
@@ -125,7 +127,7 @@ jobs:
           $end = "${{ github.event.inputs.EndDate }}"
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
           $WhatIf = $whatIfDryRun -match "true"
-          $format = "dd/MM/yyyy"
+          $format = "MM/dd/yyyy"
           
           echo $selection
           echo $start
@@ -159,7 +161,7 @@ jobs:
           if($isDateStart -and $isDateEnd) {
             $startDateString = $startDate.ToString($format)
             $endDateString = $endDate.ToString($format)
-            & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate -endDateString -ItemType $selection -WhatIf $WhatIf
+            & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate $endDateString -ItemType $selection -WhatIf $WhatIf
           }
 
       - name: Archive code coverage results
