@@ -20,6 +20,7 @@ Migration script steps
 - [ ] Migrate Policies
 - [ ] Migrate Dashboards
 - [ ] Migrate WorkItems
+- [ ] Artifacts
 
 
 
@@ -46,7 +47,7 @@ Policies
 Dashboards
 Custom Field For Work Item Migration
 WorkItems
-
+Artifacts
 
 
 
