@@ -35,14 +35,26 @@ Write-Host "-------------------------------------------"
 <#
   Step #3 migrate 
     - Work Items (Including 'Test Cases')
-           0 -   75 - 17284
-          75 -  200 - 19010
-         200 -  400 - 19159
-         400 -  575 - 18754
-         575 -  800 - 16754
-         800 - 1000 - 16190
-        1000 - 2000 - 19821
+      In batches where Created Date Between
+             0 -  100
+           100 -  200 
+           200 -  300 
+           300 -  400 
+           400 -  500 
+           500 -  600 
+           600 -  700
+           800 -  800
+           800 -  900
+           900 - 1000
+          1000 - 1100
+          1100 - 1200
+          1200 - 1300
+          1300 - 1500
+          1500 - 3000
+          3000 +     
 
+    Since the Azure REST API for work items has a query limit if 20,000, calls to the API have been broken up into batches based on the Work item's Created Date field 
+    Each batch is listed below with the expected work item count to be migrated. The work item counts may vary since the work items are being updated daily. 
 #>
 & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf
 
