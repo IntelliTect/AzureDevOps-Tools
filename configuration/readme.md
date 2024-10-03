@@ -1,5 +1,5 @@
 
-# "configuration" Directory 
+# Configuration Directory 
 This directory is critical to the process of migrating ADO projects. This directory contains to json formatted process configuration files which will provide the PowerShell scripts with required data to execute on. 
 The first file is named configuration.json which will need to be edited and filled out per source project being migrated. In this file you will define inforamtion for the source ADO project and the target ADO project along with the organization(s) and directory file paths. 
 Below is what this information looks like:

@@ -73,9 +73,7 @@ The `Configuration.json` file is used to set up file locations for logging, PAT 
 - Open the file `migration-scripts/Projects.csv` and add the list of source projects to target projects you wish to migrate.
 - Read more about the [Projects.csv file here](migration-scripts/README.md#Projects.csv)
 
-You should now be able to run a migration.
-
-  
+You should now be able to run a migration.  
 
 # Running a Migration With The `AllProjects.ps1` Script
 
