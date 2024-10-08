@@ -3,7 +3,7 @@ Param(
     [string]$PersonalAccessToken
 )
 
-Import-Module .\AzureDevOps-Helpers.ps1
+#. ./AzureDevOps-Helpers.ps1
 
 function Get-ServiceHooks([string]$projectSk, [string]$org, $headers) {
     $url = "$org/_apis/hooks/subscriptionsquery?api-version=5.1"
@@ -223,6 +223,29 @@ function Get-BuildDefinitions([string]$projectSk, [string]$org, $headers) {
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     
     return $results.value
+}
+
+function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectName,  [string]$org, $headers) {
+    $tempOrg = $org.ToString().Replace("dev.azure.com", "almsearch.dev.azure.com")
+
+    $url = "$temporg/$projectSk/_apis/search/codesearchresults?api-version=7.1"
+
+    $Json = @"
+{
+  "searchText": "ext:yml AND (-repository OR 'Checkout: git://' OR 'Checkout:git://')", 
+  "`$skip":  0,
+  "`$top":  250,
+  "filters": {
+    "Project": [
+      "$projectName"
+    ]
+  }
+}
+"@    
+
+    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $Json -ContentType "application/json"
+
+    return $results
 }
 
 

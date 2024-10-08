@@ -42,7 +42,6 @@ foreach ($project in $projects) {
         Import-Module $projectHelpers
 
         try {
-            
             $releaseDefs = [array](Get-ReleaseDefinitions -projectSk $project.id -org $Org -headers $headers)
             $buildDefs = [array](Get-BuildDefinitions -projectSk $project.id -org $Org -headers $headers)
             $queues = [array](Get-BuildQueues -projectSk $project.id -org $Org -headers $headers)
@@ -53,7 +52,8 @@ foreach ($project in $projects) {
             $workItemCounts = Get-WorkItemCount -projectSk $project.id -org $Org -headers $headers
             $lastBuildTime = (Get-LastBuildTime -projectSk $project.id -org $Org -headers $headers)
             $lastReleaseTime = (Get-LastReleaseTime -projectSk $project.id -org $Org -headers $headers)
-            
+            $pipelineFilesToFix = (Get-FilesWithHardcodedRepoNames -projectSk $project.id -projectName $project.Name -org $Org -headers $headers)
+            $fileNames = $pipelineFilesToFix.results.ForEach( { "$($_.repository.name)$($_.path)" }) -join ", "
             $queueCount = ($queues | Where-Object {$_.pool.isHosted -eq $false}).Count
 
             if ($null -eq $queueCount) {
@@ -98,31 +98,33 @@ foreach ($project in $projects) {
             if ($null -eq $largestRepo) { $largestRepo = @{name = "No Repos" } }
 
             return (@{
-                    "id"                         = $project.id
-                    "name"                       = $project.name
-                    "releaseDefinitionCount"     = $releaseDefs.Count
-                    "buildDefinitionCount"       = $buildDefs.Count
-                    "teamCount"                  = $teams.Count
-                    "policyCount"                = $policies.Count
-                    "repoCount"                  = $repos.Count
-                    "dashboardCount"             = $dashboards.Count
-                    "largestRepoSize"            = $largestRepo.sizeInBytes 
-                    "largestRepoName"            = $largestRepo.name 
-                    "largestRepoProjectName"     = $largestRepo.projectName 
-                    "workItemCount"              = $workItemCounts.Count
-                    "workItemRevisionsCount"     = $workItemCounts.TotalRevisions
-                    "workItemLastChanged"        = Get-WorkItemLastChanged -projectSk $project.id -org $Org -headers $headers
-                    "serviceEndpointCount"       = $svcEndpoints.Count
-                    "serviceEndpointTypes"       = $svcEndpointTypes -join ","
-                    "serviceEndpointAuthSchemes" = $svcEndpointAuthSchemes -join ","
-                    "serviceHookCount"           = (Get-ServiceHooks -projectSk $project.id -org $Org -headers $headers).Count
-                    "allReposSizeMb"             = $allReposSizeMb
-                    "lastBuildTime"              = $lastBuildTime
-                    "lastReleaseTime"            = $lastReleaseTime
-                    "lastCommit"                 = $lastCommit
-                    "buildQueueCount"            = $queueCount
-                    "testPlanCount"              = (Get-TestPlans -projectSk $project.id -org $Org -headers $headers).Count
-                    "processTemplate"            = (Get-ADOProjectProperties -Headers $headers -Org $Org -projectId $project.id -propertyKey "System.Process Template").value
+                    "id"                              = $project.id
+                    "name"                            = $project.name
+                    "releaseDefinitionCount"          = $releaseDefs.Count
+                    "buildDefinitionCount"            = $buildDefs.Count
+                    "teamCount"                       = $teams.Count
+                    "policyCount"                     = $policies.Count
+                    "repoCount"                       = $repos.Count
+                    "dashboardCount"                  = $dashboards.Count
+                    "largestRepoSize"                 = $largestRepo.sizeInBytes 
+                    "largestRepoName"                 = $largestRepo.name 
+                    "largestRepoProjectName"          = $largestRepo.projectName 
+                    "pipelinesWithHardCodedRepoCount" = $pipelineFilesToFix.count
+                    "pipelinesWithHardCodedRepoNames" = $fileNames
+                    "workItemCount"                   = $workItemCounts.Count
+                    "workItemRevisionsCount"          = $workItemCounts.TotalRevisions
+                    "workItemLastChanged"             = Get-WorkItemLastChanged -projectSk $project.id -org $Org -headers $headers
+                    "serviceEndpointCount"            = $svcEndpoints.Count
+                    "serviceEndpointTypes"            = $svcEndpointTypes -join ","
+                    "serviceEndpointAuthSchemes"      = $svcEndpointAuthSchemes -join ","
+                    "serviceHookCount"                = (Get-ServiceHooks -projectSk $project.id -org $Org -headers $headers).Count
+                    "allReposSizeMb"                  = $allReposSizeMb
+                    "lastBuildTime"                   = $lastBuildTime
+                    "lastReleaseTime"                 = $lastReleaseTime
+                    "lastCommit"                      = $lastCommit
+                    "buildQueueCount"                 = $queueCount
+                    "testPlanCount"                   = (Get-TestPlans -projectSk $project.id -org $Org -headers $headers).Count
+                    "processTemplate"                 = (Get-ADOProjectProperties -Headers $headers -Org $Org -projectId $project.id -propertyKey "System.Process Template").value
                 }) | ConvertTo-Json
         }
         catch {
