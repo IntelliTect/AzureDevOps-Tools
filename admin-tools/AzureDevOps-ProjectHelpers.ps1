@@ -232,7 +232,7 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
 
     $Json = @"
 {
-  "searchText": "ext:yml AND (\"repository:\" OR \"checkout:\") AND NOT \"checkout: self\"", 
+  "searchText": "(ext:yml OR ext:yaml) AND (\"repository:\" OR \"checkout:\") AND NOT \"checkout: self\"", 
   "`$skip":  0,
   "`$top":  250,
   "filters": {
