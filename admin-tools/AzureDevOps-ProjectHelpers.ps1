@@ -232,7 +232,7 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
 
     $Json = @"
 {
-  "searchText": "ext:yml AND (repository OR Checkout)", 
+  "searchText": "ext:yml AND (\"repository:\" OR \"checkout:\") AND NOT \"checkout: self\"", 
   "`$skip":  0,
   "`$top":  250,
   "filters": {
@@ -242,6 +242,7 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
   }
 }
 "@    
+    Write-Host $Json
 
     $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $Json -ContentType "application/json"
 
