@@ -3,7 +3,7 @@ Param(
     [string]$PersonalAccessToken
 )
 
-#. ./AzureDevOps-Helpers.ps1
+. .\AzureDevOps-Helpers.psm1
 
 function Get-ServiceHooks([string]$projectSk, [string]$org, $headers) {
     $url = "$org/_apis/hooks/subscriptionsquery?api-version=5.1"
@@ -223,80 +223,6 @@ function Get-BuildDefinitions([string]$projectSk, [string]$org, $headers) {
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     
     return $results.value
-}
-
-function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectName,  [string]$org, $headers) {
-    $tempOrg = $org.ToString().Replace("dev.azure.com", "almsearch.dev.azure.com")
-
-    $url = "$temporg/$projectSk/_apis/search/codesearchresults?api-version=7.1"
-
-    $Json = @"
-{
-  "searchText": "(ext:yml OR ext:yaml) AND (\"repository:\" OR \"checkout:\") AND NOT \"checkout: self\"", 
-  "`$skip":  0,
-  "`$top":  250,
-  "filters": {
-    "Project": [
-      "$projectName"
-    ]
-  }
-}
-"@    
-    Write-Host $Json
-
-    $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $Json -ContentType "application/json"
-
-    $paths = $results.results.ForEach( { "$($_.repository.name)$($_.path)" })
-    $fileNames = $paths -join ", "
-    $fileNamesToReturn = @() 
-    $repos = $paths | ForEach-Object { "$($_.split("/")[0])" } | select -Unique
-    $folder = "$(Get-Location)/../../Temp-Repos"
-
-    if((Test-Path -Path $folder)){
-        Get-ChildItem -Path $folder -Recurse | Remove-Item -force -recurse
-    } else {
-        mkdir $folder
-    }
-    
-    cd $folder
-    $bareOrgName = $org.replace("https://dev.azure.com", "")
-
-    foreach($repo in $repos){
-        $matchingPaths = $paths | Where-Object { $_.split("/")[0] -eq $repo }
-        $url = "https://$bareOrgName@dev.azure.com/$bareOrgName/$($project.Name)/_git/$repo"
-        git clone $url
-        Push-Location $repo
-        forEach ($path in $matchingPaths) { 
-            $pathAdded = false               
-            $formattedPath = "$(Get-Location)$($path.replace($repo, ''))"
-            
-            $text = [IO.File]::ReadAllText($formattedPath)
-            $object = ConvertFrom-Yaml $text
-            forEach ($yamlRepo in $object.resources.repositories){
-                if($yamlRepo.Name.split("/")[0] -eq $project.Name){
-                    #Change to GitHub reference
-                    $fileNamesToReturn += $path
-                    $pathAdded = true
-                }
-            }
-            forEach ($step in $object.steps) {
-                if($pathAdded -eq false -AND $step.name -eq "checkout" -AND $step.) {
-                    #Found custom checkout step
-                }
-            }
-            forEach($stage in $object.stages) {
-                forEach ($step in $stage.steps) {
-                    if($pathAdded -eq false -AND $step.name -eq "checkout") {
-                        #Found custom checkout step
-                    }
-                }
-            }
-        }
-        Pop-Location
-    }
-
-
-    return $results
 }
 
 
