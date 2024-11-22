@@ -52,9 +52,9 @@ function Get-ReposWithLastCommit([string]$projectSk, [string]$org, $headers) {
 
     foreach ($repo in $repos) {
         $repoId = $repo.id
-        $url = "$org/$projectSk/_apis/git/repositories/$repoId/commits?api-version=5.1"
+        $url = "$org/$projectSk/_apis/git/repositories/$repoId/commits?includeHidden=false&api-version=5.1"
         
-        $commits = Invoke-RestMethod -Method Get -uri $url -Headers $headers
+        $commits = Invoke-RestMethod -Method Get -uri $url -Headers $headers        
         
         if ($commits.count -gt 0) {
             
@@ -227,7 +227,6 @@ function Get-BuildDefinitions([string]$projectSk, [string]$org, $headers) {
 
 function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectName,  [string]$org, $headers) {
     $tempOrg = $org.ToString().Replace("dev.azure.com", "almsearch.dev.azure.com")
-
     $url = "$temporg/$projectSk/_apis/search/codesearchresults?api-version=7.1"
 
     $Json = @"
@@ -258,7 +257,7 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
         
         $fileUrl = "$org/_apis/git/repositories/$($repo.id)/items?scopePath=$pathArg&download=true&includeContent=true&api-version=5.1"        
         $fileResult = Invoke-RestMethod -Method Get -uri $fileUrl -Headers $headers
-        
+                
         try {
             $object = ConvertFrom-Yaml $fileResult
         } catch {
@@ -266,23 +265,20 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
         }
         if($object -ne $null) { 
             forEach($yamlRepo in $object.resources.repositories){
-                if($($yamlRepo.Name).split("/")[1] -eq $projectName){
-                    #Change to GitHub reference
+                if($pathAdded -eq $false -AND $($yamlRepo.Name).split("/")[0] -eq $projectName){                    
                     $fileNamesToReturn += $path
                     $pathAdded = $true
                 }
             }
             forEach($step in $object.steps) {
-                if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].Contains("git://$($projectName)")) {
-                    #Found custom checkout step
+                if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].GetType().Name -eq "String" -AND $step.values[0].Contains("git://$($projectName)")) {                    
                     $fileNamesToReturn += $path
                     $pathAdded = $true
                 }
             }
             forEach($job in $object.jobs) {
-                forEach ($step in $job.steps) {
-                    if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].Contains("git://$projectName")) {
-                        #Found custom checkout step
+                forEach ($step in $job.steps) {                    
+                    if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].GetType().Name -eq "String" -AND $step.values[0].Contains("git://$projectName")) {
                         $fileNamesToReturn += $path
                         $pathAdded = $true
                     }
@@ -291,8 +287,7 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
             forEach($stage in $object.stages) {
                 forEach($job in $stage.jobs) {
                     forEach($step in $job.steps) {
-                        if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].Contains("git://$projectName")) {
-                            #Found custom checkout step
+                        if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].GetType().Name -eq "String" -AND $step.values[0].Contains("git://$projectName")) {
                             $fileNamesToReturn += $path
                             $pathAdded = $true
                         }
@@ -301,7 +296,6 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
             }
         }
     }
-    Write-Host "return: $fileNamesToReturn"
     
     return $fileNamesToReturn
 }
