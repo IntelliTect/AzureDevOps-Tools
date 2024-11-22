@@ -53,7 +53,7 @@ foreach ($project in $projects) {
             $lastBuildTime = (Get-LastBuildTime -projectSk $project.id -org $Org -headers $headers)
             $lastReleaseTime = (Get-LastReleaseTime -projectSk $project.id -org $Org -headers $headers)
             $pipelineFilesToFix = (Get-FilesWithHardcodedRepoNames -projectSk $project.id -projectName $project.Name -org $Org -headers $headers)
-            $fileNames = $pipelineFilesToFix.results.ForEach( { "$($_.repository.name)$($_.path)" }) -join ", "
+            $fileNames = $pipelineFilesToFix -join ", "
             $queueCount = ($queues | Where-Object {$_.pool.isHosted -eq $false}).Count
 
             if ($null -eq $queueCount) {

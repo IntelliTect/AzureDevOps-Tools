@@ -241,62 +241,69 @@ function Get-FilesWithHardcodedRepoNames([string]$projectSk, [string] $projectNa
     ]
   }
 }
-"@    
-    Write-Host $Json
+"@
 
     $results = Invoke-RestMethod -Method Post -uri $url -Headers $headers -Body $Json -ContentType "application/json"
 
     $paths = $results.results.ForEach( { "$($_.repository.name)$($_.path)" })
-    $fileNames = $paths -join ", "
-    $fileNamesToReturn = @() 
-    $repos = $paths | ForEach-Object { "$($_.split("/")[0])" } | select -Unique
-    $folder = "$(Get-Location)/../../Temp-Repos"
+    $repos = Get-Repos -org $org -projectSk $projectSk -headers $headers
+    $repoNames = $paths | ForEach-Object { "$($_.split("/")[0])" } | select -Unique
+    $fileNamesToReturn = @()
 
-    if((Test-Path -Path $folder)){
-        Get-ChildItem -Path $folder -Recurse | Remove-Item -force -recurse
-    } else {
-        mkdir $folder
-    }
-    
-    cd $folder
-    $bareOrgName = $org.replace("https://dev.azure.com", "")
-
-    foreach($repo in $repos){
-        $matchingPaths = $paths | Where-Object { $_.split("/")[0] -eq $repo }
-        $url = "https://$bareOrgName@dev.azure.com/$bareOrgName/$($project.Name)/_git/$repo"
-        git clone $url
-        Push-Location $repo
-        forEach ($path in $matchingPaths) { 
-            $pathAdded = false               
-            $formattedPath = "$(Get-Location)$($path.replace($repo, ''))"
-            
-            $text = [IO.File]::ReadAllText($formattedPath)
-            $object = ConvertFrom-Yaml $text
-            forEach ($yamlRepo in $object.resources.repositories){
-                if($yamlRepo.Name.split("/")[0] -eq $project.Name){
+    forEach($path in $paths){
+        $pathAdded = $false
+        $repoName = $path.split("/")[0]
+        $pathArg = $path.Replace("$repoName","")
+        $repo = $repos | Where-Object {$_.name -eq $repoName}
+        
+        $fileUrl = "$org/_apis/git/repositories/$($repo.id)/items?scopePath=$pathArg&download=true&includeContent=true&api-version=5.1"        
+        $fileResult = Invoke-RestMethod -Method Get -uri $fileUrl -Headers $headers
+        
+        try {
+            $object = ConvertFrom-Yaml $fileResult
+        } catch {
+            Write-Host "Yaml file `"$path`" could not be parsed"
+        }
+        if($object -ne $null) { 
+            forEach($yamlRepo in $object.resources.repositories){
+                if($($yamlRepo.Name).split("/")[1] -eq $projectName){
                     #Change to GitHub reference
                     $fileNamesToReturn += $path
-                    $pathAdded = true
+                    $pathAdded = $true
                 }
             }
-            forEach ($step in $object.steps) {
-                if($pathAdded -eq false -AND $step.name -eq "checkout" -AND $step.) {
+            forEach($step in $object.steps) {
+                if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].Contains("git://$($projectName)")) {
                     #Found custom checkout step
+                    $fileNamesToReturn += $path
+                    $pathAdded = $true
+                }
+            }
+            forEach($job in $object.jobs) {
+                forEach ($step in $job.steps) {
+                    if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].Contains("git://$projectName")) {
+                        #Found custom checkout step
+                        $fileNamesToReturn += $path
+                        $pathAdded = $true
+                    }
                 }
             }
             forEach($stage in $object.stages) {
-                forEach ($step in $stage.steps) {
-                    if($pathAdded -eq false -AND $step.name -eq "checkout") {
-                        #Found custom checkout step
+                forEach($job in $stage.jobs) {
+                    forEach($step in $job.steps) {
+                        if($pathAdded -eq $false -AND $step.keys[0] -eq "checkout" -AND $step.values[0].Contains("git://$projectName")) {
+                            #Found custom checkout step
+                            $fileNamesToReturn += $path
+                            $pathAdded = $true
+                        }
                     }
                 }
             }
         }
-        Pop-Location
     }
-
-
-    return $results
+    Write-Host "return: $fileNamesToReturn"
+    
+    return $fileNamesToReturn
 }
 
 
