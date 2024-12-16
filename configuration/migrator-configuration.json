@@ -1,6 +1,6 @@
 {
   "Version": "0.0",
-  "LogLevel": "Verbose",
+  "LogLevel": "Debug",
   "MappingTools": [
     {
       "$type": "WorkItemTypeMappingTool",
