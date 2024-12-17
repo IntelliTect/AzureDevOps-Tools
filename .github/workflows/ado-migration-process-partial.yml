@@ -167,7 +167,7 @@ jobs:
                   }
               "Wikis"
               { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
-              "Work Item Querys" 
+              "Work Item Queries" 
                   { & .\MigrateProject.ps1 -SkipMigrateWorkItemQuerys $WhatIf }
               "Work-Items (Including 'Test Cases')"  
                 { & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf}
