@@ -5,7 +5,7 @@
   "MigrationTools": {
     "Version": "16.0",
     "Endpoints": {
-      "SourceProject": {
+      "ProjectSource": {
         "EndpointType": "TfsTeamProjectEndpoint",
         "Collection": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
@@ -20,7 +20,7 @@
           "IterationPath": "Iteration"
         }
       },
-      "TargetProject": {
+      "ProjectTarget": {
         "EndpointType": "TfsTeamProjectEndpoint",
         "Collection": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
@@ -168,14 +168,14 @@
         "ProcessorType": "TfsTestVariablesMigrationProcessor",
         "Enabled": false,
         "Processor": "TestVariablesMigrationContext",
-        "SourceName": "SourceProject",
-        "TargetName": "TargetProject"
+        "SourceName": "ProjectSource",
+        "TargetName": "ProjectTarget"
       },
       {
         "ProcessorType": "TfsTestConfigurationsMigrationProcessor",
         "Enabled": false,
-        "SourceName": "SourceProject",
-        "TargetName": "TargetProject"
+        "SourceName": "ProjectSource",
+        "TargetName": "ProjectTarget"
       },
       {
         "ProcessorType": "TfsTestPlansAndSuitesMigrationProcessor",
@@ -186,8 +186,8 @@
         "MigrationDelay": 0,
         "RemoveInvalidTestSuiteLinks": false,
         "FilterCompleted": false,
-        "SourceName": "SourceProject",
-        "TargetName": "TargetProject"
+        "SourceName": "ProjectSource",
+        "TargetName": "ProjectTarget"
       },
       {
         "ProcessorType": "TfsSharedQueryProcessor",
@@ -228,8 +228,8 @@
         "MaxGracefulFailures": 0,
         "PauseAfterEachWorkItem": false,
         "WorkItemIDs": null,
-        "SourceName": "SourceProject",
-        "TargetName": "TargetProject"
+        "SourceName": "ProjectSource",
+        "TargetName": "ProjectTarget"
       }
     ],
     "CommonTools": {
