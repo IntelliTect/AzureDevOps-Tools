@@ -1,375 +1,387 @@
 {
-  "Version": "0.0",
-  "LogLevel": "Debug",
-  "MappingTools": [
-    {
-      "$type": "WorkItemTypeMappingTool",
-      "Enabled": true,
-      "WorkItemTypeDefinition": {
-        "sourceWorkItemTypeName": "targetWorkItemTypeName"
+  "Serilog": {
+    "MinimumLevel": "Information"
+  },
+  "MigrationTools": {
+    "Version": "16.0",
+    "Endpoints": {
+      "SourceProject": {
+        "EndpointType": "TfsTeamProjectEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Project": "GL.CL-Elita",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "TargetProject": {
+        "EndpointType": "TfsTeamProjectEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "WorkItemSource": {
+        "EndpointType": "TfsWorkItemEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Project": "GL.CL-Elita",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "WorkItemTarget": {
+        "EndpointType": "TfsWorkItemEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "TeamSettingsSource": {
+        "EndpointType": "TfsTeamSettingsEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Project": "GL.CL-Elita",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "TeamSettingsTarget": {
+        "EndpointType": "TfsTeamSettingsEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "TfsSource":{
+        "EndpointType": "TfsEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Project": "GL.CL-Elita",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "TfsTarget":{
+        "EndpointType": "TfsEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "PipelineSource":{
+        "EndpointType": "AzureDevOpsEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Project": "GL.CL-Elita",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        
+        "ReflectedWorkItemIdField": null,
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
+      },
+      "PipelineTarget":{
+        "EndpointType": "AzureDevOpsEndpoint",
+        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Project": "GL.CL-Elita-migrated",
+        "Authentication": {
+          "AccessToken": "",
+          "AuthenticationMode": "AccessToken"          
+        },
+        "ReflectedWorkItemIdField": null,
+        "LanguageMaps": {
+          "AreaPath": "Area",
+          "IterationPath": "Iteration"
+        }
       }
     },
-    {
-      "$type": "WorkItemFieldMappingTool",
-      "Enabled": true,
-      "WorkItemFieldMaps": [
-        {
-          "$type": "MultiValueConditionalMapConfig",
-          "WorkItemTypeName": "*",
-          "sourceFieldsAndValues": {
-            "Field1": "Value1",
-            "Field2": "Value2"
-          },
-          "targetFieldsAndValues": {
-            "Field1": "Value1",
-            "Field2": "Value2"
-          }
-        },
-        {
-          "$type": "FieldSkipMapConfig",
-          "WorkItemTypeName": "*",
+    "Processors": [
+      {
+        "ProcessorType": "TfsTeamSettingsProcessor",
+        "Enabled": false,
+        "MigrateTeamSettings": true,
+        "UpdateTeamSettings": false,
+        "PrefixProjectToNodes": false,
+        "MigrateTeamCapacities": false,
+        "Teams": null,
+        "UseUserMapping": false,
+        "SourceName": "TeamSettingsSource",
+        "TargetName": "TeamSettingsTarget"
+      },
+      {
+        "ProcessorType": "TfsTestVariablesMigrationProcessor",
+        "Enabled": false,
+        "Processor": "TestVariablesMigrationContext",
+        "SourceName": "SourceProject",
+        "TargetName": "TargetProject"
+      },
+      {
+        "ProcessorType": "TfsTestConfigurationsMigrationProcessor",
+        "Enabled": false,
+        "SourceName": "SourceProject",
+        "TargetName": "TargetProject"
+      },
+      {
+        "ProcessorType": "TfsTestPlansAndSuitesMigrationProcessor",
+        "Enabled": false,
+        "OnlyElementsWithTag": "",
+        "TestPlanQuery": null,
+        "RemoveAllLinks": false,
+        "MigrationDelay": 0,
+        "RemoveInvalidTestSuiteLinks": false,
+        "FilterCompleted": false,
+        "SourceName": "SourceProject",
+        "TargetName": "TargetProject"
+      },
+      {
+        "ProcessorType": "TfsSharedQueryProcessor",
+        "Enabled": false,
+        "PrefixProjectToNodes": false,
+        "SharedFolderName": "Shared Queries",
+        "SourceToTargetFieldMappings": null,
+        "SourceName": "TfsSource",
+        "TargetName": "TfsTarget"
+      },
+      {
+        "ProcessorType": "AzureDevOpsPipelineProcessor",
+        "Enabled": false,
+        "MigrateBuildPipelines": false,
+        "MigrateReleasePipelines": false,
+        "MigrateTaskGroups": false,
+        "MigrateVariableGroups": false,
+        "MigrateServiceConnections": false,
+        "BuildPipelines": null,
+        "ReleasePipelines": null,
+        "RepositoryNameMaps": {},
+        "SourceName": "PipelineSource",
+        "TargetName": "PipelineTarget"
+      },
+      {
+        "ProcessorType": "TfsWorkItemMigrationProcessor",
+        "Enabled": false,
+        "UpdateCreatedDate": true,
+        "UpdateCreatedBy": true,
+        "AttachRevisionHistory": true,
+        "WIQLQuery": "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') ORDER BY [System.ChangedDate] DESC",
+        "FixHtmlAttachmentLinks": true,
+        "WorkItemCreateRetryLimit": 5,
+        "FilterWorkItemsThatAlreadyExistInTarget": false,
+        "GenerateMigrationComment": true,
+        "SkipRevisionWithInvalidIterationPath": true,
+        "SkipRevisionWithInvalidAreaPath": true,
+        "MaxGracefulFailures": 0,
+        "PauseAfterEachWorkItem": false,
+        "WorkItemIDs": null,
+        "SourceName": "SourceProject",
+        "TargetName": "TargetProject"
+      }
+    ],
+    "CommonTools": {
+      "TfsChangeSetMappingTool": {
+        "Enabled": true,
+        "ChangeSetMappingFile": null
+      },
+      "TfsGitRepositoryTool": {
+        "Enabled": true,
+        "Mappings": null
+      },
+      "FieldMappingTool": {
+        "Enabled": true,
+        "FieldSkipMap": {
+          "ApplyTo": [
+              "*"
+            ],
           "targetField": "TfsMigrationTool.ReflectedWorkItemId"
         },
-        {
-          "$type": "FieldValueMapConfig",
-          "WorkItemTypeName": "*",
-          "sourceField": "System.State",
-          "targetField": "System.State",
-          "defaultValue": "New",
-          "valueMapping": {
-            "Approved": "New",
-            "New": "New",
-            "Committed": "Active",
-            "In Progress": "Active",
-            "To Do": "New",
-            "Done": "Closed",
-            "Removed": "Removed"
-          }
-        },
-        {
-          "$type": "FieldtoFieldMapConfig",
-          "WorkItemTypeName": "*",
+        "MultiValueConditionalMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "sourceFieldsAndValues": {
+              "Field1": "Value1",
+              "Field2": "Value2"
+            },
+            "targetFieldsAndValues": {
+              "Field1": "Value1",
+              "Field2": "Value2"
+            }
+          },
+        "FieldMaps": [
+          {
+            "ApplyTo": [
+              "*"
+            ],
+            "defaultValue": "New",
+            "FieldMapType": "FieldValueMap",
+            "sourceField": "System.State",
+            "targetField": "System.State",
+            "valueMapping": {
+              "Approved": "New",
+              "New": "New",
+              "Committed": "Active",
+              "In Progress": "Active",
+              "To Do": "New",
+              "Done": "Closed",
+              "Removed": "Removed"
+            }
+          }          
+        ],
+        "FieldToFieldMap": {
+          "ApplyTo": [
+              "*"
+            ],
           "sourceField": "Microsoft.VSTS.Common.BacklogPriority",
           "targetField": "Microsoft.VSTS.Common.StackRank"
         },
-        {
-          "$type": "FieldtoFieldMultiMapConfig",
-          "WorkItemTypeName": "*",
-          "SourceToTargetMappings": {
-            "SourceField1": "TargetField1",
-            "SourceField2": "TargetField2"
+        "FieldToFieldMultiMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "SourceToTargetMappings": {
+              "SourceField1": "TargetField1",
+              "SourceField2": "TargetField2"
+            }
+          },
+          "FieldToTagMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "formatExpression": "ScrumState:{0}",
+            "sourceField": "System.State"
+          },
+          "FieldMergeMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "formatExpression": "{0} <br/><br/><h3>Acceptance Criteria</h3>{1}",
+            "sourceFields": [
+              "System.Description",
+              "Microsoft.VSTS.Common.AcceptanceCriteria"
+            ],
+            "targetField": "System.Description"
+          },
+          "RegexFieldMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "pattern": "PRODUCT \\d{4}.(\\d{1})",
+            "replacement": "$1",
+            "sourceField": "COMPANY.PRODUCT.Release",
+            "targetField": "COMPANY.DEVISION.MinorReleaseVersion"
+          },
+          "FieldValueToTagMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "formatExpression": "{0}",
+            "pattern": "Yes",
+            "sourceField": "Microsoft.VSTS.CMMI.Blocked"
+          },
+          "TreeToTagMap": {
+            "ApplyTo": [
+              "*"
+            ],
+            "timeTravel": "1",
+            "toSkip": "3"
           }
+      },
+      "TfsNodeStructureTool": {
+        "Enabled": true,
+        "Areas": {
+          "Filters": [],
+          "Mappings": {}
         },
-        {
-          "$type": "FieldtoTagMapConfig",
-          "WorkItemTypeName": "*",
-          "sourceField": "System.State",
-          "formatExpression": "ScrumState:{0}"
+        "Iterations": {
+          "Filters": [],
+          "Mappings": {}
         },
-        {
-          "$type": "FieldMergeMapConfig",
-          "WorkItemTypeName": "*",
-          "sourceField1": "System.Description",
-          "sourceField2": "Microsoft.VSTS.Common.AcceptanceCriteria",
-          "targetField": "System.Description",
-          "formatExpression": "{0} <br/><br/><h3>Acceptance Criteria</h3>{1}",
-          "doneMatch": "##DONE##"
-        },
-        {
-          "$type": "RegexFieldMapConfig",
-          "WorkItemTypeName": "*",
-          "sourceField": "COMPANY.PRODUCT.Release",
-          "targetField": "COMPANY.DEVISION.MinorReleaseVersion",
-          "pattern": "PRODUCT \\d{4}.(\\d{1})",
-          "replacement": "$1"
-        },
-        {
-          "$type": "FieldValuetoTagMapConfig",
-          "WorkItemTypeName": "*",
-          "sourceField": "Microsoft.VSTS.CMMI.Blocked",
-          "pattern": "Yes",
-          "formatExpression": "{0}"
-        },
-        {
-          "$type": "TreeToTagMapConfig",
-          "WorkItemTypeName": "*",
-          "toSkip": 3,
-          "timeTravel": 1
-        }
-      ]
-    },
-    {
-      "$type": "WorkItemGitRepoMappingTool",
-      "Enabled": true,
-      "WorkItemGitRepos": {
-        "sourceRepoName": "targetRepoName"
-      }
-    }
-  ],
-  "Endpoints": {
-    "TfsWorkItemEndpoints": [
-      {
-        "Name": "WorkItemSource",
-        "AccessToken": null,
-        "Query": {
-          "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc",
-          "Parameters": {
-            "TeamProject": "Sample-Project"
-          }
-        },
-        "Organisation": "https://dev.azure.com/Source-Org/",
-        "Project": "Sample-Project",
-        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
-        "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": null,
-        "LanguageMaps": {
-          "AreaPath": "Area",
-          "IterationPath": "Iteration"
+        "ShouldCreateMissingRevisionPaths": true,
+        "ReplicateAllExistingNodes": false
+      },
+      "WorkItemTypeMappingTool": {
+        "Enabled": "True",
+        "Mappings": {
+          "Source Work Item Type Name": "Target Work Item Type Name"
         }
       },
-      {
-        "Name": "WorkItemTarget",
-        "AccessToken": null,
-        "Query": {
-          "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc"
-        },
-        "Organisation": "https://dev.azure.com/Target-Org/",
-        "Project": "Sample-Project-migrated",
-        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
-        "AllowCrossProjectLinking": false,
-        "PersonalAccessToken": null,
-        "LanguageMaps": {
-          "AreaPath": "Area",
-          "IterationPath": "Iteration"
-        }
+      "TfsAttachmentTool": {
+        "Enabled": "True",
+        "ExportBasePath": "c:\\temp\\WorkItemAttachmentWorkingFolder",
+        "MaxAttachmentSize": "480000000",
+        "RefName": "TfsAttachmentTool"
+      },
+      "TfsWorkItemLinkTool": {
+        "Enabled": "True",
+        "FilterIfLinkCountMatches": "True",
+        "SaveAfterEachLinkIsAdded": "False"
+      },
+      "TfsRevisionManagerTool": {
+        "Enabled": "True",
+        "MaxRevisions": "1000",
+        "ReplayRevisions": "True"
+      },
+      "TfsEmbededImagesTool": {
+        "Enabled": "True"
+      },
+      "TfsWorkItemEmbededLinkTool": {
+        "Enabled": "True"
       }
-    ],
-    "TfsTeamSettingsEndpoints": [
-      {
-        "$type": "TfsTeamSettingsEndpointOptions",
-        "Name": "TeamSettingsSource",
-        "Direction": "Source",
-        "Organisation": "https://dev.azure.com/Source-Org/",
-        "Project": "Sample-Project",
-        "AccessToken": null,
-        "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
-        "LanguageMaps": {
-          "$type": "TfsLanguageMapOptions",
-          "AreaPath": "Area",
-          "IterationPath": "Iteration"
-        },
-        "EndpointEnrichers": null
-      },
-      {
-        "$type": "TfsTeamSettingsEndpointOptions",
-        "Name": "TeamSettingsTarget",
-        "Direction": "Target",
-        "Organisation": "https://dev.azure.com/Target-Org/",
-        "Project": "Sample-Project-migrated",
-        "AccessToken": null,
-        "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
-        "LanguageMaps": {
-          "$type": "TfsLanguageMapOptions",
-          "AreaPath": "Area",
-          "IterationPath": "Iteration"
-        },
-        "EndpointEnrichers": null
-      }
-    ],
-    "TfsEndpoints": [
-      {
-        "Name": "tfsSource",
-        "Organisation": "https://dev.azure.com/Source-Org/",
-        "Project": "Sample-Project",
-        "AuthenticationMode": "AccessToken",
-        "AccessToken": null,
-        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
-        "LanguageMaps": {
-          "AreaPath": "Area",
-          "IterationPath": "Iteration"
-        },
-        "EndpointEnrichers": null
-      },
-      {
-        "Name": "tfsTarget",
-        "Organisation": "https://dev.azure.com/Target-Org/",
-        "Project": "Sample-Project-migrated",
-        "AuthenticationMode": "AccessToken",
-        "AccessToken": null,
-        "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
-        "LanguageMaps": {
-          "AreaPath": "Area",
-          "IterationPath": "Iteration"
-        },
-        "EndpointEnrichers": null
-      }
-    ],
-    "AzureDevOpsEndpoints": [
-      {
-        "name": "PipelineSource",
-        "$type": "AzureDevOpsEndpointOptions",
-        "Organisation": "https://dev.azure.com/Source-Org/",
-        "Project": "Sample-Project",
-        "AuthenticationMode": "AccessToken",
-        "AccessToken": null,
-        "EndpointEnrichers": null
-      },
-      {
-        "Name": "PipelineTarget",
-        "$type": "AzureDevOpsEndpointOptions",
-        "Organisation": "https://dev.azure.com/Target-Org/",
-        "Project": "Sample-Project-migrated",
-        "AuthenticationMode": "AccessToken",
-        "AccessToken": null,
-        "EndpointEnrichers": null
-      }
-    ]
-  },
-  "Source": {
-    "$type": "TfsTeamProjectConfig",
-    "Collection": "https://dev.azure.com/Source-Org/",
-    "Project": "Sample-Project",
-    "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
-    "AuthenticationMode": "AccessToken",
-    "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": null,
-    "LanguageMaps": {
-      "AreaPath": "Area",
-      "IterationPath": "Iteration"
     }
-  },
-  "Target": {
-    "$type": "TfsTeamProjectConfig",
-    "Collection": "https://dev.azure.com/Target-Org/",
-    "Project": "Sample-Project-migrated",
-    "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
-    "AuthenticationMode": "AccessToken",
-    "AllowCrossProjectLinking": false,
-    "PersonalAccessToken": null,
-    "LanguageMaps": {
-      "AreaPath": "Area",
-      "IterationPath": "Iteration"
-    }
-  },
-  "CommonEnrichersConfig": [
-    {
-      "$type": "TfsNodeStructureOptions",
-      "Enabled": true,
-      "PrefixProjectToNodes": false,
-      "NodeBasePaths": [],
-      "AreaMaps": {},
-      "IterationMaps": {},
-      "ShouldCreateMissingRevisionPaths": true
-    }
-  ],
-  "Processors": [
-    {
-      "$type": "TfsAreaAndIterationProcessorOptions",
-      "Enabled": false,
-      "PrefixProjectToNodes": false,
-      "NodeBasePaths": null,
-      "AreaMaps": {},
-      "IterationMaps": {},
-      "ProcessorEnrichers": null,
-      "SourceName": "WorkItemSource",
-      "TargetName": "WorkItemTarget"
-    },
-    {
-      "$type": "TfsTeamSettingsProcessorOptions",
-      "Enabled": false,
-      "MigrateTeamSettings": true,
-      "UpdateTeamSettings": false,
-      "PrefixProjectToNodes": false,
-      "MigrateTeamCapacities": false,
-      "Teams": null,
-      "ProcessorEnrichers": null,
-      "SourceName": "TeamSettingsSource",
-      "TargetName": "TeamSettingsTarget"
-    },
-    {
-      "$type": "TestVariablesMigrationConfig",
-      "Enabled": false
-    },
-    {
-      "$type": "TestConfigurationsMigrationConfig",
-      "Enabled": false
-    },
-    {
-      "$type": "TestPlansAndSuitesMigrationConfig",
-      "Enabled": false,
-      "PrefixProjectToNodes": false,
-      "OnlyElementsWithTag": null,
-      "TestPlanQueryBit": null,
-      "RemoveAllLinks": false,
-      "MigrationDelay": 0,
-      "UseCommonNodeStructureEnricherConfig": true,
-      "NodeBasePaths": [],
-      "AreaMaps": {},
-      "IterationMaps": {},
-      "RemoveInvalidTestSuiteLinks": false,
-      "FilterCompleted": false
-    },
-    {
-      "$type": "TfsSharedQueryProcessorOptions",
-      "Enabled": false,
-      "PrefixProjectToNodes": false,
-      "SharedFolderName": "Shared Queries",
-      "SourceToTargetFieldMappings": null,
-      "ProcessorEnrichers": null,
-      "SourceName": "tfsSource",
-      "TargetName": "tfsTarget"
-    },
-    {
-      "$type": "AzureDevOpsPipelineProcessorOptions",
-      "Enabled": false,
-      "MigrateBuildPipelines": false,
-      "MigrateReleasePipelines": false,
-      "MigrateTaskGroups": false,
-      "MigrateVariableGroups": false,
-      "MigrateServiceConnections": false,
-      "BuildPipelines": null,
-      "ReleasePipelines": null,
-      "RepositoryNameMaps": null,
-      "ProcessorEnrichers": null,
-      "SourceName": "PipelineSource",
-      "TargetName": "PipelineTarget"
-    },
-    {
-      "$type": "WorkItemMigrationConfig",
-      "Enabled": false,
-      "ReplayRevisions": false,
-      "PrefixProjectToNodes": false,
-      "UpdateCreatedDate": true,
-      "UpdateCreatedBy": true,
-      "BuildFieldTable": true,
-      "WIQLQueryBit": "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') ",
-      "WIQLOrderBit": "[System.ChangedDate] desc",
-      "LinkMigration": true,
-      "AttachmentMigration": true,
-      "AttachmentWorkingPath": "c:\\temp\\WorkItemAttachmentWorkingFolder\\",
-      "FixHtmlAttachmentLinks": true,
-      "SkipToFinalRevisedWorkItemType": true,
-      "WorkItemCreateRetryLimit": 5,
-      "FilterWorkItemsThatAlreadyExistInTarget": false,
-      "PauseAfterEachWorkItem": false,
-      "AttachmentMaxSize": 480000000,
-      "AttachRevisionHistory": true,
-      "LinkMigrationSaveEachAsAdded": false,
-      "GenerateMigrationComment": true,
-      "WorkItemIDs": null,
-      "MaxRevisions": 0,
-      "UseCommonNodeStructureEnricherConfig": true,
-      "StopMigrationOnMissingAreaIterationNodes": false,
-      "NodeBasePaths": [],
-      "AreaMaps": {
-        "Sample-project": "Sample-Project-migrated"
-      },
-      "IterationMaps": {
-        "Sample-project": "Sample-Project-migrated"
-      },
-      "MaxGracefulFailures": 0,
-      "SkipRevisionWithInvalidIterationPath": true,
-      "SkipRevisionWithInvalidAreaPath": true
-    }
-  ]
+  }
 }
