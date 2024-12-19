@@ -152,13 +152,17 @@ Write-Host "Configure Azure DevOps Migration Tool (Martin's Tool).."
 $martinConfigPath = "$($ProjectDirectory)\$($configPath)$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
-$martinConfigFileChanged = $FALSE
+
 
 # ---------------------------------------
 # -- End Point Source/Target settings  --
 # ---------------------------------------
 
 foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties.Value) {
+    Write-Host "Endpoint: "
+    Write-Host $endpoint
+    Write-Host "Contains Source? $($endpoint.Name -like "*Source")"
+    
     if($endpoint.Name -like "*Source"){
         $endpointConfig.Collection = $SourceProject.Organization
         $endpointConfig.Project = $SourceProject.ProjectName
@@ -324,6 +328,6 @@ Start-ADOProjectMigration `
 
 # Clean up old martin's tool Configuration
 Write-Host "Clean up Configuration file for Azure DevOps Migration Tool (Martin's Tool).."
-if($martinConfigFileChanged) {
-    $martinPreviousConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
-}
+
+$martinPreviousConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
+
