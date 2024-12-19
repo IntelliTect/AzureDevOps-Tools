@@ -158,15 +158,15 @@ $martinConfigFileChanged = $FALSE
 # -- End Point Source/Target settings  --
 # ---------------------------------------
 
-foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties) {
+foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties.Value) {
     if($endpoint.Name -like "*Source"){
-        $endpointConfig.Value[0].Collection = $SourceProject.Organization
-        $endpointConfig.Value[0].Project = $SourceProject.ProjectName
-        $endpointConfig.Value[0].Authentication.AccessToken = $sourcePat
+        $endpointConfig.Collection = $SourceProject.Organization
+        $endpointConfig.Project = $SourceProject.ProjectName
+        $endpointConfig.Authentication.AccessToken = $sourcePat
     } elseif($endpoint.Name -like "*Target"){
-        $endpointConfig.Value[0].Collection = $TargetProject.Organization
-        $endpointConfig.Value[0].Project = $TargetProject.ProjectName
-        $endpointConfig.Value[0].Authentication.AccessToken = $targetPat
+        $endpointConfig.Collection = $TargetProject.Organization
+        $endpointConfig.Project = $TargetProject.ProjectName
+        $endpointConfig.Authentication.AccessToken = $targetPat
     }       
 }
 
