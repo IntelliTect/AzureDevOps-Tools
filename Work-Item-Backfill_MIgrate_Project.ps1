@@ -32,6 +32,7 @@ if($NumberOfDays -ne "") {
 if($ItemType -ne "") {
         $queryBit += "AND [System.WorkItemType] = '$($ItemType)' "
 }
+$queryBit += "ORDER BY [System.ChangedDate] DESC"
 
 & .\MigrateProject.ps1 -SkipMigrateWorkItems $WhatIf -WorkItemQueryBit $queryBit
 
