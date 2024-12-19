@@ -276,7 +276,9 @@ $SkipAzureDevOpsMigrationTool = (  `
 
 
 $martinConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
-
+$configString = $martinConfiguration | ConvertTo-Json -Depth 100
+Write-Host "Configuration after substitution:"
+Write-Host $configString
 #endregion
 
 
