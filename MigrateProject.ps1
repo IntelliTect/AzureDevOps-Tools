@@ -154,29 +154,9 @@ $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | Con
 $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinConfigFileChanged = $FALSE
 
-# ------------------
-# ----- Source -----
-# ------------------
-# Setting Organization Project and PAT
-$martinConfiguration.MigrationTools.Endpoints.SourceProject.Collection = $SourceProject.Organization
-$martinConfiguration.MigrationTools.Endpoints.SourceProject.Project = $SourceProject.ProjectName
-$martinConfiguration.MigrationTools.Endpoints.SourceProject.Authentication.AccessToken = $sourcePat
-
-
-
-# ------------------
-# ----- Target -----
-# ------------------
-# Organization Project and PAT
-$martinConfiguration.MigrationTools.Endpoints.TargetProject.Collection = $TargetProject.Organization
-$martinConfiguration.MigrationTools.Endpoints.TargetProject.Project = $TargetProject.ProjectName
-$martinConfiguration.MigrationTools.Endpoints.TargetProject.Authentication.AccessToken = $targetPat
-
-
 # ---------------------------------------
 # -- End Point Source/Target settings  --
 # ---------------------------------------
-$endpointNames = @("Project", "WorkItem", "TeamSettings", "Tfs", "Pipeline")
 
 foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties) {
     if($endpoint.Name -like "*Source"){
