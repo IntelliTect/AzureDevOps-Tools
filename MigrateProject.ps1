@@ -163,6 +163,7 @@ foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Prop
         $endpointConfig.Collection = $SourceProject.Organization
         $endpointConfig.Project = $SourceProject.ProjectName
         $endpointConfig.Authentication.AccessToken = $sourcePat
+        Write-Host "Pat set to $sourcePat"
     } elseif($endpoint.Name -like "*Target"){
         $endpointConfig.Collection = $TargetProject.Organization
         $endpointConfig.Project = $TargetProject.ProjectName
