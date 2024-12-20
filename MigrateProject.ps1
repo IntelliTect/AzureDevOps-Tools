@@ -158,20 +158,19 @@ $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-Stri
 # -- End Point Source/Target settings  --
 # ---------------------------------------
 
-foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties.Value) {
-    Write-Host "Endpoint: "
-    Write-Host $endpoint
-    Write-Host "Contains Source? $($endpoint.Name -like "*Source")"
+foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties) {
+    
+    Write-Host "Name: $($endpoint.Name)"
     
     if($endpoint.Name -like "*Source"){
-        $endpointConfig.Collection = $SourceProject.Organization
-        $endpointConfig.Project = $SourceProject.ProjectName
-        $endpointConfig.Authentication.AccessToken = $sourcePat
+        $endpoint.Value.Collection = $SourceProject.Organization
+        $endpoint.Value.Project = $SourceProject.ProjectName
+        $endpoint.Value.Authentication.AccessToken = $sourcePat
         Write-Host "Pat set to $sourcePat"
     } elseif($endpoint.Name -like "*Target"){
-        $endpointConfig.Collection = $TargetProject.Organization
-        $endpointConfig.Project = $TargetProject.ProjectName
-        $endpointConfig.Authentication.AccessToken = $targetPat
+        $endpoint.Value.Collection = $TargetProject.Organization
+        $endpoint.Value.Project = $TargetProject.ProjectName
+        $endpoint.Value.Authentication.AccessToken = $targetPat
     }       
 }
 
