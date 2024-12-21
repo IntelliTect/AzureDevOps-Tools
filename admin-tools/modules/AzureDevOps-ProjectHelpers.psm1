@@ -52,10 +52,15 @@ function Get-ReposWithLastCommit([string]$projectSk, [string]$org, $headers) {
 
     foreach ($repo in $repos) {
         $repoId = $repo.id
+        try {
         $url = "$org/$projectSk/_apis/git/repositories/$repoId/commits?api-version=5.1"
         
         $commits = Invoke-RestMethod -Method Get -uri $url -Headers $headers
-        
+        }
+        catch {
+            Write-Host "Repo: $repo"
+            $repo | Get-Member
+        }
         if ($commits.count -gt 0) {
             
             $final += @{
