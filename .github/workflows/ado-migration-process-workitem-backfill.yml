@@ -61,7 +61,7 @@ on:
 jobs:
   run-powershell-script:
     name: Run PowerShell Script
-    runs-on: 'AEC0WGEMP001'
+    runs-on: 'ubuntu-latest'
     timeout-minutes: 7200
     env:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
