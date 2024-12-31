@@ -6,19 +6,19 @@ on:
       SourceOrganizationName:
         description: "Name of the Source Organization"
         required: true
-        default: "AIZ-GL"
+        default: ""
       SourceProjectName:
         description: "Name of the Source Project"
         required: true
-        default: "GL.CL-Elita"
+        default: ""
       TargetOrganizationName:
         description: "Name of the Target Organization"
         required: true
-        default: "AIZ-Global"
+        default: ""
       TargetProjectName:
         description: "Name of the Target Project"
         required: true
-        default: "GL.CL-Elita-migrated"
+        default: ""
       WhatIf:
         type: boolean
         description: "WhatIf: Simulated Run"

@@ -114,11 +114,11 @@
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc",
           "Parameters": {
-            "TeamProject": "GL.CL-Elita"
+            "TeamProject": "Sample-Project"
           }
         },
-        "Organisation": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Organisation": "https://dev.azure.com/Source-Org/",
+        "Project": "Sample-Project",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
         "PersonalAccessToken": null,
@@ -133,8 +133,8 @@
         "Query": {
           "Query": "SELECT [System.Id], [System.Tags] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite', 'Test Plan') ORDER BY [System.ChangedDate] desc"
         },
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Organisation": "https://dev.azure.com/Target-Org/",
+        "Project": "Sample-Project-migrated",
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "AllowCrossProjectLinking": false,
         "PersonalAccessToken": null,
@@ -149,8 +149,8 @@
         "$type": "TfsTeamSettingsEndpointOptions",
         "Name": "TeamSettingsSource",
         "Direction": "Source",
-        "Organisation": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Organisation": "https://dev.azure.com/Source-Org/",
+        "Project": "Sample-Project",
         "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
@@ -164,8 +164,8 @@
         "$type": "TfsTeamSettingsEndpointOptions",
         "Name": "TeamSettingsTarget",
         "Direction": "Target",
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Organisation": "https://dev.azure.com/Target-Org/",
+        "Project": "Sample-Project-migrated",
         "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedItemId",
         "LanguageMaps": {
@@ -179,8 +179,8 @@
     "TfsEndpoints": [
       {
         "Name": "tfsSource",
-        "Organisation": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Organisation": "https://dev.azure.com/Source-Org/",
+        "Project": "Sample-Project",
         "AuthenticationMode": "AccessToken",
         "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
@@ -192,8 +192,8 @@
       },
       {
         "Name": "tfsTarget",
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Organisation": "https://dev.azure.com/Target-Org/",
+        "Project": "Sample-Project-migrated",
         "AuthenticationMode": "AccessToken",
         "AccessToken": null,
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
@@ -208,8 +208,8 @@
       {
         "name": "PipelineSource",
         "$type": "AzureDevOpsEndpointOptions",
-        "Organisation": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Organisation": "https://dev.azure.com/Source-Org/",
+        "Project": "Sample-Project",
         "AuthenticationMode": "AccessToken",
         "AccessToken": null,
         "EndpointEnrichers": null
@@ -217,8 +217,8 @@
       {
         "Name": "PipelineTarget",
         "$type": "AzureDevOpsEndpointOptions",
-        "Organisation": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Organisation": "https://dev.azure.com/Target-Org/",
+        "Project": "Sample-Project-migrated",
         "AuthenticationMode": "AccessToken",
         "AccessToken": null,
         "EndpointEnrichers": null
@@ -227,8 +227,8 @@
   },
   "Source": {
     "$type": "TfsTeamProjectConfig",
-    "Collection": "https://dev.azure.com/AIZ-GL/",
-    "Project": "GL.CL-Elita",
+    "Collection": "https://dev.azure.com/Source-Org/",
+    "Project": "Sample-Project",
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
@@ -240,8 +240,8 @@
   },
   "Target": {
     "$type": "TfsTeamProjectConfig",
-    "Collection": "https://dev.azure.com/AIZ-Global/",
-    "Project": "GL.CL-Elita-migrated",
+    "Collection": "https://dev.azure.com/Target-Org/",
+    "Project": "Sample-Project-migrated",
     "ReflectedWorkItemIDFieldName": "Custom.ReflectedWorkItemId",
     "AuthenticationMode": "AccessToken",
     "AllowCrossProjectLinking": false,
@@ -362,10 +362,10 @@
       "StopMigrationOnMissingAreaIterationNodes": false,
       "NodeBasePaths": [],
       "AreaMaps": {
-        "GL.CL-Logistics": "GL.CL-Elita-migrated"
+        "Sample-project": "Sample-Project-migrated"
       },
       "IterationMaps": {
-        "GL.CL-Logistics": "GL.CL-Elita-migrated"
+        "Sample-project": "Sample-Project-migrated"
       },
       "MaxGracefulFailures": 0,
       "SkipRevisionWithInvalidIterationPath": true,

@@ -6,11 +6,11 @@ on:
       SourceOrganizationName:
         description: "Name of the Source Organization"
         required: true
-        default: "AIZ-GL"
+        default: ""
       TargetOrganizationName:
         description: "Name of the Target Organization"
         required: true
-        default: "AIZ-Global"
+        default: ""
       WhatIf:
         type: boolean
         description: "WhatIf: Simulated Run"

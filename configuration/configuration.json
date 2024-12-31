@@ -1,15 +1,15 @@
 {
     "SourceProject": {
-        "Organization": "https://dev.azure.com/AIZ-GL/",
-        "ProjectName": "GL.CL-Elita",
-        "OrgName": "AIZ-GL"
+        "Organization": "https://dev.azure.com/Sample-Org/",
+        "ProjectName": "Sample-Project",
+        "OrgName": "Sample-Org"
     },
     "TargetProject": {
-        "Organization": "https://dev.azure.com/AIZ-Global/",
-        "ProjectName": "GL.CL-Elita-migrated",
-        "OrgName": "AIZ-Global"
+        "Organization": "https://dev.azure.com/Sample-Org/",
+        "ProjectName": "Sample-Project",
+        "OrgName": "Sample-Org"
     },
-    "ProjectDirectory": "C:\\Users\\JohnEvans\\Working\\Assurant AIZ-GT- ADO Migration Tools\\DevOps-Enablement-ADO-migration",
+    "ProjectDirectory": "C:\\Users\\User1\\Working\\MigrationDirectory", 
     "WorkItemMigratorDirectory": "C:\\tools\\MigrationTool",
 	"RepositoryCloneTempDirectory": "C:\\tools\\RepoCloneTemp",
     "DevOpsMigrationToolConfigurationFile": "migrator-configuration.json",
