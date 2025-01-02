@@ -16,7 +16,7 @@ An Organization parameter is used to prefix the REST calls. If calling Azure Dev
 https://dev.azure.com/<organizationame>
 ```
 
-If calling Azure DevOps Server, use the default collection url:
+If calling Azure DevOps Server, use the collection url:
 
 ```
 http<s>://<server>/<collection>
@@ -122,7 +122,7 @@ teamCount                      1
 
 ### Get-AgentSummaries
 
-Returns a summary of all non-hosted pool's agents in a given organization. Sample output
+Returns a summary of all self-hosted pool's agents in a given organization. Sample output
 
 #### Parameters
 
