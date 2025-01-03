@@ -14,17 +14,16 @@ The migration process copies work items and related data from one project to ano
 
 The tool used expects the target project to be created prior to execution. It will not create the project.
 
-If the source project has custom fields, the target project must have the same fields, or be mapped to existing fields, or the custom data will not be copied.
+If the source project has custom fields, the target project must have the same fields, or be mapped to existing fields, or the custom data will not be copied. This mapping of custom fields can be defined in migrator-configuration.json
 
-Process customization in newly created Azure DevOps is different than proces customization in on premise Team Foundation Server (TFS) installations. 
+Process customization in newly created Azure DevOps is different than process customization in on premise Team Foundation Server (TFS) installations. 
 
 ## Process Overview
 
 1. Fill out project [Survey Spreadsheet]() for the project
 2. Determine if an existing Azure DevOps Process Template will work for the project
 3. If a new Process Template is Required, create a new process Template
-4. Migrate source code
-5. Configure and run the migration tool 
+5. Configure and run the migration tool (see project-migration-setup.md) 
 6. Validate results
 7. User testing and verification
 
@@ -44,5 +43,5 @@ Process customization in newly created Azure DevOps is different than proces cus
 
 ## Configure and Run the migration tool
 
-Use an existing configuration template from *** as existing configuration can be leveraged
+Use an existing configuration template from the source DevOps project, as an existing configuration can be leveraged
 Commit the project specific configuration in the event it's needed for reference, or, to use it as a template for similar projects
