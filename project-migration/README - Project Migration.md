@@ -1,28 +1,12 @@
 
 # Azure DevOps Project Migration
 
-## prerequisites to migration
-- The target project needs to be created using a process process template that mirrors the source process template. If needed the source template can be migrated to the target organization. 
-
-    - We use the Microsoft Process Migrator (https://github.com/microsoft/process-migrator) to migrate the process template by exporting, editing if needing and importing the template in json format. 
-	 - process-migrator --mode=export --config="C:\Users\JohnEvans\Working\Process_Migrate\configuration.json"
-	 - process-migrator --mode=import --config="C:\Users\JohnEvans\Working\Process_Migrate\configuration.json"
-
-- Users in source organization that are not also in the target organization need to be migrated
-	- There is a script to perform this user migration.
-    
-- Token needs to be created that can access both source and target organizations and has "Basic + Test Plans" licensing access.
-  
-- Install any extensions etc used in Source that are not installed already in the target organization. 
-  
-- Delete any unneeded/unused Service Connections, Agent Pools, Teams, Groups, Pipelines, Dashboards etc. so that they are not migrated minimizing chances for failures. 
-
 This tool is used for migrating an Azure DevOps (ADO) project to another project location either within the same organization or to another. 
-It consists of a set of PowerShell and an external .NET application that handles to migration of various components of the ADO project. 
+It consists of a set of PowerShell and an external .NET application (Martin's Tool) that handles to migration of various components of the ADO project. 
 
 The PowerShell scripts are comprised of a set of modules and a set of helper scripts that each perform various tasks. 
 
-An external migration tool is also utilized called "Azure DevOps Migration Tools" by Naked Agility, also known as Martin's Tool (https://nkdagility.com/learn/azure-devops-migration-tools/) after the auther Martin Hinshelwood. This tool performs the majority of the ADP migration tasks while the PowerShell Scripts picks up where this migration lacks. 
+An external migration tool is also utilized called "Azure DevOps Migration Tools" by Naked Agility, also known as Martin's Tool (https://nkdagility.com/learn/azure-devops-migration-tools/) after the author Martin Hinshelwood. This tool performs the majority of the ADP migration tasks while the PowerShell Scripts picks up where this migration lacks. 
 * Follow the installation instructions here https://nkdagility.com/learn/azure-devops-migration-tools/getting-started/ to install this tool locally. 
 
 ## "modules" Directory 
@@ -101,9 +85,9 @@ The  `Configuration.json`  file is used to set up file locations for logging, an
 
 ## Migration Steps PowerShell Scripts
 The entire process is initiated through PowerShell Scripts. Use of "Martin's Tool" is done through the PowerShell migration scripts. The entire process is set up in steps which are executed sequentially. 
-There is also a script that will esecute the entire process by calling the step scripts in the proper sequence. 
+There is also a script that will execute the entire process by calling the step scripts in the proper sequence. 
 
-**Note:** The follwoing scripts may require editing depending on project requirements, Work Item counts per ChangedDate period used or other cases where errors occur due to project specifics. 
+**Note:** The following scripts may require editing depending on project requirements, Work Item counts per ChangedDate period used or other cases where errors occur due to project specifics. 
 
 #### Step_X_Migrate_Org_Level_Users.ps1 - will execute all other steps sequentially
 #### Step_1_Migrate_Project.ps1
@@ -244,19 +228,5 @@ The `MigrateProject.ps1` script is the starting point for preforming a full migr
 <br /><br />
 -----------
 
-# Migration Notes
-- Default iteration path is not set for a team
-- Default area path is not set for a team
-- Wikis get migrated as repositories and need to be re-connected to wiki after migration 
-  - https://learn.microsoft.com/en-us/azure/devops/project/wiki/provisioned-vs-published-wiki?view=azure-devops
-- Dashboard Widgets will need to be re-tied to Work-Item queries
 
-# Set source to read only
-- set repos isDisabled flag to true (manually via UI this pass)
-- Move all members of Contributors to Readers. members of groups such as Project Admins, Build Admins, project Collection admins are not affected. Additionally, any specific user assignments will still be valid
-
-# Prior to Project Migration 
-- If migrating from one organization to another,  it is recommended that all User Identities in the Source organization be migrated to the target migration. This allows any ADO components assigned to that user, such as Work Items and Test Plans etc., to be nigrated without error. The user can then be changed after migration. 
-- Azure RM Service Connection must be created prior to project migration. Service Connection credentials cannot be migrated. 
-- Target organization must have a new enherited Process Template created and a custom field named xxxxx added to all of the Work-Item types. See this documentation for more details: https://nkdagility.com/learn/azure-devops-migration-tools/server-configuration/
 
