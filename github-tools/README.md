@@ -3,9 +3,6 @@
 Uses existing ADO migration PowerShell modules to pull relevant information from 
 Uses ado2gh tool from [GitHub Enterprise Importer CLI](https://github.com/github/gh-gei)
 
-orgs.json
-Add source organizations and ADO Pipelines service connections to  
-
 ## Tooling Setup
 1. Clone repo
 1. Download and unzip the latest ado2gh migratin tool from [Enterprise Importer Releases](https://github.com/github/gh-gei/releases)
@@ -21,6 +18,6 @@ New-Alias ado2gh <path to ado2gh.exe>
 ## GitHub and ADO Organization Setup
 - Install the ADO Boards app in the target GitHub org
 - Install the ADO Pipelines app in the target GitHub org
-- Configure one Pipelines Service Connection in the source ADO org and note its object id
-- update orgs.json with ADO org name and pipeline id
+- Configure one Pipelines Service Connection in the source ADO org and note its object ID
+- Update orgs.json with ADO org name and corresponding service connection ID
 
