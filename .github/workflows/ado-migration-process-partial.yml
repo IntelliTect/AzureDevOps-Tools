@@ -77,7 +77,7 @@ jobs:
       - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
         run: |
-          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ var.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}/logs" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
         shell: pwsh
@@ -98,7 +98,7 @@ jobs:
           $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
-          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.WorkItemMigratorDirectory = "${{ var.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}"
           $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
@@ -166,7 +166,7 @@ jobs:
                   }
               "Wikis"
               { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
-              "Work Item Querys" 
+              "Work Item Queries" 
                   { & .\MigrateProject.ps1 -SkipMigrateWorkItemQuerys $WhatIf }
               "Work-Items (Including 'Test Cases')"  
                 { & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf}
