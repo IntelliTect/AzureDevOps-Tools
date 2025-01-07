@@ -82,7 +82,7 @@ jobs:
       - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
         run: |
-          Get-ChildItem "${{ vars.WORKITEMMIGRATORDIRECTORY }}/logs" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
           Get-ChildItem "c:\\temp\\WorkItemAttachmentWorkingFolder" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
@@ -104,7 +104,7 @@ jobs:
           $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
-          $configuration.WorkItemMigratorDirectory = "${{ vars.WORKITEMMIGRATORDIRECTORY }}"
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
           $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
