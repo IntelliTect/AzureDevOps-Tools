@@ -1,0 +1,94 @@
+name: ADO Organization User Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      SourceOrganizationName:
+        description: "Name of the Source Organization"
+        required: true
+        default: ""
+      TargetOrganizationName:
+        description: "Name of the Target Organization"
+        required: true
+        default: ""
+      WhatIf:
+        type: boolean
+        description: "WhatIf: Simulated Run"
+        required: false
+        default: true
+          
+
+jobs:
+  run-powershell-script:
+    name: Run PowerShell Script
+    runs-on: 'ubuntu-latest'
+    timeout-minutes: 7200
+    env:
+      AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
+
+    steps:
+      - name: Verify Azure CLI installation
+        run: |
+          $env:PATH
+          if ($env:PATH -notcontains "C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin") {
+            $env:PATH += ";C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin"
+          }
+
+          az --version
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Clean Azure DevOps Migration Tools Log Directory
+        shell: pwsh
+        run: |
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+
+      - name: Set Migration Configuration 
+        shell: pwsh
+        run: |
+          $SourceOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.SourceOrganizationName }}/"
+          $TargetOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.TargetOrganizationName }}/"
+          $projectDirectory = "./"
+
+          $LocalConfigPath = "configuration\configuration.json"
+          $filePath = Resolve-Path -Path "$LocalConfigPath"
+          Write-Host "FILEPATH: $filePath"   
+          
+          $configuration = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
+          $configuration.SourceProject.Organization = "$SourceOrganizationUrl"
+          $configuration.SourceProject.ProjectName = "${{ github.event.inputs.SourceOrganizationName }}"
+          $configuration.SourceProject.OrgName = "${{ github.event.inputs.SourceOrganizationName }}"
+          $configuration.TargetProject.Organization = "$TargetOrganizationUrl"
+          $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetOrganizationName }}"
+          $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
+          $configuration.ProjectDirectory = $projectDirectory
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
+          $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
+          $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
+          $configuration | ConvertTo-Json -Depth 100 | Set-Content $LocalConfigPath
+          
+          $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
+          Write-Host (ConvertTo-Json -Depth 100 $configuration2)
+
+      - name: Run Migrate-Project PowerShell script
+        shell: pwsh
+        run: |
+          $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
+          $WhatIf = $whatIfDryRun -match "true"
+
+          & ./Step_X_Migrate_Org_Level_Users.ps1 -WhatIf $WhatIf
+
+      - name: Archive DevOps-Enablement-ADO-to-ADO-migration results
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-run-logs
+          path: "./Projects"
+
+      - name: Archive Azure DevOps Migration Tools (Martin's Tools) results
+        uses: actions/upload-artifact@v3
+        with:
+          name: migration-tools-logs
+          path: "${{ vars.WorkItemMigratorDirectory }}/logs"
+

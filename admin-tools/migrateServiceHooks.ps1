@@ -51,7 +51,7 @@ Write-Log -msg "Located $($hooks.Count) in source."
 $hooks | ConvertTo-Json -depth 10 | Out-File -FilePath "hooks.json"
 
 foreach ($hook in $hooks) {
-    
+
     if ($null -ne $consumer -and $consumer -ne $hook.consumerId) {
         #continue
     }
@@ -74,7 +74,7 @@ foreach ($hook in $hooks) {
                 }
             }
         }
-        
+
         if ($hook.consumerId -eq "webHooks") {
             if ($null -ne $hook.consumerInputs) {
                 if ($maskedValue -eq $hook.consumerInputs.basicAuthPassword) {
@@ -89,7 +89,7 @@ foreach ($hook in $hooks) {
                 }
             }
         }
-        
+
         if ($hook.consumerId -eq "jenkins") {
             if ($null -ne $hook.consumerInputs) {
                 if ($maskedValue -eq $hook.consumerInputs.password) {
@@ -135,7 +135,7 @@ foreach ($hook in $hooks) {
             Write-Log -logLevel "ERROR"  -msg ($_ | ConvertFrom-Json).message -ForegroundColor "Red"
         }
         catch {
-            
+
         }
     }
 }

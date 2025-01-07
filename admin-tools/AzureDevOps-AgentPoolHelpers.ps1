@@ -1,4 +1,3 @@
-
 function Get-ADOPools ($Headers, [string]$Org) {
     $url = "$org/_apis/distributedtask/pools?api-version=5.0"
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers

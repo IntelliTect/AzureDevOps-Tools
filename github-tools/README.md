@@ -19,7 +19,7 @@ New-Alias ado2gh <path to ado2gh.exe>
 ```
 
 ## GitHub and ADO Organization Setup
-- Install the ADO Boards app in the garget GitHub org
+- Install the ADO Boards app in the target GitHub org
 - Install the ADO Pipelines app in the target GitHub org
 - Configure one Pipelines Service Connection in the source ADO org and note its object id
 - update orgs.json with ADO org name and pipeline id

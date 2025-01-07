@@ -63,7 +63,3 @@ return $teamMembers
 #todo check user provisioning (basic, VS, ...)
 #todo add unique team member to the target
 #todo add members to teams
-
-
-
-

@@ -25,7 +25,7 @@ Write-Log -msg " "
 function MigrateDefinition($def) {
 
     #$body | Out-File -FilePath "builddef-$($buildDefinition.name).json"
-    
+
     $def.project.id = $targetProject.id
     $def.project.url = $targetProject.url
     $def.project.description = $def.project.description -replace ":", ""
@@ -78,7 +78,7 @@ function MigrateDefinition($def) {
             }
         }
     }
-        
+
     Write-Log -msg "Mapping Variables.."
     if ($null -ne $def.variables) {
         foreach ($var in $def.variables.psobject.properties) {
@@ -135,7 +135,7 @@ foreach ($buildDefinition in $buildDefinitions) {
     }
 
     Write-Log -msg "Attempting to create $($buildDefinition.name) in target.. "
-    
+
     try {
         if ($true -eq $withHistory) {
             Write-Log -msg "Found $($buildDefinition.revision) revisions for $($buildDefinition.name)."
@@ -171,4 +171,3 @@ foreach ($buildDefinition in $buildDefinitions) {
     }
 }
 Write-Log "Done migrating build definitions." -ForegroundColor "Green"
-

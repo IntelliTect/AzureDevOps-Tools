@@ -1,4 +1,3 @@
-
 # todo: import process template
 # https://docs.microsoft.com/en-us/rest/api/azure/devops/processadmin/processes/import%20process%20template?view=azure-devops-rest-5.1
 
@@ -99,7 +98,7 @@ function Add-ADOProjectFields([string]$project, [string]$witRefName, [string]$cs
             url = $baseUrl + $_.refname
             usage = "workItem"
         }
-     
+
         $fieldjson = $field | convertto-json
         $header = new-object System.Net.Http.StringContent($fieldjson, [System.Text.Encoding]::ASCII, 'application/json')
         $results = $client.PostAsync($url, $header)
@@ -142,7 +141,7 @@ function Add-ADOFields([string]$processId, [string]$witRefName, [string]$csvFile
             url = $baseUrl + $_.refName
             allowGroups = $null
         }
-     
+
         $fieldjson = $field | convertto-json
         $header = new-object System.Net.Http.StringContent($fieldjson, [System.Text.Encoding]::ASCII, 'application/json')
         $results = $client.PostAsync($url, $header)

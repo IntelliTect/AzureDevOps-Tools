@@ -48,7 +48,7 @@ foreach ($endpoint in $endpoints) {
         "description"   = "$($endpoint.description) #OriginServiceEndpointId:$($endpoint.id)"
         "isReady"       = $endpoint.isReady
     }
-    
+
     try {
         New-ServiceEndpoint -headers $targetHeaders -projectSk $targetProject.id -org $targetOrg -serviceEndpoint $data
         Write-Log -msg "Done!" -ForegroundColor "Green"

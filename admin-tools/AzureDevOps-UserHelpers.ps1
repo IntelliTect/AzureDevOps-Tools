@@ -79,4 +79,3 @@ function Get-ADOAccessControlList([string]$namespaceId, [string]$org, [string]$p
     }
     return $results
 }
-

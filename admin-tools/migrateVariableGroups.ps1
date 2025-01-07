@@ -79,7 +79,7 @@ foreach ($groupHeader in $groups) {
             $ref.projectReference.id = $targetProject.id
             $ref.projectReference.name = $targetProject.name
         }
-        
+
         New-VariableGroup -headers $targetHeaders -projectSk $targetProject.id -org $targetOrg -group @{
             #"description"  = $groupHeader.description
             "name"         = $group.name

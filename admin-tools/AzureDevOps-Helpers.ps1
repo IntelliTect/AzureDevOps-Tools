@@ -66,7 +66,7 @@ function Get-ADOProjectProcessTemplates($Headers, [string]$Org) {
             Name = $_.Name
             Template = $template[0].value
         }
-        
+
     }
     return $projectTemplates
 }
@@ -77,7 +77,7 @@ function Get-AllRepos([string]$org) {
 
     # GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/commits?api-version=5.0
     $url = "$org/_apis/git/repositories?api-version=5.0"
-    
+
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     return $results.value
 }
@@ -86,7 +86,7 @@ function Get-Teams([string]$org, $headers) {
 
     # GET https://dev.azure.com/{organization}/{project}/_apis/git/repositories/{repositoryId}/commits?api-version=5.0
     $url = "$org/_apis/teams?`$top=5000"
-    
+
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     return $results.value
 }
@@ -99,9 +99,9 @@ function Get-AllReposWithLastCommit([string]$listName, [string]$org) {
     foreach ($repo in $repos) {
         $repoId = $repo.id
         $url = "$org/_apis/git/repositories/$repoId/commits?api-version=5.1"
-        
+
         $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
-        
+
         if ($results.value.Count -gt 0) {
             $final.Add(@{
                 "id" = $repo.id
@@ -160,7 +160,7 @@ function Delete-WorkItemById($headers, $org, $projectName, $workItemId, $destroy
     "workitemid is $workItemId"
     $url = "$org/$projectName/_apis/wit/workitems/"+$workItemId+"?$destroyTerm&api-version=5.1"
     $url
-    
+
     try {
         $results = Invoke-RestMethod -Method Delete -uri $url -Headers $headers
     }
@@ -178,14 +178,14 @@ function ConvertTo-Hashtable {
         [Parameter(ValueFromPipeline)]
         $InputObject
     )
- 
+
     process {
         ## Return null if the input is null. This can happen when calling the function
         ## recursively and a property is null
         if ($null -eq $InputObject) {
             return $null
         }
- 
+
         ## Check if the input is an array or collection. If so, we also need to convert
         ## those types into hash tables as well. This function will convert all child
         ## objects into hash tables (if applicable)
@@ -195,7 +195,7 @@ function ConvertTo-Hashtable {
                     ConvertTo-Hashtable -InputObject $object
                 }
             )
- 
+
             ## Return the array but don't enumerate it because the object may be pretty complex
             Write-Output -NoEnumerate $collection
         } elseif ($InputObject -is [psobject]) { ## If the object has properties that need enumeration
@@ -216,15 +216,15 @@ function ConvertTo-Hashtable {
 function ConvertTo-Object {
 
     begin { $object = New-Object Object }
-    
+
     process {
-    
+
     $_.GetEnumerator() | ForEach-Object { Add-Member -inputObject $object -memberType NoteProperty -name $_.Name -value $_.Value }  
-    
+
     }
-    
+
     end { $object }
-    
+
     }
 
 function Write-Log([string]$msg, [string]$logLevel = "INFO", $ForegroundColor = $null ) {
@@ -260,7 +260,7 @@ function Write-Log-Async
         [Parameter(Position = 3)]
         [boolean]$UseMutex
     )
-    
+
     Write-Verbose "Log:  $log"
     $date = (get-date).ToString()
     if (Test-Path $log)
@@ -279,7 +279,7 @@ function Write-Log-Async
     {
         $LogMutex = New-Object System.Threading.Mutex($false, "LogMutex")
         $LogMutex.WaitOne()|out-null
-        
+
         $line | out-file -FilePath $log -Append
         $LogMutex.ReleaseMutex()|out-null
     }
@@ -289,7 +289,6 @@ function Write-Log-Async
     }
 }
 
-
 function Get-Extensions([string]$org, $headers) {
 
     # GET https://extmgmt.dev.azure.com/ { organization }/_apis/extensionmanagement/installedextensions?api-version=7.1-preview.1
@@ -297,4 +296,5 @@ function Get-Extensions([string]$org, $headers) {
     
     $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
     return $results.value
+
 }

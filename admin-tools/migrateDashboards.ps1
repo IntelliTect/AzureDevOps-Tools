@@ -47,6 +47,3 @@ ForEach ($team in $teams) {
         }
     }
 }
-
-
-
