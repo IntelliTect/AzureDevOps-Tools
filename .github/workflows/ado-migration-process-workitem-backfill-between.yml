@@ -1,4 +1,4 @@
-name: sBetween Dates Work Item Backfill ADO Project Migration
+name: Between Dates Work Item Backfill ADO Project Migration
 
 on:
   workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
@@ -157,6 +157,9 @@ jobs:
           $WhatIf = $whatIfDryRun -match "true"
 
           if($isDateStart -and $isDateEnd) {
+            if($startDate -eq $endDate){
+              $startDate = $startDate.addDays(-1)
+            }
             $startDateString = $startDate.ToString($format)
             $endDateString = $endDate.ToString($format)
             & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate -endDateString -ItemType $selection -WhatIf $WhatIf

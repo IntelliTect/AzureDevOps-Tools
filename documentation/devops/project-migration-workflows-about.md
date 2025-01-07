@@ -1,5 +1,5 @@
 # Migration through GitHub Action Workflows
-There are three GitHub Action Workflows to for ADO project migration using the Project Migration scripts outlined in the "README - Project Migration.md" file. 
+There are five GitHub Action Workflows for ADO project migration using the Project Migration scripts outlined in the "README - Project Migration.md" file within the project-migration folder. 
 
 These Workflows are outlined below:
 
