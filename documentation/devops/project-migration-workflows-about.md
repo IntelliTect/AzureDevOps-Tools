@@ -17,7 +17,13 @@ The process is run in consecutive steps which provide the correct sequence for d
 
 ## "Run Partial ADO Project Migration"
 
-The last Action Workflow is the Partial migration. Use this to re-run sections of a full migration. This workflow will be used to do delta-backflow migrations in areas such as work-items and also for testing and correcting any migration issues. Each of the areas of migration are contained in a drop-down selection box labeled "Migration Selection". Use this input option to select the area that you would like to migrate separately. 
+The Partial ADO Project Migration Workflow is the Partial migration. Use this to re-run sections of a full migration. This workflow will be used to do delta-backflow migrations in areas such as work-items and also for testing and correcting any migration issues. Each of the areas of migration are contained in a drop-down selection box labeled "Migration Selection". Use this input option to select the area that you would like to migrate separately. 
+
+## "Work Item Backfill ADO Project Migration"
+The Work Item Backfill ADO Project Migration Workflow can be run to apply all work item changes from the source project to the target project for the specified number of days in the past from the current date. For example, if 0 is provided, the work item backfill will be applied for changes from midnight on current date. For any other number, the work item backfill will be applied for x number of days previously from midnight on the starting date. 
+
+## "Between Dates Work Item Backfill ADO Project Migration"
+The Between Dates Work Item Backfill ADO Project Migration Workflow can be run to apply all work item changes from the source project to the target project between (inclusive) the specified dates.
 
 Migration Step Execution Order 
 --------------------

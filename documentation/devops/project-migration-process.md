@@ -56,6 +56,7 @@ Process customization in newly created Azure DevOps is different than process cu
 
 1. Verify configuration/migrator-configuration.json is set up correctly regarding area maps and iteration maps. Commit any changes necessary.
 2. Execute the desired migration workflow.
+    - Execute 'Full ADO Project Migration' workflow to migrate an entire project
 
 ## Post Migration Steps
 1. Set source to read only: set each repository's isDisabled flag to true (manually via UI)
