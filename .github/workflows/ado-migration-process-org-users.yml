@@ -42,7 +42,7 @@ jobs:
       - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
         run: |
-          Get-ChildItem "${{ var.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
         shell: pwsh
@@ -63,7 +63,7 @@ jobs:
           $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
-          $configuration.WorkItemMigratorDirectory = "${{ var.WorkItemMigratorDirectory }}"
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
           $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
@@ -90,5 +90,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: migration-tools-logs
-          path: "${{ var.WorkItemMigratorDirectory }}/logs"
+          path: "${{ vars.WorkItemMigratorDirectory }}/logs"
 
