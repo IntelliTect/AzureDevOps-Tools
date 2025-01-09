@@ -74,10 +74,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Clean Azure DevOps Migration Tools Log Directory
+      - name: Clean Azure DevOps Migration Tools Log and Attachments Directory
         shell: pwsh
         run: |
           Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}\\WorkItemAttachmentWorkingFolder" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
         shell: pwsh
@@ -166,7 +167,7 @@ jobs:
                   }
               "Wikis"
               { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
-              "Work Item Querys" 
+              "Work Item Queries" 
                   { & .\MigrateProject.ps1 -SkipMigrateWorkItemQuerys $WhatIf }
               "Work-Items (Including 'Test Cases')"  
                 { & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf}

@@ -2,7 +2,6 @@
 
 This directory contains helpful PowerShell scripts that can be used to perform specific actions outside of an ADO project migration or in aiding in the testing, validating and troubleshooting during an ADO project migration. 
 
-
 ## Files
 
 ### Clone-All-Project-Repos.ps1

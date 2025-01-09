@@ -175,7 +175,7 @@ function Start-ADOProjectMigration {
 
             $arguments = "execute --config `"$MartinsToolConfigurationFile`""
             
-            Start-Process -NoNewWindow -Wait -FilePath .\migration.exe -ArgumentList $arguments
+            Start-Process -NoNewWindow -Wait -FilePath .\devopsmigration.exe -ArgumentList $arguments
         
             Set-Location -Path $savedpath
         } else {
