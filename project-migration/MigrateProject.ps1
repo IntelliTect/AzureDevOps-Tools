@@ -153,6 +153,12 @@ $martinConfigPath = "$($ProjectDirectory)\$($configPath)$DevOpsMigrationToolConf
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 
+# ---------------------------------------
+# -- Atttachment Temporary Directory --
+# ---------------------------------------
+$tools = $martinConfiguration.MigrationTools.CommonTools.PSObject.Properties
+$attachmentTool = $tools | Where-Object {$_.Name -eq "TfsAttachmentTool"}
+$attachmentTool.Value.ExportBasePath = "$WorkItemMigratorDirectory\\WorkItemAttachmentWorkingFolder"
 
 # ---------------------------------------
 # -- End Point Source/Target settings  --

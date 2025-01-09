@@ -362,7 +362,7 @@
       },
       "TfsAttachmentTool": {
         "Enabled": "True",
-        "ExportBasePath": "c:\\temp\\WorkItemAttachmentWorkingFolder",
+        "ExportBasePath": "",
         "MaxAttachmentSize": "480000000",
         "RefName": "TfsAttachmentTool"
       },
