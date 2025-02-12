@@ -77,7 +77,7 @@ jobs:
           az --version
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
@@ -135,7 +135,7 @@ jobs:
           & .\Work-Item-Backfill_Migrate_Project.ps1 -NumberOfDays $numOfDays -ItemType $selection -WhatIf $WhatIf
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-run-logs
           path: "./Projects"

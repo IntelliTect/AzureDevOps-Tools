@@ -37,7 +37,7 @@ jobs:
           az --version
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
@@ -81,13 +81,13 @@ jobs:
           & ./Step_X_Migrate_Org_Level_Users.ps1 -WhatIf $WhatIf
 
       - name: Archive DevOps-Enablement-ADO-to-ADO-migration results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-run-logs
           path: "./Projects"
 
       - name: Archive Azure DevOps Migration Tools (Martin's Tools) results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-tools-logs
           path: "${{ vars.WorkItemMigratorDirectory }}/logs"
