@@ -71,6 +71,9 @@ function Start-ADOArtifactsMigration {
             }
 
            $targetFeed = New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -SourceFeed $feed -UpstreamSources $publicUpstreamSources
+           Write-Log "Feed Name: $($feed.name)"
+           Write-Log "Command: New-ADOFeed -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders -SourceFeed $feed -UpstreamSources $publicUpstreamSources"
+           Write-Log "TargetFeed: $targetFeed"
             if(($NULL -eq $targetFeed) -or ($targetFeed.GetType().Name -eq "FileInfo")) { 
                 if ($null -eq $targetFeed) {
                     Write-Log -Message "Could not create a new feed with name '$($feed.Name)'. The feed name may be reserved by the system." -LogLevel ERROR
