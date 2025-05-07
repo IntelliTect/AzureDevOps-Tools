@@ -158,9 +158,8 @@
         "MigrateTeamSettings": true,
         "UpdateTeamSettings": false,
         "PrefixProjectToNodes": false,
-        "MigrateTeamCapacities": false,
+        "MigrateTeamCapacities": true,
         "Teams": null,
-        "UseUserMapping": false,
         "SourceName": "TeamSettingsSource",
         "TargetName": "TeamSettingsTarget"
       },
