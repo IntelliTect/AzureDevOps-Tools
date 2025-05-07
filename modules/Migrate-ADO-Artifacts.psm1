@@ -121,7 +121,7 @@ function Start-ADOArtifactsMigration {
                         Write-Log -Message "Feed [$($feed.Name)] internal Upstream Source [$($internalSource.Name)] already exists in target Feed.. "
                         continue
                     }
-
+                    Write-Log "Display Location: $($internalSource.displayLocation)" 
                     if($internalSource.displayLocation -like "*$SourceOrgName/$SourceProjectName*") {
                         $sourceInternalUpstreamFeed = Get-Feed -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $internalSource.internalUpstreamFeedId
                         $sourceInternalUpstreamFeedViews = Get-Views -OrgName $SourceOrgName -ProjectName $SourceProjectName -Headers $SourceHeaders -FeedId $sourceInternalUpstreamFeed.Id
@@ -236,14 +236,18 @@ function Get-Feeds {
         [Hashtable]$Headers
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
-        $url = "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/packaging/feeds?api-version=7.0"
+        $projectUrl = "https://feeds.dev.azure.com/$OrgName/$ProjectName/_apis/packaging/feeds?api-version=7.0"
 
-        $results = Invoke-RestMethod -Method GET -Uri $url -Headers $headers
+        $projectResults = Invoke-RestMethod -Method GET -Uri $projectUrl -Headers $headers
 
-        return $results.Value
+        $orgUrl = "https://feeds.dev.azure.com/$OrgName/_apis/packaging/feeds?api-version=7.0"
+
+        $orgResults = Invoke-RestMethod -Method GET -Uri $orgUrl -Headers $headers
+        
+        $results = $projectResults.Value + $orgResults.Value
+        return $results
     }
 }
-
 
 function Get-Feed {
     [CmdletBinding(SupportsShouldProcess)]

@@ -181,7 +181,7 @@
         "ProcessorType": "TfsTestPlansAndSuitesMigrationProcessor",
         "Enabled": false,
         "OnlyElementsWithTag": "",
-        "TestPlanQuery": null,
+        "TestPlanQuery": "",
         "RemoveAllLinks": false,
         "MigrationDelay": 0,
         "RemoveInvalidTestSuiteLinks": false,
