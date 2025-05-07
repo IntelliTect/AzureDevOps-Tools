@@ -241,6 +241,9 @@ function Push-GroupMembers {
                     -ProjectName $ProjectName `
                     -PersonalAccessToken $PersonalAccessToken `
                     -GroupDisplayName $groupMember.Name
+ 
+                Write-Log "Group on target: $groupOnTarget"                
+                              
 
                 if ($null -ne ($TargetGroup.GroupMembers | Where-Object { $_.Name -ieq $groupMember.Name } )) {
                     Write-Log -Message "Group Member [$($groupMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
@@ -249,9 +252,11 @@ function Push-GroupMembers {
 
                 Write-Log -Message "Adding Group Member [$($groupMember.Name)] in target group [$($SourceGroup.Name)].. "
                 if($VerboseOutput -eq $TRUE) {
+                    Write-Log "Group on target principal name: $($groupOnTarget.PrincipalName)"
                     az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.PrincipalName --detect $false --debug --verbose
                 } else {
-                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.Descriptor --detect $false 
+                    Write-Log "Group on target Descriptior: $($groupOnTarget.Descriptor)"
+                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.Descriptor --detect $false                     
                 }
             } catch {
                 Write-Log -Message $_.Exception.Message -LogLevel ERROR
