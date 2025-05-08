@@ -42,6 +42,9 @@ function Start-ADOGroupsMigration {
             -PersonalAccessToken $SourcePAT `
             -GroupDisplayName $GroupDisplayName
 
+        $sourceGroupNames = $sourceGroups | Select-Object -ExpandProperty name
+        Write-Log "Group Display Name for getting source groups: $GroupDisplayName"
+        Write-Log "Source group names: $($sourceGroupNames -join ',')"
         Write-Log -Message 'Get target ADO Groups'
         $targetGroups = Get-ADOGroups `
             -OrgName $TargetOrgName `

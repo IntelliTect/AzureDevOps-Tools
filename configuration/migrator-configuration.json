@@ -343,12 +343,12 @@
       "TfsNodeStructureTool": {
         "Enabled": true,
         "Areas": {
-          "Filters": [],
-          "Mappings": {}
+          "Filters": null,
+          "Mappings": null
         },
         "Iterations": {
-          "Filters": [],
-          "Mappings": {}
+          "Filters": null,
+          "Mappings": null
         },
         "ShouldCreateMissingRevisionPaths": true,
         "ReplicateAllExistingNodes": false
