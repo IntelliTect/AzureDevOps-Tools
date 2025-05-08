@@ -344,11 +344,11 @@
         "Enabled": true,
         "Areas": {
           "Filters": null,
-          "Mappings": null
+          "Mappings": {"^\\\\oldproject1(?:\\\\([^\\\\]+))?\\\\([^\\\\]+)$": "TargetProject\\Q1$2"}
         },
         "Iterations": {
           "Filters": null,
-          "Mappings": null
+          "Mappings": {"^\\\\oldproject1(?:\\\\([^\\\\]+))?\\\\([^\\\\]+)$": "TargetProject\\Q1$2"}
         },
         "ShouldCreateMissingRevisionPaths": true,
         "ReplicateAllExistingNodes": false
