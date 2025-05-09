@@ -74,7 +74,7 @@ function Start-ADO_AddCustomField {
             # Checking if the desired field exists (ReflectedWorkItemId). If so creation can be skipped, as the migration-configuration.json file is appropriately modified in MigrateProject.ps1.
             
             Write-Log "FieldName: $fieldName"
-            $url = "https://dev.azure.com/$OrgName/_apis/wit/fields/$FieldName?api-version=7.1-preview.2"
+            $url = "https://dev.azure.com/$OrgName/_apis/wit/fields/$($fieldName)?api-version=7.1-preview.2"
             Write-log "Url: $url"
             $response = Invoke-RestMethod -Uri $url -Headers $Headers
 
