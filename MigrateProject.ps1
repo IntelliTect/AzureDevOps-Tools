@@ -165,7 +165,7 @@ $targetHeaders = New-HTTPHeaders -PersonalAccessToken $targetPat
 $DesiredProcessFieldResponse = Invoke-RestMethod -Uri $url -Headers $targetHeaders
 
 $AlternateNameFieldForReflectedWorkItemId = ""
-if($null -ne $response && $DesiredProcessFieldResponse.referenceName -ne "Custom.ReflectedWorkItemId") {
+if($null -ne $response -AND $DesiredProcessFieldResponse.referenceName -ne "Custom.ReflectedWorkItemId") {
     $AlternateNameFieldForReflectedWorkItemId = $DesiredProcessFieldResponse.referenceName
 }
 

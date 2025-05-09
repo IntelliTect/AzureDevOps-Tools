@@ -42,10 +42,7 @@ function Start-ADO_AddCustomField {
         [String]$OrgName,
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$ProjectName, 
-
-        [Parameter (Mandatory = $TRUE)] 
-        [String]$FieldName,
+        [String]$ProjectName,
 
         [Parameter (Mandatory = $FALSE)] 
         [String]$FieldDefaultValue,
@@ -73,18 +70,17 @@ function Start-ADO_AddCustomField {
         if($NULL -ne $customFields) {
             # Checking if the desired field exists (ReflectedWorkItemId). If so creation can be skipped, as the migration-configuration.json file is appropriately modified in MigrateProject.ps1.
             
-            Write-Log "FieldName: $fieldName"
-            $url = "https://dev.azure.com/$OrgName/_apis/wit/fields/$($fieldName)?api-version=7.1-preview.2"
+            $url = "https://dev.azure.com/$OrgName/_apis/wit/fields/ReflectedWorkItemId?api-version=7.1-preview.2"
             Write-log "Url: $url"
             $response = Invoke-RestMethod -Uri $url -Headers $Headers
-
+            
         
-            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq $FieldName }) && $null -eq $response) {
-                Write-Log -Message "Creating Custom Field `"$FieldName`" for $OrgName/$ProjectName... "
+            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq "ReflectedWorkItemId" }) -AND $null -eq $response) {
+                Write-Log -Message "Creating Custom Field ReflectedWorkItemId for $OrgName/$ProjectName... "
                 # Add a new custom field for this org/project so that it can be added to work item types for the process
                 New-Customfield `
                     -LocalOrgName $OrgName `
-                    -LocalFieldName $FieldName `
+                    -LocalFieldName "Custom.ReflectedWorkItemId" `
                     -LocalHeaders $Headers
             } elseif ($null -ne $response) {
                  $referenceFieldName = $response.referenceName
@@ -123,12 +119,12 @@ function Start-ADO_AddCustomField {
                         -LocalWorkItemType $workitemType
 
                     if($NULL -ne $processDefinitions) {
-                        if ($null -ne ($processDefinitions | Where-Object { $_.referenceName -ieq $FieldName })) {
-                            Write-Log -Message "Custom Field `"$FieldName`" already exists for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
+                        if ($null -ne ($processDefinitions | Where-Object { $_.referenceName -ieq "ReflectedWorkItemId" })) {
+                            Write-Log -Message "Custom Field ReflectedWorkItemId already exists for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
                             continue
                         }
 
-                        Write-Log -Message "ADDing Custom Field `"$FieldName`" for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
+                        Write-Log -Message "ADDing Custom Field ReflectedWorkItemId for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
                         Add-CustomField `
                             -LocalOrgName $OrgName `
                             -LocalHeaders $Headers `
@@ -297,7 +293,7 @@ function New-Customfield {
     Write-Host $url
     $body = @"
 {
-    "name": "Custom Work Item Field ReflectedWorkItemId",
+    "name": "ReflectedWorkItemId",
     "referenceName": "$LocalFieldName",
     "description": "Custom field used by data migration tool.",
     "type": "string",
