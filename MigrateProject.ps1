@@ -158,8 +158,10 @@ $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-Stri
 # ---------------------------------------
 # -- End Point Source/Target settings  --
 # ---------------------------------------
-$url = "https://dev.azure.com/$OrgName/_apis/wit/fields/ReflectedWorkItemId?api-version=7.1-preview.2"
-$DesiredProcessFieldResponse = Invoke-RestMethod -Uri $url -Headers $Headers
+
+$url = "https://dev.azure.com/$($configuration.TargetProject.OrgName)/_apis/wit/fields/ReflectedWorkItemId?api-version=7.1-preview.2"
+$targetHeaders = New-HTTPHeaders -PersonalAccessToken $targetPat
+$DesiredProcessFieldResponse = Invoke-RestMethod -Uri $url -Headers $targetHeaders
 
 $AlternateNameFieldForReflectedWorkItemId = ""
 if($null -ne $response && $DesiredProcessFieldResponse.referenceName -ne "Custom.ReflectedWorkItemId") {
