@@ -39,6 +39,7 @@ Write-Host "Migrate Work Items with Created Date between 0 days ago and 100 days
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
+-SkipAddReflectedWorkItemIdField $WhatIf `
 -WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 100 AND [System.CreatedDate] <= @Today - 0 "
 
 

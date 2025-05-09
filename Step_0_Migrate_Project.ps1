@@ -21,7 +21,20 @@ Write-Host "-------------------------------------------"
 & .\Step_1_Migrate_Project.ps1 -WhatIf $WhatIf
 
 <#
+  Step #2 migrate 
+    - Areas and Iterations
+    - Teams
+    - Work Item Querys
+    - Variable Groups
+    - Build Pipelines
+    - Release Pipelines
+    - Task Groups
+#>
+& .\Step_2_Migrate_Project.ps1 -WhatIf $WhatIf
+
+<#
   Step #3 migrate 
+    - Work Item Types belonging to the target process template will have ReflectedWorkItemId field added
     - Work Items (Including 'Test Cases')
       In batches where Created Date Between
              0 -  100
@@ -45,20 +58,6 @@ Write-Host "-------------------------------------------"
     Each batch is listed below with the expected work item count to be migrated. The work item counts may vary since the work items are being updated daily. 
 #>
 & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf
-
-<#
-  Step #2 migrate 
-    - Areas and Iterations
-    - Teams
-    - Work Item Querys
-    - Variable Groups
-    - Build Pipelines
-    - Release Pipelines
-    - Task Groups
-#>
-& .\Step_2_Migrate_Project.ps1 -WhatIf $WhatIf
-
-
 
 <#
   Step #4 migrate 

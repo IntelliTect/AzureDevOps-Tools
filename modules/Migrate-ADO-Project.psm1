@@ -28,7 +28,7 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestPlansAndSuites = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -170,9 +170,8 @@ function Start-ADOProjectMigration {
         -Headers $targetHeaders `
         -OrgName $TargetOrgName `
         -ProjectName $TargetProjectName `
-        -FieldName "Custom.ReflectedWorkItemId" `
-        -WorkItemTypesToAddField "Test Suite,Test Plan,Test Case" `
-        -WhatIf:$SkipMigrateTestPlansAndSuites
+        -FieldName "ReflectedWorkItemId" `
+        -WhatIf:$SkipAddReflectedWorkItemIdField
 
         #endregion
 

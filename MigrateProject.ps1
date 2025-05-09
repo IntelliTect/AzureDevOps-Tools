@@ -34,6 +34,7 @@ Param (
         
         # Step 3
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE,
         [parameter(Mandatory=$FALSE)] [String]$WorkItemQueryBit = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') ORDER BY [System.ChangedDate] DESC"
 )
 
@@ -322,7 +323,7 @@ Start-ADOProjectMigration `
     -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers `
-    -SkipMigrateTestPlansAndSuites $SkipMigrateTestPlansAndSuites
+    -SkipAddReflectedWorkItemIdField $SkipAddReflectedWorkItemIdField
 #endregion
 
 
