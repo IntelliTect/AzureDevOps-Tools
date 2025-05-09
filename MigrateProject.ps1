@@ -158,6 +158,13 @@ $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-Stri
 # ---------------------------------------
 # -- End Point Source/Target settings  --
 # ---------------------------------------
+$url = "https://dev.azure.com/$OrgName/_apis/wit/fields/ReflectedWorkItemId?api-version=7.1-preview.2"
+$DesiredProcessFieldResponse = Invoke-RestMethod -Uri $url -Headers $Headers
+
+$AlternateNameFieldForReflectedWorkItemId = ""
+if($null -ne $response && $DesiredProcessFieldResponse.referenceName -ne "Custom.ReflectedWorkItemId") {
+    $AlternateNameFieldForReflectedWorkItemId = $DesiredProcessFieldResponse.referenceName
+}
 
 foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties) {
     
@@ -172,7 +179,12 @@ foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Prop
         $endpoint.Value.Collection = $TargetProject.Organization
         $endpoint.Value.Project = $TargetProject.ProjectName
         $endpoint.Value.Authentication.AccessToken = $targetPat
-    }       
+        # This replacement only occurs when there is an existing process field named 'ReflectedWorkItemId' which does not have a reference name of Custom.RefelctedWorkItemId
+        if(-not [string]::IsNullOrEmpty($AlternateNameFieldForReflectedWorkItemId)){
+            $endpoint.Value.ReflectedWorkItemId = $AlternateNameFieldForReflectedWorkItemId
+        }
+    }  
+       
 }
 
 # --------------------------------------------------

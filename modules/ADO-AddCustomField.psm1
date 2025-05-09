@@ -69,15 +69,22 @@ function Start-ADO_AddCustomField {
             -LocalOrgName $OrgName `
             -LocalProjectName $ProjectName `
             -LocalHeaders $Headers
-        
+        $referenceFieldName = "Custom.ReflectedWorkItemId"
         if($NULL -ne $customFields) {
-            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq $FieldName })) {
+            # Checking if the desired field exists (ReflectedWorkItemId). If so creation can be skipped, as the migration-configuration.json file is appropriately modified in MigrateProject.ps1.
+            $url = "https://dev.azure.com/$OrgName/_apis/wit/fields/$FieldName?api-version=7.1-preview.2"
+            $response = Invoke-RestMethod -Uri $url -Headers $Headers
+
+        
+            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq $FieldName }) && $null -eq $response) {
                 Write-Log -Message "Creating Custom Field `"$FieldName`" for $OrgName/$ProjectName... "
                 # Add a new custom field for this org/project so that it can be added to work item types for the process
                 New-Customfield `
                     -LocalOrgName $OrgName `
                     -LocalFieldName $FieldName `
                     -LocalHeaders $Headers
+            } else if ($null -ne $response) {
+                 $referenceFieldName = $response.referenceName
             }
         }
 
@@ -124,7 +131,7 @@ function Start-ADO_AddCustomField {
                             -LocalHeaders $Headers `
                             -LocalProcessId $ProcessId `
                             -LocalWorkItemType $workitemType `
-                            -LocalFieldName $FieldName
+                            -LocalFieldName $referenceFieldName
                     }
                 }
             }
@@ -284,7 +291,7 @@ function New-Customfield {
         [String]$LocalFieldName
     )
     $url = "https://dev.azure.com/$LocalOrgName/$ProjectName/_apis/wit/fields?api-version=7.0"
-
+    Write-Host $url
     $body = @"
 {
     "name": "Custom Work Item Field ReflectedWorkItemId",
