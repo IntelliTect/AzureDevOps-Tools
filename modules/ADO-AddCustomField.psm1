@@ -83,7 +83,7 @@ function Start-ADO_AddCustomField {
                     -LocalOrgName $OrgName `
                     -LocalFieldName $FieldName `
                     -LocalHeaders $Headers
-            } else if ($null -ne $response) {
+            } elseif ($null -ne $response) {
                  $referenceFieldName = $response.referenceName
             }
         }
