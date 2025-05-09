@@ -80,7 +80,7 @@ function Start-ADO_AddCustomField {
                     -LocalHeaders $Headers
             }
         }
-        
+
         $ProcessId = Get-ProcessId `
             -OrgName $OrgName `
             -ProjectName $ProjectName `
@@ -287,7 +287,7 @@ function New-Customfield {
 
     $body = @"
 {
-    "name": "Custom Work Item Field - ReflectedWorkItemId",
+    "name": "Custom Work Item Field ReflectedWorkItemId",
     "referenceName": "$LocalFieldName",
     "description": "Custom field used by data migration tool.",
     "type": "string",
