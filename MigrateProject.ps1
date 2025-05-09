@@ -183,7 +183,7 @@ foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Prop
         $endpoint.Value.Authentication.AccessToken = $targetPat
         # This replacement only occurs when there is an existing process field named 'ReflectedWorkItemId' which does not have a reference name of Custom.RefelctedWorkItemId
         if(-not [string]::IsNullOrEmpty($AlternateNameFieldForReflectedWorkItemId)){
-            $endpoint.Value.ReflectedWorkItemId = $AlternateNameFieldForReflectedWorkItemId
+            $endpoint.Value.ReflectedWorkItemIdField = $AlternateNameFieldForReflectedWorkItemId
         }
     }  
        
