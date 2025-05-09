@@ -39,22 +39,20 @@ function Start-ADO_AddCustomField {
         [Hashtable]$Headers,
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$OrgName, 
-
-        [Parameter (Mandatory = $TRUE)] 
-        [String]$PAT,
+        [String]$OrgName,
 
         [Parameter (Mandatory = $TRUE)] 
         [String]$ProjectName, 
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$ProcessId,
-
-        [Parameter (Mandatory = $TRUE)] 
         [String]$FieldName,
 
         [Parameter (Mandatory = $FALSE)] 
-        [String]$FieldDefaultValue
+        [String]$FieldDefaultValue,
+
+        #Comma Seperated
+        [Parameter (Mandatory = $FALSE)] 
+        [String]$WorkItemTypesToAddField
     )
     if ($PSCmdlet.ShouldProcess(
             "Project $OrgName/$ProjectName",
@@ -82,12 +80,24 @@ function Start-ADO_AddCustomField {
                     -LocalHeaders $Headers
             }
         }
+        $PorcessId = Get-ProcessId `
+            -OrgName $OrgName `
+            -ProjectName $ProjectName `
+            -Headers $Headers
         
         # Get the associated work item types for this process by process Id 
         $workitemTypes = Get-ProcessWorkItemTypes `
             -LocalOrgName $OrgName `
             -LocalHeaders $Headers `
             -LocalProcessId $ProcessId
+        
+        if($NULL -ne $WorkItemTypesToAddField) {
+            $desiredTypeNames = $WorkItemTypesToAddField -split ","
+            $queriedTypeNames = $workitemTypes | Select-Object -Property name 
+            Write-Log "Queried work item types: $($queriedTypeNames -join ',')"
+            Write-Log "Desired work item type names: $desiredTypeNames"
+            $workitemTypes = $workitemTypes | Where-Object {$desiredTypeNames -contains $_.name}
+        }
 
         if ($workitemTypes) {
             foreach ($workitemType in $workitemTypes) {
@@ -299,5 +309,30 @@ function New-Customfield {
     $results = Invoke-RestMethod -Method POST -Uri $url -Body $body -Headers $LocalHeaders -ContentType "application/json"
 
     return $results
+}
+
+function Get-ProcessID {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$ProjectName
+    )
+    $ProjectUrl =  "https://dev.azure.com/$OrgName/_apis/projects/$($ProjectName)?api-version=7.0"
+    Write-Log $ProjectUrl
+    $response = Invoke-RestMethod -Uri $ProjectUrl -Method Get -Headers $Headers
+    $ProjectId =  $response.id
+    Write-Log "ProjectId while getting Porcess ID: $ProjectId"
+    $url = "https://dev.azure.com/$OrgName/_apis/projects/$($ProjectId)/properties?api-version=7.0-preview"
+
+    $results = Invoke-RestMethod -Method GET -Uri $url -Headers $Headers
+    $process = $results.value | Where-Object { $_.name -eq "System.ProcessTemplateType" }
+    Write-Log "ProcessId: $($process.value)"
+    return $process.value
 }
 

@@ -321,7 +321,8 @@ Start-ADOProjectMigration `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
     -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
-    -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers
+    -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers `
+    -SkipMigrateTestPlansAndSuites $SkipMigrateTestPlansAndSuites
 #endregion
 
 

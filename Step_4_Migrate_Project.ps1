@@ -19,6 +19,8 @@ Write-Host " "
 Write-Host " "
 Write-Host "Migrate Test Configurations, Test Variables, Test Plans and Suites via Martin's Tool"
 Write-Host " "
+
+
 & .\MigrateProject.ps1 `
 -SkipMigrateTestConfigurations $WhatIf `
 -SkipMigrateTestVariables $WhatIf `

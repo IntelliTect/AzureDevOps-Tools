@@ -27,7 +27,8 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestPlansAndSuites = $TRUE
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -159,7 +160,21 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateServiceConnections
         #endregion
 
-        
+
+         # ========================================
+        # ===== Add Refelcted WorkItem ID to Test Suites, Plans, and Cases ======
+        #   Migrate-ADO-ServiceConnections.psm1
+        #region ==================================
+
+        Start-ADO_AddCustomField
+        -Headers $targetHeaders `
+        -OrgName $TargetOrgName `
+        -ProjectName $TargetProjectName `
+        -FieldName "Custom.ReflectedWorkItemId" `
+        -WorkItemTypesToAddField "Test Suite,Test Plan,Test Case" `
+        -WhatIf:$SkipMigrateTestPlansAndSuites
+
+        #endregion
 
         # ==========================================
         # ====== Azure DevOps Migration Tool  ======
