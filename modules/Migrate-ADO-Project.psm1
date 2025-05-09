@@ -166,7 +166,7 @@ function Start-ADOProjectMigration {
         #   Migrate-ADO-ServiceConnections.psm1
         #region ==================================
 
-        Start-ADO_AddCustomField
+        Start-ADO_AddCustomField `
         -Headers $targetHeaders `
         -OrgName $TargetOrgName `
         -ProjectName $TargetProjectName `

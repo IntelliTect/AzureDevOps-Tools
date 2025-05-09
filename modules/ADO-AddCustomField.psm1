@@ -80,7 +80,8 @@ function Start-ADO_AddCustomField {
                     -LocalHeaders $Headers
             }
         }
-        $PorcessId = Get-ProcessId `
+        
+        $ProcessId = Get-ProcessId `
             -OrgName $OrgName `
             -ProjectName $ProjectName `
             -Headers $Headers
