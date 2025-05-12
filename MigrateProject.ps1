@@ -175,17 +175,24 @@ foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Prop
     Write-Host "Name: $($endpoint.Name)"
     
     if($endpoint.Name -like "*Source"){
-        $endpoint.Value.Collection = $SourceProject.Organization
         $endpoint.Value.Project = $SourceProject.ProjectName
         $endpoint.Value.Authentication.AccessToken = $sourcePat
-        Write-Host "Pat set to $sourcePat"
+        if($null -eq $endpoint.Value.Collection -AND $endpoint.Value.Organisation -ne $null){
+            $endpoint.Value.Organisation = $SourceProject.Organization
+        } else {
+            $endpoint.Value.Collection = $SourceProject.Organization
+        }
     } elseif($endpoint.Name -like "*Target"){
-        $endpoint.Value.Collection = $TargetProject.Organization
         $endpoint.Value.Project = $TargetProject.ProjectName
         $endpoint.Value.Authentication.AccessToken = $targetPat
+        if($null -eq $endpoint.Value.Collection -AND $endpoint.Value.Organisation -ne $null){
+            $endpoint.Value.Organisation = $TargetProject.Organization
+        } else {
+            $endpoint.Value.Collection = $TargetProject.Organization
+        }
+
         # This replacement only occurs when there is an existing process field named 'ReflectedWorkItemId' which does not have a reference name of Custom.RefelctedWorkItemId
         if(-not [string]::IsNullOrEmpty($AlternateNameFieldForReflectedWorkItemId)){
-            Write-Log "Doing ReflectedWorkItemId Replacement"
             $endpoint.Value.ReflectedWorkItemIdField = $AlternateNameFieldForReflectedWorkItemId
         }
     }  
