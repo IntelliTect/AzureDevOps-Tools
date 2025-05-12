@@ -123,7 +123,7 @@
       },
       "PipelineSource":{
         "EndpointType": "AzureDevOpsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
         "Authentication": {
           "AccessToken": "",
@@ -138,7 +138,7 @@
       },
       "PipelineTarget":{
         "EndpointType": "AzureDevOpsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Organisation": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
         "Authentication": {
           "AccessToken": "",
