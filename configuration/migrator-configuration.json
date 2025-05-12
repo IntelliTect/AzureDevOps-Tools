@@ -125,11 +125,8 @@
         "EndpointType": "AzureDevOpsEndpoint",
         "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
-        "Authentication": {
-          "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
-        },
-        
+        "AccessToken": "",
+        "AuthenticationMode": "AccessToken",
         "ReflectedWorkItemIdField": null,
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -140,10 +137,8 @@
         "EndpointType": "AzureDevOpsEndpoint",
         "Organisation": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
-        "Authentication": {
-          "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
-        },
+        "AccessToken": "",
+        "AuthenticationMode": "AccessToken",
         "ReflectedWorkItemIdField": null,
         "LanguageMaps": {
           "AreaPath": "Area",

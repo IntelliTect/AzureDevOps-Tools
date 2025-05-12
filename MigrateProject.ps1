@@ -176,19 +176,22 @@ foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Prop
     
     if($endpoint.Name -like "*Source"){
         $endpoint.Value.Project = $SourceProject.ProjectName
-        $endpoint.Value.Authentication.AccessToken = $sourcePat
-        if($null -eq $endpoint.Value.Collection -AND $endpoint.Value.Organisation -ne $null){
+        
+        if($endpoint.Value.EndpointType -eq "AzureDevOpsEndpoint"){
             $endpoint.Value.Organisation = $SourceProject.Organization
+            $endpoint.Value.AccessToken = $sourcePat
         } else {
             $endpoint.Value.Collection = $SourceProject.Organization
+            $endpoint.Value.Authentication.AccessToken = $sourcePat
         }
     } elseif($endpoint.Name -like "*Target"){
         $endpoint.Value.Project = $TargetProject.ProjectName
-        $endpoint.Value.Authentication.AccessToken = $targetPat
-        if($null -eq $endpoint.Value.Collection -AND $endpoint.Value.Organisation -ne $null){
+        if($endpoint.Value.EndpointType -eq "AzureDevOpsEndpoint"){
             $endpoint.Value.Organisation = $TargetProject.Organization
+            $endpoint.Value.AccessToken = $targetPat
         } else {
             $endpoint.Value.Collection = $TargetProject.Organization
+            $endpoint.Value.Authentication.AccessToken = $targetPat
         }
 
         # This replacement only occurs when there is an existing process field named 'ReflectedWorkItemId' which does not have a reference name of Custom.RefelctedWorkItemId
