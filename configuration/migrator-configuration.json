@@ -356,7 +356,7 @@
       "WorkItemTypeMappingTool": {
         "Enabled": "True",
         "Mappings": {
-          "Source Work Item Type Name": "Target Work Item Type Name"
+          "Product Backlog Item": "User Story"
         }
       },
       "TfsAttachmentTool": {
