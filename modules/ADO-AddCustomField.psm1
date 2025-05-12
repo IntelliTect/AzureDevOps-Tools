@@ -139,7 +139,7 @@ function Get-ProcessWorkItemTypes {
         [Parameter (Mandatory = $TRUE)]
         [String]$LocalProcessId
     )
-    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=7.0"
+    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=4.1-preview.1"
 
     $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
 
