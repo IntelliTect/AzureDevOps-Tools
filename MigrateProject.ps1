@@ -167,6 +167,7 @@ $DesiredProcessFieldResponse = Invoke-RestMethod -Uri $url -Headers $targetHeade
 $AlternateNameFieldForReflectedWorkItemId = ""
 if($null -ne $response -AND $DesiredProcessFieldResponse.referenceName -ne "Custom.ReflectedWorkItemId") {
     $AlternateNameFieldForReflectedWorkItemId = $DesiredProcessFieldResponse.referenceName
+    Write-Log "Found existing RefelectedWorkItemId field to be configured in migration-configuration.json"
 }
 
 foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties) {
@@ -184,6 +185,7 @@ foreach($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Prop
         $endpoint.Value.Authentication.AccessToken = $targetPat
         # This replacement only occurs when there is an existing process field named 'ReflectedWorkItemId' which does not have a reference name of Custom.RefelctedWorkItemId
         if(-not [string]::IsNullOrEmpty($AlternateNameFieldForReflectedWorkItemId)){
+            Write-Log "Doing ReflectedWorkItemId Replacement"
             $endpoint.Value.ReflectedWorkItemIdField = $AlternateNameFieldForReflectedWorkItemId
         }
     }  
