@@ -45,11 +45,7 @@ function Start-ADO_AddCustomField {
         [String]$ProjectName,
 
         [Parameter (Mandatory = $FALSE)] 
-        [String]$FieldDefaultValue,
-
-        #Comma Seperated
-        [Parameter (Mandatory = $FALSE)] 
-        [String]$WorkItemTypesToAddField
+        [String]$FieldDefaultValue
     )
     if ($PSCmdlet.ShouldProcess(
             "Project $OrgName/$ProjectName",
@@ -97,14 +93,6 @@ function Start-ADO_AddCustomField {
             -LocalOrgName $OrgName `
             -LocalHeaders $Headers `
             -LocalProcessId $ProcessId
-        
-        if($NULL -ne $WorkItemTypesToAddField) {
-            $desiredTypeNames = $WorkItemTypesToAddField -split ","
-            $queriedTypeNames = $workitemTypes | Select-Object -Property name 
-            Write-Log "Queried work item types: $($queriedTypeNames -join ',')"
-            Write-Log "Desired work item type names: $desiredTypeNames"
-            $workitemTypes = $workitemTypes | Where-Object {$desiredTypeNames -contains $_.name}
-        }
 
         if ($workitemTypes) {
             foreach ($workitemType in $workitemTypes) {
