@@ -269,7 +269,8 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
             $SkipMigrateBuildPipelines -and  `
             $SkipMigrateReleasePipelines -and  `
             $SkipMigrateVariableGroups -and  `
-            $SkipMigrateTaskGroups
+            $SkipMigrateTaskGroups -and `
+            $SkipMigrateServiceConnections
         )
 
         if(($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions) -or (!$SkipAzureDevOpsPipelineProcessorOptions)){
