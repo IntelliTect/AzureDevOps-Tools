@@ -307,7 +307,8 @@ $SkipAzureDevOpsMigrationTool = (  `
     $SkipMigrateReleasePipelines -and  `
     $SkipMigrateTaskGroups -and  `
     $SkipMigrateVariableGroups -and  `
-    $SkipMigrateWorkItems
+    $SkipMigrateWorkItems -and `
+    $SkipMigrateServiceConnections
 )
 
 
