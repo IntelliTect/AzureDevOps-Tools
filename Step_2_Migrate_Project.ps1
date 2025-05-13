@@ -22,4 +22,5 @@ Write-Host " "
 -SkipMigrateVariableGroups $WhatIf `
 -SkipMigrateBuildPipelines $WhatIf `
 -SkipMigrateReleasePipelines $WhatIf `
+-SkipMigrateServiceConnections $WhatIf `
 -SkipMigrateTaskGroups $WhatIf

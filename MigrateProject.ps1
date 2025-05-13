@@ -251,6 +251,9 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
             $migratingPipeline = $TRUE
             $SkipMigrateBuildPipelines = $FALSE
         }
+        if($processor.MigrateReleasePipelines -ne !$SkipMigrateServiceConnections){
+            $processor.MigrateReleasePipelines = !$SkipMigrateServiceConnections
+        }
 
         # MigrateTaskGroups
         if(($processor.MigrateTaskGroups -ne !$SkipMigrateTaskGroups)){
@@ -325,6 +328,7 @@ Write-Host $configString
 # ========================================
 # ========== Migrate Project =============
 #region ==================================
+# temporaily set -SkipMigrateServiceConnections to true instead of $SkipMigrateServiceConnections to test martin's tool migration of service connections
 Start-ADOProjectMigration `
     -SourceOrgName $configuration.SourceProject.OrgName `
     -SourceProjectName $SourceProjectName `
@@ -345,7 +349,7 @@ Start-ADOProjectMigration `
     -SkipMigrateServiceHooks $SkipMigrateServiceHooks `
     -SkipMigratePolicies $SkipMigratePolicies `
     -SkipMigrateDashboards $SkipMigrateDashboards `
-    -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
+    -SkipMigrateServiceConnections $TRUE `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
     -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
