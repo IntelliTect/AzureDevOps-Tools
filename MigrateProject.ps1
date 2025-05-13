@@ -251,8 +251,8 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
             $migratingPipeline = $TRUE
             $SkipMigrateBuildPipelines = $FALSE
         }
-        if($processor.MigrateReleasePipelines -ne !$SkipMigrateServiceConnections){
-            $processor.MigrateReleasePipelines = !$SkipMigrateServiceConnections
+        if($processor.MigrateServiceConnections -ne !$SkipMigrateServiceConnections){
+            $processor.MigrateServiceConnections = !$SkipMigrateServiceConnections
         }
 
         # MigrateTaskGroups
