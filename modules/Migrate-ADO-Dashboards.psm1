@@ -101,10 +101,13 @@ function Start-ADODashboardsMigration {
         Write-Log -Message "--- Project Dashboards: ---"
         ForEach ($dashboard in $projectDashboards) { 
             Write-Log -Message "dashboard: $($dashboard.name) dashboard scope: $($dashboard.dashboardScope)"
+            $MultipleDashboardsByName = $false
+
 
             $targetDashboard = $targetDashboards | Where-Object { ($_.Name -eq $dashboard.name.Trim()) -and ($_.Position -eq $dashboard.position) }
             if($targetDashboard.Count -gt 1){
                 Write-Log -Message "Multiple Dashboards found with name [$($targetDashboard.Name)] in target, widgets will need to be manually migrated or ensure that dashboard names are unique.. "
+                $MultipleDashboardsByName = $true
             }
             $fullSourceDashboard = Get-Dashboard -orgName $SourceOrgName -projectName $sourceProjectName -dashboardId $dashboard.Id -headers $SourceHeaders
 
@@ -116,18 +119,34 @@ function Start-ADODashboardsMigration {
             
             if ($null -ine $targetDashboard) {
                 Write-Log -Message "Dashboard [$($targetDashboard.Name) ($($targetDashboard.Id))] already exists in target.. "
-
-                $fullTargetDashboard = Get-Dashboard -orgName $TargetOrgName -projectName $TargetProjectName -dashboardId $targetDashboard.Id -headers $TargetHeaders
-                
-                # See if the widgets for the Dashboard are migrated.. 
-                if($fullTargetDashboard.Widgets.Count -lt $fullSourceDashboard.Widgets.Count) {
-                    Write-Log -Message "Mapping Dashboard Widget query Ids for [$($dashboard.Name)].. "
+                if(!$MultipleDashboardsByName) {
+                    $fullTargetDashboard = Get-Dashboard -orgName $TargetOrgName -projectName $TargetProjectName -dashboardId $targetDashboard.Id -headers $TargetHeaders
                     
-                    $fullTargetDashboard.Widgets = $fullSourceDashboard.Widgets
-                    Write-Log -Message "Updating Dashboard Widgets for [$($fullTargetDashboard.Name)] in target.. "
-                    Edit-Dashboard -orgName $targetOrgName -projectName $TargetProjectName -headers $TargetHeaders -dashboard $fullTargetDashboard
+                    # See if the widgets for the Dashboard are migrated.. 
+                    if($fullTargetDashboard.Widgets.Count -lt $fullSourceDashboard.Widgets.Count) {
+                        Write-Log -Message "Mapping Dashboard Widget query Ids for [$($dashboard.Name)].. "
+                        
+                        $fullTargetDashboard.Widgets = $fullSourceDashboard.Widgets
+                        Write-Log -Message "Updating Dashboard Widgets for [$($fullTargetDashboard.Name)] in target.. "
+                        Edit-Dashboard -orgName $targetOrgName -projectName $TargetProjectName -headers $TargetHeaders -dashboard $fullTargetDashboard
+                    }
+                    continue
+                } else {
+                    # $TargetDashboard contains multiple dashboards with the same name since we have entered this else block
+                    foreach ($uniqueTargetDashboard in $targetDashboard) {
+                        $fullTargetDashboard = Get-Dashboard -orgName $TargetOrgName -projectName $TargetProjectName -dashboardId $uniqueTargetDashboard.Id -headers $TargetHeaders }
+                        $sourceDashboardIndex = $targetDashboard.IndexOf($uniqueTargetDashboard)
+                        $matchingSourceDashboards  = $projectDashboards | Where-Object { ($_.Name -eq $uniqueTargetDashboard.name.Trim()) -and ($_.Position -eq $uniqueTargetDashboard.position) }
+                        $fullSourceDashboard  =  Get-Dashboard -orgName $SourceOrgName -projectName $SourceProjectName -dashboardId $matchingSourceDashboards[$sourceDashboardIndex].Id -headers $SourceHeaders }
+
+                        if($fullTargetDashboard.Widgets.Count -lt $fullSourceDashboard.Widgets.Count) {
+                            Write-Log -Message "Mapping Dashboard Widget query Ids for [$($fullTargetDashboard.Name)].. "
+                            $fullTargetDashboard.Widgets = $fullSourceDashboard.Widgets
+                            Write-Log -Message "Updating Dashboard Widgets for [$($fullTargetDashboard.Name)] with Source Dashboard Id [$($fullTargetDashboard.Id)] in target dashboard with Id [$($fullSourceDashboard.Id)] "
+                            Edit-Dashboard -orgName $targetOrgName -projectName $TargetProjectName -headers $TargetHeaders -dashboard $fullTargetDashboard
+                        }
+                    }
                 }
-                continue
             }
             
             try {
