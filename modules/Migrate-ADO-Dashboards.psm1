@@ -142,7 +142,8 @@ function Start-ADODashboardsMigration {
                         $fullTargetDashboard.Widgets = $fullSourceDashboard.Widgets
                         Write-Log -Message "Updating Dashboard Widgets for [$($fullTargetDashboard.Name)] with Source Dashboard Id [$($fullSourceDashboard.Id)] in target dashboard with Id [$($fullTargetDashboard.Id)] "
                         Edit-Dashboard -orgName $targetOrgName -projectName $TargetProjectName -headers $TargetHeaders -dashboard $fullTargetDashboard
-                    }                    
+                    }  
+                    continue             
                 }
             }
             
