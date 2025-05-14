@@ -62,7 +62,9 @@ function Start-ADOServiceConnectionsMigration {
                 $endpoint.data.azureSpnPermissions = $null
                 $endpoint.data.spnObjectId = $null
                 $endpoint.data.appObjectId = $null
-                $endpoint.authorization.parameters.serviceprincipalid = $NULL
+                if($endpoint.authorization.scheme -ne "WorkloadIdentityFederation") {
+                    $endpoint.authorization.parameters.serviceprincipalid = $NULL
+                }
                 if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
                     $endpoint.authorization.parameters.authenticationType = $NULL
                 }
@@ -73,10 +75,23 @@ function Start-ADOServiceConnectionsMigration {
                 $parameters = @{
                     "accesstoken" = "0123456789" 
                 }
+                Write-Log "Service Connection $($endpoint.name) requires configuration post-migration with a valid GitHub access token."
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
                 # Azurerm Service Connection types will need to be edited after migration to adhere to org/project naming conventions.
-                if($endpoint.data.creationMode -eq "Automatic") {
+                if($endpoint.authorization.scheme -eq "WorkloadIdentityFederation") {
+                    $endpoint.authorization.parameters = @{
+                        "tenantid" = $endpoint.authorization.tenantId,
+                        "serviceprincipalid" = $endpoint.authorization.serviceprincipalId
+                    }
+                }
+                elseif($endpoint.authorization.scheme -eq "PublishProfile") {
+                    $endpoint.authorization.parameters = @(
+                        "tenantid" = $endpoint.authorization.tenantId,
+                        "resourceId" = $endpoint.authorization.resourceId
+                    )
+                }
+                elseif($endpoint.data.creationMode -eq "Automatic") {
                     if($null -ne $endpoint.data.azureSpnRoleAssignmentId){
                         $endpoint.data.azureSpnRoleAssignmentId = $null
                     }
@@ -102,20 +117,29 @@ function Start-ADOServiceConnectionsMigration {
                 $parameters = @{
                     "apitoken" = "0123456789" 
                 }
+                Write-Log "Service Connection $($endpoint.name) requires configuration post-migration with a valid API token."
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "stormrunner") {
                  $endpoint.authorization.parameters.username = "abcdefghij"
                  $endpoint.authorization.parameters | Add-Member -NotePropertyName password -NotePropertyValue "0123456789" 
+                 Write-Log "Service Connection $($endpoint.name) requires configuration post-migration with a valid username and password."
+
             } elseif ($endpoint.type -eq "OctopusEndpoint") {
                 $parameters = @{
                     "apitoken" = "0123456789" 
                 }
+                Write-Log "Service Connection $($endpoint.name) requires configuration post-migration with an API token."
+
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "sonarqube") {
                 $parameters = @{
                     "username" = "abcdefghij"
                 }
+                Write-Log "Service Connection $($endpoint.name) requires configuration post-migration with a username."
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+            }
+            else {
+                Write-Log "!!! Service connection type [$($endpoint.type)] not recognized in Start-ADOServiceConnectionMigration"
             }
 
             try {
