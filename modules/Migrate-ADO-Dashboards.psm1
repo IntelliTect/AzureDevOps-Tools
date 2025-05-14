@@ -136,7 +136,6 @@ function Start-ADODashboardsMigration {
                     $matchingSourceDashboards = $projectDashboards | Where-Object { ($_.Name -eq $dashboard.name.Trim()) -and ($_.Position -eq $dashboard.position) }
                     $sourceDashboardIndex = $matchingSourceDashboards.IndexOf($dashboard)
                     $fullTargetDashboard = Get-Dashboard -orgName $TargetOrgName -projectName $TargetProjectName -dashboardId $($targetDashboard[$sourceDashboardIndex].Id) -headers $TargetHeaders 
-                    $fullSourceDashboard  =  Get-Dashboard -orgName $SourceOrgName -projectName $SourceProjectName -dashboardId $($targetDashboard[$sourceDashboardIndex].Id) -headers $SourceHeaders 
                 
                     if($fullTargetDashboard.Widgets.Count -lt $fullSourceDashboard.Widgets.Count) {
                         Write-Log -Message "Mapping Dashboard Widget query Ids for [$($fullTargetDashboard.Name)].. "
