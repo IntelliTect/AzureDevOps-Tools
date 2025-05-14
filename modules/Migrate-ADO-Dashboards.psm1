@@ -133,19 +133,17 @@ function Start-ADODashboardsMigration {
                     continue
                 } else {
                     # $TargetDashboard contains multiple dashboards with the same name since we have entered this else block
-                    foreach ($uniqueTargetDashboard in $targetDashboard) {
-                        $fullTargetDashboard = Get-Dashboard -orgName $TargetOrgName -projectName $TargetProjectName -dashboardId $uniqueTargetDashboard.Id -headers $TargetHeaders }
-                        $sourceDashboardIndex = $targetDashboard.IndexOf($uniqueTargetDashboard)
-                        $matchingSourceDashboards  = $projectDashboards | Where-Object { ($_.Name -eq $uniqueTargetDashboard.name.Trim()) -and ($_.Position -eq $uniqueTargetDashboard.position) }
-                        $fullSourceDashboard  =  Get-Dashboard -orgName $SourceOrgName -projectName $SourceProjectName -dashboardId $matchingSourceDashboards[$sourceDashboardIndex].Id -headers $SourceHeaders }
-
-                        if($fullTargetDashboard.Widgets.Count -lt $fullSourceDashboard.Widgets.Count) {
-                            Write-Log -Message "Mapping Dashboard Widget query Ids for [$($fullTargetDashboard.Name)].. "
-                            $fullTargetDashboard.Widgets = $fullSourceDashboard.Widgets
-                            Write-Log -Message "Updating Dashboard Widgets for [$($fullTargetDashboard.Name)] with Source Dashboard Id [$($fullTargetDashboard.Id)] in target dashboard with Id [$($fullSourceDashboard.Id)] "
-                            Edit-Dashboard -orgName $targetOrgName -projectName $TargetProjectName -headers $TargetHeaders -dashboard $fullTargetDashboard
-                        }
-                    }
+                    $matchingSourceDashboards = $projectDashboards | Where-Object { ($_.Name -eq $dashboard.name.Trim()) -and ($_.Position -eq $dashboard.position) }
+                    $sourceDashboardIndex = $matchingSourceDashboards.IndexOf($dashboard)
+                    $fullTargetDashboard = Get-Dashboard -orgName $TargetOrgName -projectName $TargetProjectName -dashboardId $($targetDashboard[$sourceDashboardIndex].Id) -headers $TargetHeaders 
+                    $fullSourceDashboard  =  Get-Dashboard -orgName $SourceOrgName -projectName $SourceProjectName -dashboardId $($targetDashboard[$sourceDashboardIndex].Id) -headers $SourceHeaders 
+                
+                    if($fullTargetDashboard.Widgets.Count -lt $fullSourceDashboard.Widgets.Count) {
+                        Write-Log -Message "Mapping Dashboard Widget query Ids for [$($fullTargetDashboard.Name)].. "
+                        $fullTargetDashboard.Widgets = $fullSourceDashboard.Widgets
+                        Write-Log -Message "Updating Dashboard Widgets for [$($fullTargetDashboard.Name)] with Source Dashboard Id [$($fullSourceDashboard.Id)] in target dashboard with Id [$($fullTargetDashboard.Id)] "
+                        Edit-Dashboard -orgName $targetOrgName -projectName $TargetProjectName -headers $TargetHeaders -dashboard $fullTargetDashboard
+                    }                    
                 }
             }
             
