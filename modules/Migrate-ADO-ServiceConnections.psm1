@@ -84,14 +84,22 @@ function Start-ADOServiceConnectionsMigration {
                         "tenantid" = $endpoint.authorization.tenantId
                         "serviceprincipalid" = $endpoint.authorization.serviceprincipalId
                     }
-                    $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+                    if($endpoint.authorization.parameters -eq $null){
+                        $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+                    } else {
+                        $endpoint.authorization.parameters = $parameters
+                    }
                 }
                 elseif($endpoint.authorization.scheme -eq "PublishProfile") {
                     $parameters = @{
                         "tenantid" = $endpoint.authorization.tenantId
                         "resourceId" = $endpoint.authorization.resourceId
                     }
-                    $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+                    if($endpoint.authorization.parameters -eq $null){
+                        $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
+                    } else {
+                        $endpoint.authorization.parameters = $parameters
+                    }
                 } # The authorization scheme is assumed to be SerivcePrinciapl in the below elseifs
                 elseif($endpoint.data.creationMode -eq "Automatic") {
                     if($null -ne $endpoint.data.azureSpnRoleAssignmentId){
