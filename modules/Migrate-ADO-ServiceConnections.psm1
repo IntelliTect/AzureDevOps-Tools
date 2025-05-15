@@ -84,6 +84,8 @@ function Start-ADOServiceConnectionsMigration {
                         "tenantid" = $endpoint.authorization.tenantId
                         "serviceprincipalid" = $endpoint.authorization.serviceprincipalId
                     }
+                    Write-Log "Endpoint: $($endpoint.name)"
+                    Write-Log "Auth params: $($parameters)"
                     if($endpoint.authorization.parameters -eq $null){
                         $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
                     } else {
@@ -95,6 +97,8 @@ function Start-ADOServiceConnectionsMigration {
                         "tenantid" = $endpoint.authorization.tenantId
                         "resourceId" = $endpoint.authorization.resourceId
                     }
+                    Write-Log "Endpoint: $($endpoint.name)"
+                    Write-Log "Auth params: $($parameters)"
                     if($endpoint.authorization.parameters -eq $null){
                         $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
                     } else {
