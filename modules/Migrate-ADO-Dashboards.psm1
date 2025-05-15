@@ -106,7 +106,7 @@ function Start-ADODashboardsMigration {
 
             $targetDashboard = $targetDashboards | Where-Object { ($_.Name -eq $dashboard.name.Trim()) -and ($_.Position -eq $dashboard.position) }
             if($targetDashboard.Count -gt 1){
-                Write-Log -Message "Multiple Dashboards found with name [$($targetDashboard.Name)] in target, widgets will need to be manually migrated or ensure that dashboard names are unique.. "
+                Write-Log -Message "Multiple Dashboards found with name [$($targetDashboard.Name)] in target. "
                 $MultipleDashboardsByName = $true
             }
             $fullSourceDashboard = Get-Dashboard -orgName $SourceOrgName -projectName $sourceProjectName -dashboardId $dashboard.Id -headers $SourceHeaders

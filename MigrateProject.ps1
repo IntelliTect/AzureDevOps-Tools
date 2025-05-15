@@ -251,9 +251,6 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
             $migratingPipeline = $TRUE
             $SkipMigrateBuildPipelines = $FALSE
         }
-        if($processor.MigrateServiceConnections -ne !$SkipMigrateServiceConnections){
-            $processor.MigrateServiceConnections = !$SkipMigrateServiceConnections
-        }
 
         # MigrateTaskGroups
         if(($processor.MigrateTaskGroups -ne !$SkipMigrateTaskGroups)){
@@ -269,8 +266,7 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
             $SkipMigrateBuildPipelines -and  `
             $SkipMigrateReleasePipelines -and  `
             $SkipMigrateVariableGroups -and  `
-            $SkipMigrateTaskGroups -and `
-            $SkipMigrateServiceConnections
+            $SkipMigrateTaskGroups
         )
 
         if(($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions) -or (!$SkipAzureDevOpsPipelineProcessorOptions)){
@@ -307,8 +303,7 @@ $SkipAzureDevOpsMigrationTool = (  `
     $SkipMigrateReleasePipelines -and  `
     $SkipMigrateTaskGroups -and  `
     $SkipMigrateVariableGroups -and  `
-    $SkipMigrateWorkItems -and `
-    $SkipMigrateServiceConnections
+    $SkipMigrateWorkItems
 )
 
 
@@ -330,7 +325,6 @@ Write-Host $configString
 # ========================================
 # ========== Migrate Project =============
 #region ==================================
-# temporaily set -SkipMigrateServiceConnections to true instead of $SkipMigrateServiceConnections to test martin's tool migration of service connections
 Start-ADOProjectMigration `
     -SourceOrgName $configuration.SourceProject.OrgName `
     -SourceProjectName $SourceProjectName `
@@ -351,7 +345,7 @@ Start-ADOProjectMigration `
     -SkipMigrateServiceHooks $SkipMigrateServiceHooks `
     -SkipMigratePolicies $SkipMigratePolicies `
     -SkipMigrateDashboards $SkipMigrateDashboards `
-    -SkipMigrateServiceConnections $TRUE `
+    -SkipMigrateServiceConnections $SkipMigrateServiceConnections `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
     -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
