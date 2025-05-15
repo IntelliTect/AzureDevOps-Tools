@@ -81,14 +81,14 @@ function Start-ADOServiceConnectionsMigration {
                 # Azurerm Service Connection types will need to be edited after migration to adhere to org/project naming conventions.
                 if($endpoint.authorization.scheme -eq "WorkloadIdentityFederation") {
                     $parameters = @{
-                        "tenantid" = $endpoint.authorization.tenantId,
+                        "tenantid" = $endpoint.authorization.tenantId
                         "serviceprincipalid" = $endpoint.authorization.serviceprincipalId
                     }
                     $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
                 }
                 elseif($endpoint.authorization.scheme -eq "PublishProfile") {
                     $parameters = @{
-                        "tenantid" = $endpoint.authorization.tenantId,
+                        "tenantid" = $endpoint.authorization.tenantId
                         "resourceId" = $endpoint.authorization.resourceId
                     }
                     $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
