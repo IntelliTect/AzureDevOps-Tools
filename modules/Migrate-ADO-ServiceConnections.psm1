@@ -24,7 +24,7 @@ function Start-ADOServiceConnectionsMigration {
         $targetProject = Get-ADOProjects -OrgName $TargetOrgName -ProjectName $TargetProjectName -Headers $TargetHeaders 
         
         $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
-        $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $sourceHeaders
+        $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $targetHeaders
 
         $tenantId = "354f10a5-0782-4663-8897-8b60747eb8bc" #Assurant Specifc
         
@@ -64,9 +64,7 @@ function Start-ADOServiceConnectionsMigration {
                 $endpoint.data.azureSpnPermissions = $null
                 $endpoint.data.spnObjectId = $null
                 $endpoint.data.appObjectId = $null
-                if($endpoint.authorization.scheme -ne "WorkloadIdentityFederation") {
-                    $endpoint.authorization.parameters.serviceprincipalid = $NULL
-                }
+                
                 if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
                     $endpoint.authorization.parameters.authenticationType = $NULL
                 }
@@ -81,18 +79,18 @@ function Start-ADOServiceConnectionsMigration {
                 $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
             } elseif ($endpoint.type -eq "azurerm") {
                 # Azurerm Service Connection types will need to be edited after migration to adhere to org/project naming conventions.
-                if($endpoint.authorization.scheme -eq "WorkloadIdentityFederation") {
+                if($endpoint.authorization.scheme -eq "WorkloadIdentityFederation" -OR $endpoint.authorization.scheme -eq "ServicePrincipal") {
                     $parameters = @{
-                        "tenantid" = $tenantId
-                        "serviceprincipalid" = $endpoint.authorization.serviceprincipalId
+                        "tenantid" = $endpoint.authorization.parameters.tenantid
+                        "serviceprincipalid" = $endpoint.authorization.parameters.serviceprincipalId
                     }
-                    Write-Log "Endpoint: $($endpoint.name)"
-                    Write-Log "TenantID: $($parameters.tenantId)"
                     if($endpoint.authorization.parameters -eq $null){
                         $endpoint.authorization | Add-Member -NotePropertyName parameters -NotePropertyValue $parameters
                     } else {
                         $endpoint.authorization.parameters = $parameters
                     }
+                    $endpoint.data.CreationMode = "Manual"
+                    $endpoint.authorization.scheme = "WorkloadIdentityFederation"
                 }
                 elseif($endpoint.authorization.scheme -eq "PublishProfile") {
                     $parameters = @{
@@ -106,28 +104,7 @@ function Start-ADOServiceConnectionsMigration {
                     } else {
                         $endpoint.authorization.parameters = $parameters
                     }
-                } # The authorization scheme is assumed to be SerivcePrinciapl in the below elseifs
-                elseif($endpoint.data.creationMode -eq "Automatic") {
-                    if($null -ne $endpoint.data.azureSpnRoleAssignmentId){
-                        $endpoint.data.azureSpnRoleAssignmentId = $null
-                    }
-                    $endpoint.data.azureSpnPermissions = $null
-                    $endpoint.data.spnObjectId = $null
-                    $endpoint.data.appObjectId = $null
-                    $endpoint.authorization.parameters.serviceprincipalid = $NULL
-                    if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
-                        $endpoint.authorization.parameters.authenticationType = $NULL
-                    }
-                } elseif($endpoint.data.creationMode -eq "Manual") {
-                    Write-Log -Message "Service endpoints of type `"azurerm`" with a creationMode of `"Manual`" cannot be migrated as is .. "
-                    Write-Log -Message "setting the  creationMode to `"Automatic`", this will need to be updated manually after migration.. "
-
-                    $endpoint.data.creationMode = "Automatic"
-                    $endpoint.authorization.parameters.serviceprincipalid = $NULL
-                    if($NULL -ne $endpoint.authorization.parameters.authenticationType) {
-                        $endpoint.authorization.parameters.authenticationType = $NULL
-                    }
-                }
+                } 
 
             } elseif ($endpoint.type -eq "externaltfs") {
                 $parameters = @{
