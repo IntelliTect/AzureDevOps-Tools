@@ -25,8 +25,6 @@ function Start-ADOServiceConnectionsMigration {
         
         $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
         $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $targetHeaders
-
-        $tenantId = "354f10a5-0782-4663-8897-8b60747eb8bc" #Assurant Specifc
         
         #$sourceEndpoints | ConvertTo-Json -Depth 10 | Out-File -FilePath "DEBUG_endpoints.json"
         

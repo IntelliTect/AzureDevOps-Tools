@@ -29,6 +29,7 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -160,6 +161,14 @@ function Start-ADOProjectMigration {
         -WhatIf:$SkipMigrateServiceConnections
         #endregion
 
+        Start-ADOVariableGroupsMigration `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -WhatIf:$SkipMigrateServiceConnections
 
          # ========================================
         # ===== Add Refelcted WorkItem ID to Test Suites, Plans, and Cases ======

@@ -350,7 +350,8 @@ Start-ADOProjectMigration `
     -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers `
-    -SkipAddReflectedWorkItemIdField $SkipAddReflectedWorkItemIdField
+    -SkipAddReflectedWorkItemIdField $SkipAddReflectedWorkItemIdField `
+    -SkipMigrateVariableGroups $SkipMigrateVariableGroups 
 #endregion
 
 
