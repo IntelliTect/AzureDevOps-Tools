@@ -28,7 +28,7 @@ function Start-ADOProjectMigration {
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE
+        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE,
         [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE
     )
     if ($PSCmdlet.ShouldProcess(
