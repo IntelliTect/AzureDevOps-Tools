@@ -125,7 +125,7 @@ jobs:
               "Artifacts" 
                   { & .\MigrateProject.ps1 -SkipMigrateArtifacts $WhatIf }
               "Build Pipelines" 
-                  { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf }  
+                  { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf -SkipMigrateTaskGroups $WhatIf  }  
               "Build Queues & Build Environments" 
                   { & .\MigrateProject.ps1 -SkipMigrateBuildQueues $WhatIf }
               "Dashboards" 
