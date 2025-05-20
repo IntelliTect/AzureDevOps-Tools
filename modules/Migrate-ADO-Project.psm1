@@ -168,7 +168,7 @@ function Start-ADOProjectMigration {
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateServiceConnections
+        -WhatIf:$SkipMigrateVariableGroups
 
          # ========================================
         # ===== Add Refelcted WorkItem ID to Test Suites, Plans, and Cases ======
