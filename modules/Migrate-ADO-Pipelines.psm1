@@ -26,7 +26,7 @@ function Get-Pipelines {
     }
 }
 
-function Migrate-ClassicPipelines {
+function Migrate-ClassicBuildPipelines {
     [CmdletBinding(SupportsShouldProcess)]
    param(
         [Parameter (Mandatory = $TRUE)]
@@ -64,6 +64,7 @@ function Migrate-ClassicPipelines {
         $targetAgentPools = Invoke-RestMethod -Method GET -uri $targetAgentPoolsUrl -Headers $TargetHeaders
 
         $pipelinesToMigrate = $sourcePipelines.value | Where-Object { $targetPipelineNames -notcontains $_.name }
+        $names = $pipelinesToMigrate | Select-Object -ExpandProperty name
         $CreatedPipelinesCount = 0 
         $FailedPipelinesCount = 0
         foreach ($pipeline in $pipelinesToMigrate) {
@@ -80,6 +81,7 @@ function Migrate-ClassicPipelines {
                     $ServiceConnectionIdforRunningFortifyScan = $step.inputs.cloudScanfortifyServerName
                     $ExternalEndpointsServiceConnectionIds = $step.inputs.externalEndpoints -split ","
                     $AzureServiceConnectionId = $step.inputs.azureSubscription
+                    $ConnectedServiceNameARMServiceConnectionId = $step.inputs.connectedServiceNameARM
                     if($ServiceConnectionIdforRunningFortifyScan -ne $null) {
                         
                         $serviceConnectionName = $sourceEndpoints | Where-Object { $_.id -eq $ServiceConnectionIdforRunningFortifyScan } | Select-Object -ExpandProperty name
@@ -110,11 +112,19 @@ function Migrate-ClassicPipelines {
                         if($MigrateOnlyProblematicPipelines){
                             $CreatePipeline = $true
                         }
-                    }               
+                    }
+                    if($ConnectedServiceNameARMServiceConnectionId -ne $null) {
+                        $serviceConnectionName = $sourceEndpoints | Where-Object { $_.id -eq $ConnectedServiceNameARMServiceConnectionId } | Select-Object -ExpandProperty name
+                        $targetServiceConnectionId = $targetEndpoints | Where-Object { $_.name -eq $serviceConnectionName } | Select-Object -ExpandProperty id
+                        $step.inputs.connectedServiceNameARM = $targetServiceConnectionId
+                        if($MigrateOnlyProblematicPipelines){
+                            $CreatePipeline = $true
+                        }
+                    }          
                 }
             }
             if(!$MigrateOnlyProblematicPipelines -OR $CreatePipeline -eq $true) {
-                Write-Log "Creating Pipeline $($definition.name) using PowerShell due to hardcoded a harcoded service connection id inputs"
+                Write-Log "Creating Pipeline $($definition.name) using PowerShell due to hardcoded a harcoded service connection id input"
                 $repoName = Get-Repo -ProjectName $SourceProjectName -OrgName $SourceOrgName -Headers $SourceHeaders -repoId $($definition.repository.id) | Select-Object -ExpandProperty name
                 $targetRepos = Invoke-RestMethod -Uri "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/git/repositories?api-version=7.1-preview.1" -Headers $TargetHeaders
                 $targetRepo = $targetRepos | Where-Object {$_.name -eq $repoName }
@@ -156,8 +166,8 @@ function Migrate-ClassicPipelines {
             }            
         }
 
-        Write-Log "Successfully migrated $CreatedPipelinesCount classic pipeline(s) with hardcoded service connection id inputs"
-        Write-Log "Failed to migrate $FailedPipelinesCount classic pipeline(s) with hardcoded service connection id inputs"
+        Write-Log "Successfully migrated $CreatedPipelinesCount classic pipeline(s) with a hardcoded service connection id input"
+        Write-Log "Failed to migrate $FailedPipelinesCount classic pipeline(s) with a hardcoded service connection id input"
     }
 }
 

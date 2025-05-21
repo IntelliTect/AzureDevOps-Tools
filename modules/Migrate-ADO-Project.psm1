@@ -187,7 +187,7 @@ function Start-ADOProjectMigration {
         # ===== Add Classic Pipelines (which have service connection IDs as inputs) ======
         #   Migrate-ADO-ServiceConnections.psm1
         #region ==================================
-        Migrate-ClassicPipelines `
+        Migrate-ClassicBuildPipelines `
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
