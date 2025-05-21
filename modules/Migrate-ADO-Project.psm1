@@ -170,7 +170,7 @@ function Start-ADOProjectMigration {
         -TargetHeaders $targetHeaders `
         -WhatIf:$SkipMigrateVariableGroups
 
-         # ========================================
+        # ========================================
         # ===== Add Refelcted WorkItem ID to Test Suites, Plans, and Cases ======
         #   Migrate-ADO-ServiceConnections.psm1
         #region ==================================
@@ -180,6 +180,21 @@ function Start-ADOProjectMigration {
         -OrgName $TargetOrgName `
         -ProjectName $TargetProjectName `
         -WhatIf:$SkipAddReflectedWorkItemIdField
+
+        #endregion
+
+        # ========================================
+        # ===== Add Classic Pipelines (which have service connection IDs as inputs) ======
+        #   Migrate-ADO-ServiceConnections.psm1
+        #region ==================================
+        Migrate-ClassicPipelines `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -SourceHeaders $sourceHeaders `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -TargetHeaders $targetHeaders `
+        -WhatIf:$SkipMigrateBuildPipelines
 
         #endregion
 

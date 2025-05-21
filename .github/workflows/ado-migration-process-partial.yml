@@ -29,7 +29,7 @@ on:
           - Select an area to migrate
           - Areas and Iterations
           - Artifacts
-          - Build Pipelines
+          - Build Pipelines & Task Groups
           - Build Queues & Build Environments
           - Dashboards
           - Delivery Plans
@@ -39,7 +39,6 @@ on:
           - Repositories
           - Service Connections
           - Service Hooks
-          - Task Groups
           - Teams
           - Test Configurations
           - Test Plans and Suites
@@ -150,8 +149,6 @@ jobs:
                   { & .\MigrateProject.ps1 -SkipMigrateServiceConnections $WhatIf }
               "Service Hooks" 
                   { & .\MigrateProject.ps1 -SkipMigrateServiceHooks $WhatIf }
-              "Task Groups"
-                  { & .\MigrateProject.ps1 -SkipMigrateTaskGroups $WhatIf }
               "Teams"
                   { & .\MigrateProject.ps1 -SkipMigrateTeams $WhatIf } 
               "Test Configurations" 
