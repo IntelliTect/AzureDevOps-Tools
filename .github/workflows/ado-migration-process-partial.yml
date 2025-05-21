@@ -123,7 +123,7 @@ jobs:
                   { & .\MigrateProject.ps1 -SkipMigrateTfsAreaAndIterations $WhatIf }
               "Artifacts" 
                   { & .\MigrateProject.ps1 -SkipMigrateArtifacts $WhatIf }
-              "Build Pipelines" 
+              "Build Pipelines & Task Groups" 
                   { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf -SkipMigrateTaskGroups $WhatIf  }  
               "Build Queues & Build Environments" 
                   { & .\MigrateProject.ps1 -SkipMigrateBuildQueues $WhatIf }
