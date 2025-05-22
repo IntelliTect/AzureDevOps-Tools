@@ -61,18 +61,23 @@ function Start-ADOReleaseDefinitionsMigration {
             $releaseDetail._links.self.href = $releaseDetail._links.self.href.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
             $releaseDetail._links.web.href = $releaseDetail._links.web.href.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
            
-
-            $newPipeline = Create-ReleaseDefinition -ProjectName $targetProjectName -OrgName $targetOrgName -Headers $TargetHEaders -Definition $release -DefinitionDetail $releaseDetail
-             if($newPipeline -ne $null){
-                Write-Log "Created Release Pipeline $($newPipeline.name)"
-                $CreatedPipelinesCount += 1
-            } else {
+            try{
+                $newPipeline = Create-ReleaseDefinition -ProjectName $targetProjectName -OrgName $targetOrgName -Headers $TargetHEaders -Definition $release -DefinitionDetail $releaseDetail
+                if($newPipeline -ne $null){
+                    Write-Log "Created Release Pipeline $($newPipeline.name)"
+                    $CreatedPipelinesCount += 1
+                } else {
+                    Write-Log "Failed to create Release Pipeline $($definition.name)"
+                    $FailedPipelinesCount += 1
+                }  
+            } catch {
                 Write-Log "Failed to create Release Pipeline $($definition.name)"
                 $FailedPipelinesCount += 1
-            }   
+                Write-Error "$($_.Exception)"
+            }
         }
-        Write-Log "Successfully migrated $CreatedPipelinesCount classic pipeline(s) with a hardcoded service connection id input"
-        Write-Log "Failed to migrate $FailedPipelinesCount classic pipeline(s) with a hardcoded service connection id input"
+        Write-Log "Successfully migrated $CreatedPipelinesCount release pipeline(s)"
+        Write-Log "Failed to migrate $FailedPipelinesCount release pipeline(s)"
     }
 }
 
@@ -130,8 +135,6 @@ function Create-ReleaseDefinition {
     )
     $url = "https://vsrm.dev.azure.com/$OrgName/$ProjectName/_apis/release/definitions?api-version=7.1"
     $body = $DefinitionDetail | ConvertTo-Json -Depth 12
-
-    Write-Log $body
 
     $response = Invoke-WebRequest -Uri $url -Method POST -Header $Headers -Body $body -ContentType "application/json"
     return $response
