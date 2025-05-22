@@ -1,5 +1,5 @@
 Using Module "..\modules\Migrate-ADO-Common.psm1"
-Using Module "..\modules\Migrate-ADOServiceConnections.psm1"
+Using Module "..\modules\Migrate-ADO-ServiceConnections.psm1"
 
 function Get-Pipelines {
     [CmdletBinding(SupportsShouldProcess)]
