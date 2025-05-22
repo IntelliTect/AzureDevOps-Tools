@@ -1,3 +1,6 @@
+# Module Imports
+Import-Module "./modules/Migrate-ADO-Common.psm1"
+
 # Azure DevOps Migration Environment Variables
 # Create a file named env.ps1 in the same directory as this script and copy the content below into it.
 # You can use it to set up variables to run functions locally durring development.
