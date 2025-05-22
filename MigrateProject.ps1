@@ -351,7 +351,8 @@ Start-ADOProjectMigration `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
     -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers `
     -SkipAddReflectedWorkItemIdField $SkipAddReflectedWorkItemIdField `
-    -SkipMigrateVariableGroups $SkipMigrateVariableGroups 
+    -SkipMigrateVariableGroups $SkipMigrateVariableGroups `
+    -SkipMigrateBuildPipelines $SkipMigrateBuildPipelines 
 #endregion
 
 

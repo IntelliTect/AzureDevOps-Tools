@@ -1,3 +1,6 @@
+Using Module "..\modules\Migrate-ADO-Common.psm1"
+Using Module "..\modules\Migrate-ADOServiceConnections.psm1"
+
 function Get-Pipelines {
     [CmdletBinding(SupportsShouldProcess)]
     param(
@@ -26,7 +29,7 @@ function Get-Pipelines {
     }
 }
 
-function Migrate-ClassicBuildPipelines {
+function Start-MigrateClassicBuildPipelines {
     [CmdletBinding(SupportsShouldProcess)]
    param(
         [Parameter (Mandatory = $TRUE)]
@@ -51,6 +54,13 @@ function Migrate-ClassicBuildPipelines {
         [Boolean]$MigrateOnlyProblematicPipelines = $true
     )
     if ($PSCmdlet.ShouldProcess($ProjectName)) {
+        
+        Write-Log -Message ' '
+        Write-Log -Message '-------------------------------------------------------------'
+        Write-Log -Message '-- Migrate Classic Build Pipelines (Exception Cases Only) --'
+        Write-Log -Message '-------------------------------------------------------------'
+        Write-Log -Message ' '
+
         $sourcePipelinesUrl = "https://dev.azure.com/$SourceOrgName/$SourceProjectName/_apis/pipelines?api-version=7.2-preview.1"
         $sourcePipelines = Invoke-RestMethod -Uri $sourcePipelinesUrl -Headers $SourceHeaders -Method Get
         $targetPipelinesUrl = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/pipelines?api-version=7.2-preview.1"
@@ -161,11 +171,9 @@ function Migrate-ClassicBuildPipelines {
                 } else {
                     Write-Log "Failed to create Classic Build Pipeline $($definition.name)"
                     $FailedPipelinesCount += 1
-                }
-                
+                }                
             }            
         }
-
         Write-Log "Successfully migrated $CreatedPipelinesCount classic pipeline(s) with a hardcoded service connection id input"
         Write-Log "Failed to migrate $FailedPipelinesCount classic pipeline(s) with a hardcoded service connection id input"
     }
