@@ -320,14 +320,14 @@ function Start-ADOProjectMigration {
         # #endregion
 
          # ========================================
-        # =========== Migrate Groups =============
-        #         Migrate-ADO-Groups.psm1
+        # =========== Release Pipelines =============
+        #         Migrate-ADO-ReleaseDefinitions.psm1
         #region ==================================
         Start-ADOReleaseDefinitionsMigration `
-        -SourcePAT $SourcePAT `
+        -SourceHeaders $sourceHeaders `
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
-        -TargetPAT $TargetPAT `
+        -TargetHeaders $targetHeaders `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -WhatIf:$SkipMigrateBuildPipelines
