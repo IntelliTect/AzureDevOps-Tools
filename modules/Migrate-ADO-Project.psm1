@@ -129,7 +129,7 @@ function Start-ADOProjectMigration {
         -TargetPAT $TargetPAT `
         -TargetHeaders $targetHeaders `
         -ReposPath $RepositoryCloneTempDirectory `
-        -WhatIf:$SkipMigrateRepos
+        -WhatIf: $SkipMigrateRepos
         #endregion
 
         # ========================================
@@ -146,7 +146,7 @@ function Start-ADOProjectMigration {
         -TargetHeaders $targetHeaders `
         -TargetPAT $TargetPAT `
         -ReposPath $RepositoryCloneTempDirectory `
-        -WhatIf:$SkipMigrateWikis
+        -WhatIf: $SkipMigrateWikis
         #endregion
         
         # ========================================
@@ -160,7 +160,7 @@ function Start-ADOProjectMigration {
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateServiceConnections
+        -WhatIf: $SkipMigrateServiceConnections
         #endregion
 
         Start-ADOVariableGroupsMigration `
@@ -181,22 +181,23 @@ function Start-ADOProjectMigration {
         -Headers $targetHeaders `
         -OrgName $TargetOrgName `
         -ProjectName $TargetProjectName `
-        -WhatIf:$SkipAddReflectedWorkItemIdField
+        -WhatIf: $SkipAddReflectedWorkItemIdField
 
         #endregion
 
         # ========================================
         # ===== Add Classic Pipelines (which have service connection IDs as inputs) ======
-        #   Migrate-ADO-ServiceConnections.psm1
+        #   Migrate-ADO-Pipelines.psm1
         #region ==================================
-        Start-MigrateClassicBuildPipelines `
+        Write-Log "SkipMigrateBuildPipelines: $SkipMigrateBuildPipelines"
+        Start-ClassicBuildPipelinesMigration `
         -SourceOrgName $SourceOrgName `
         -SourceProjectName $SourceProjectName `
         -SourceHeaders $sourceHeaders `
         -TargetOrgName $TargetOrgName `
         -TargetProjectName $TargetProjectName `
         -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateBuildPipelines
+        -WhatIf: $SkipMigrateBuildPipelines
 
         #endregion
 
@@ -317,6 +318,20 @@ function Start-ADOProjectMigration {
         -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
         -WhatIf:$SkipMigrateArtifacts
         # #endregion
+
+         # ========================================
+        # =========== Migrate Groups =============
+        #         Migrate-ADO-Groups.psm1
+        #region ==================================
+        Start-ADOReleaseDefinitionsMigration `
+        -SourcePAT $SourcePAT `
+        -SourceOrgName $SourceOrgName `
+        -SourceProjectName $SourceProjectName `
+        -TargetPAT $TargetPAT `
+        -TargetOrgName $TargetOrgName `
+        -TargetProjectName $TargetProjectName `
+        -WhatIf:$SkipMigrateBuildPipelines
+        #endregion
 
         # ========================================
         # ========== Migration Finished ========== 

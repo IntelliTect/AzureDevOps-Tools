@@ -234,20 +234,9 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
         if(($processor.MigrateBuildPipelines -ne !$SkipMigrateBuildPipelines)){
             $processor.MigrateBuildPipelines = !$SkipMigrateBuildPipelines
         }
-        if($processor.MigrateBuildPipelines -eq $TRUE) {
+        if($processor.MigrateBuildPipelines -eq $TRUE -OR $processor.MigrateReleasePipelines -ne !$SkipMigrateReleasePipelines) {
             # You need to migrate variable groups before pipelines
             $processor.MigrateVariableGroups = !$SkipMigrateBuildPipelines
-            $migratingPipeline = $TRUE
-            $SkipMigrateBuildPipelines = $FALSE
-        }
-
-        # MigrateReleasePipelines
-        if(($processor.MigrateReleasePipelines -ne !$SkipMigrateReleasePipelines)){
-            $processor.MigrateReleasePipelines = !$SkipMigrateReleasePipelines
-        }
-        if($processor.MigrateReleasePipelines -eq $TRUE) {
-            # You need to migrate variable groups before pipelines
-            $processor.MigrateVariableGroups = !$SkipMigrateReleasePipelines
             $migratingPipeline = $TRUE
             $SkipMigrateBuildPipelines = $FALSE
         }
@@ -264,7 +253,6 @@ foreach($processor in $martinConfiguration.MigrationTools.Processors)
 
         $SkipAzureDevOpsPipelineProcessorOptions = (  `
             $SkipMigrateBuildPipelines -and  `
-            $SkipMigrateReleasePipelines -and  `
             $SkipMigrateVariableGroups -and  `
             $SkipMigrateTaskGroups
         )
@@ -299,8 +287,6 @@ $SkipAzureDevOpsMigrationTool = (  `
     $SkipMigrateTestConfigurations -and  `
     $SkipMigrateTestPlansAndSuites -and  `
     $SkipMigrateWorkItemQuerys -and  `
-    $SkipMigrateBuildPipelines -and  `
-    $SkipMigrateReleasePipelines -and  `
     $SkipMigrateTaskGroups -and  `
     $SkipMigrateVariableGroups -and  `
     $SkipMigrateWorkItems

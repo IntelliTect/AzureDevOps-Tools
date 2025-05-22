@@ -59,7 +59,6 @@ function Start-ADOServiceConnectionsMigration {
                 if ($null -ne $endpoint.data.azureSpnRoleAssignmentId) {
                     $endpoint.data.azureSpnRoleAssignmentId = $null
                 }
-                $endpoint.data.azureSpnPermissions = $null
                 $endpoint.data.spnObjectId = $null
                 $endpoint.data.appObjectId = $null
                 

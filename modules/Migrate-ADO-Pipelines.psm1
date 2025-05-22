@@ -29,7 +29,7 @@ function Get-Pipelines {
     }
 }
 
-function Start-MigrateClassicBuildPipelines {
+function Start-ClassicBuildPipelinesMigration {
     [CmdletBinding(SupportsShouldProcess)]
    param(
         [Parameter (Mandatory = $TRUE)]
