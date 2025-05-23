@@ -74,7 +74,7 @@ function Start-ADOReleaseDefinitionsMigration {
                 Write-Log "Catch!"
                 Write-Log "Failed to create Release Pipeline $($definition.name)"
                 $FailedPipelinesCount += 1
-                Write-Error "$($_)"
+                Write-Log "$($_)"
             }
         }
         Write-Log "Successfully migrated $CreatedPipelinesCount release pipeline(s)"
