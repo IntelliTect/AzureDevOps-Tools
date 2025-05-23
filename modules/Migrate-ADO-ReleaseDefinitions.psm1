@@ -34,6 +34,9 @@ function Start-ADOReleaseDefinitionsMigration {
         $sourceVariableGroups = Get-VariableGroups -projectName $SourceProjectName -orgName $SourceOrgName -headers $SourceHeaders
         $targetVariableGroups = Get-VariableGroups -projectName $TargetProjectName -orgName $TargetOrgName -headers $TargetHeaders
 
+        $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
+        $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $TargetHeaders
+
         Write-Log "Attempting to migrate $($releasesToMigrate.count) releases"
         $CreatedPipelinesCount = 0 
         $FailedPipelinesCount = 0
@@ -53,6 +56,16 @@ function Start-ADOReleaseDefinitionsMigration {
                     }
                     $targetQueueId = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
                     $phase.deploymentInput.queueId = $targetQueueId
+                    forEach($workflowTask in $phase.workflowTasks) {
+                        if($workflowTask.name -like "Azure Logic Apps Standard Release*"){
+                            $sourceServiceConnectionId = $workflowTask.inputs.connectedServiceName
+                            $serviceConnectionName = $sourceEndpoints.value | Where-Object { $_.id -eq $sourceServiceConnectionId } | Select-Object -ExpandProperty name
+                            $targetServiceConnectionId = $targetEndpoints.value | Where-Object { $_.name -eq $serviceConnectionName } | Select-Object -ExpandProperty id
+                            $workflowTask.inputs.connectedServiceName = $targetServiceConnectionId
+                        }
+                    }
+
+
                 }
                 if($environment.variableGroups -ne $null -AND $environment.variableGroups.Count -gt 0) {
                     $variableGroups = @()
