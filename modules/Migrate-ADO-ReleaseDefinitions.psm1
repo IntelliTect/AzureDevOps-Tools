@@ -28,7 +28,7 @@ function Start-ADOReleaseDefinitionsMigration {
         $targetAgentPools = Get-BuildQueues -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
  
         $targetReleasePipelineNames = $targetReleases.value | Select-Object -ExpandProperty name 
-        $releasesToMigrate = $sourceReleases.value | Where-Object { $targetReleasePipelineNames -notcontains $_.name  -and $_.id -eq "27"}
+        $releasesToMigrate = $sourceReleases.value | Where-Object { $targetReleasePipelineNames -notcontains $_.name }
 
         Write-Log "Attempting to migrate $($releasesToMigrate.count) releases"
         $CreatedPipelinesCount = 0 
