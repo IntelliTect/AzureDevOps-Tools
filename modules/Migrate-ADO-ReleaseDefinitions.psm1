@@ -66,7 +66,9 @@ function Start-ADOReleaseDefinitionsMigration {
             }
             forEach($artifact in $releaseDetail.artifacts){
                 $artifact.sourceId = $artifact.sourceId.Replace($sourceProject.id,$targetProject.id).Replace($sourceProject.id,$targetProject.id)
-                $artifact.definitionReference.artifactSourceDefinitionUrl.id = $artifact.definitionReference.artifactSourceDefinitionUrl.id.Replace($SourceOrgName,$TargetOrgName)
+                if($artifact.definitionReference.artifactSourceDefinitionUrl -ne $null) {
+                    $artifact.definitionReference.artifactSourceDefinitionUrl.id = $artifact.definitionReference.artifactSourceDefinitionUrl.id.Replace($SourceOrgName,$TargetOrgName)
+                }                
                 $artifact.definitionReference.project.id = $TargetProject.id
                 $artifact.definitionReference.project.name = $TargetProjectName
             }
