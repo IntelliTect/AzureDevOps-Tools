@@ -28,7 +28,7 @@ function Start-ADOReleaseDefinitionsMigration {
         $targetAgentPools = Get-BuildQueues -ProjectName $TargetProjectName -OrgName $TargetOrgName -Headers $TargetHeaders
  
         $targetReleasePipelineNames = $targetReleases.value | Select-Object -ExpandProperty name 
-        $releasesToMigrate = $sourceReleases.value | Where-Object { $targetReleasePipelineNames -notcontains $_.name }
+        $releasesToMigrate = $sourceReleases.value | Where-Object { $targetReleasePipelineNames -notcontains $_.name  -and $_.id -eq "27"}
 
         Write-Log "Attempting to migrate $($releasesToMigrate.count) releases"
         $CreatedPipelinesCount = 0 
@@ -40,7 +40,7 @@ function Start-ADOReleaseDefinitionsMigration {
             $releaseDetail = Invoke-RestMethod -Method GET -Uri $releaseDetailUrl -Headers $SourceHeaders
             forEach($environment in $releaseDetail.environments){
                 $environment.currentRelease.url = $environment.currentRelease.url.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
-                $environment.badgeUrl = $environment.badgeUrl.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
+                $environment.badgeUrl = ""
                 forEach($phase in $environment.deployPhases) {
                     $agentPoolName = $sourceAgentPools | Where-Object {$_.id -eq $phase.deploymentInput.queueId}
                     if($agentPoolName -eq $null) {
@@ -57,12 +57,12 @@ function Start-ADOReleaseDefinitionsMigration {
                 $artifact.definitionReference.project.id = $TargetProject.id
                 $artifact.definitionReference.project.name = $TargetProjectName
             }
-            $releaseDetail.url = $releaseDetail.url.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
-            $releaseDetail._links.self.href = $releaseDetail._links.self.href.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
-            $releaseDetail._links.web.href = $releaseDetail._links.web.href.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
-           
+            $releaseDetail.id = 0
+            $releaseDetail.url = ""
+            $releaseDetail._links = ""
+            
             try{
-                $newPipeline = Create-ReleaseDefinition -ProjectName $targetProjectName -OrgName $targetOrgName -Headers $TargetHEaders -Definition $release -DefinitionDetail $releaseDetail
+                $newPipeline = Create-ReleaseDefinition -ProjectName $targetProjectName -OrgName $targetOrgName -Headers $TargetHeaders -DefinitionDetail $releaseDetail
                 if($newPipeline -ne $null){
                     Write-Log "Created Release Pipeline $($newPipeline.name)"
                     $CreatedPipelinesCount += 1
@@ -71,9 +71,10 @@ function Start-ADOReleaseDefinitionsMigration {
                     $FailedPipelinesCount += 1
                 }  
             } catch {
+                Write-Log "Catch!"
                 Write-Log "Failed to create Release Pipeline $($definition.name)"
                 $FailedPipelinesCount += 1
-                Write-Error "$($_.Exception)"
+                Write-Error "$($_)"
             }
         }
         Write-Log "Successfully migrated $CreatedPipelinesCount release pipeline(s)"
@@ -128,14 +129,11 @@ function Create-ReleaseDefinition {
         [Hashtable]$Headers,
 
         [Parameter (Mandatory = $TRUE)]
-        [Object]$Definition,
-
-        [Parameter (Mandatory = $TRUE)]
         [Object]$DefinitionDetail
     )
     $url = "https://vsrm.dev.azure.com/$OrgName/$ProjectName/_apis/release/definitions?api-version=7.1"
-    $body = $DefinitionDetail | ConvertTo-Json -Depth 12
-
+    
+    $body = $DefinitionDetail | ConvertTo-Json -Depth 100
     $response = Invoke-WebRequest -Uri $url -Method POST -Header $Headers -Body $body -ContentType "application/json"
     return $response
 }
