@@ -54,12 +54,14 @@ function Start-ADOReleaseDefinitionsMigration {
                     $targetQueueId = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
                     $phase.deploymentInput.queueId = $targetQueueId
                 }
-                if($environment.variableGroups -ne $null -AND $environment.vairableGroups.Count -gt 0) {
+                if($environment.variableGroups -ne $null -AND $environment.variableGroups.Count -gt 0) {
+                    $variableGroups = @()
                     forEach($variableGroupId in $environment.variableGroups) {
                         $variableGroupName = $sourceVariableGroups | Where-Object {$_.id -eq $variableGroupId } | Select-Object -ExpandProperty name
-                        $targetVariableGroupId = $targetVariableGroups | Where-Object {.name -eq $variableGroupName }
-                        $variableGroupId = $targetVariableGroupId
+                        $targetVariableGroupId = $targetVariableGroups | Where-Object {$_.name -eq $variableGroupName } | Select-Object -ExpandProperty id
+                        $variableGroups += $targetVariableGroupId
                     }
+                    $environment.variableGroups = $variableGroups
                 }
             }
             forEach($artifact in $releaseDetail.artifacts){
