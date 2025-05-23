@@ -13,6 +13,7 @@ function Start-ADOReleaseDefinitionsMigration {
             "Target project $TargetOrg/$TargetProjectName",
             "Migrate Release Definitions from source project $SourceOrgName/$SourceProjectName")
     ) {
+        $ErrorActionPreference = "Continue"
         Write-Log -Message ' '
         Write-Log -Message '---------------------------------'
         Write-Log -Message '-- Migrate Release Definitions --'
