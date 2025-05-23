@@ -31,6 +31,9 @@ function Start-ADOReleaseDefinitionsMigration {
         $targetReleasePipelineNames = $targetReleases.value | Select-Object -ExpandProperty name 
         $releasesToMigrate = $sourceReleases.value | Where-Object { $targetReleasePipelineNames -notcontains $_.name }
 
+        $sourceVariableGroups = Get-VariableGroups -projectName $SourceProjectName -orgName $SourceOrgName -headers $SourceHeaders
+        $targetVariableGroups = Get-VariableGroups -projectName $TargetProjectName -orgName $TargetOrgName -headers $TargetHeaders
+
         Write-Log "Attempting to migrate $($releasesToMigrate.count) releases"
         $CreatedPipelinesCount = 0 
         $FailedPipelinesCount = 0
@@ -50,6 +53,13 @@ function Start-ADOReleaseDefinitionsMigration {
                     }
                     $targetQueueId = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
                     $phase.deploymentInput.queueId = $targetQueueId
+                }
+                if($environment.variableGroups -ne $null -AND $environment.vairableGroups.Count -gt 0) {
+                    forEach($variableGroupId in $environment.variableGroups) {
+                        $variableGroupName = $sourceVariableGroups | Where-Object {$_.id -eq $variableGroupId } | Select-Object -ExpandProperty name
+                        $targetVariableGroupId = $targetVariableGroups | Where-Object {.name -eq $variableGroupName }
+                        $variableGroupId = $targetVariableGroupId
+                    }
                 }
             }
             forEach($artifact in $releaseDetail.artifacts){
