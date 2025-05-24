@@ -187,18 +187,22 @@ function Start-ADOServiceConnectionRolesMigration([string] $SourceProjectId, [st
 
         if($roleName -notlike "*Endpoint Administrators") {
             
-            Write-Log -Message "Attempting to create role assignment [$($roleName)] in target.. "
-    
-            # try {
-            #     New-RoleAssignment -OrgName $TargetOrgName -ProjectId $ProjectId -EndpointId $EndpointId -Headers $TargetHeaders -RoleAssignment $roleAssignment
-            #     Write-Log -Message "Done!" -LogLevel SUCCESS
-            # }
-            # catch {
-            #     Write-Log -Message "FAILED!" -LogLevel ERROR
-            #     Write-Log -Message $_.Exception -LogLevel ERROR
-            #     Write-Log -Message $_ -LogLevel ERROR
-            #     Write-Log -Message " "
-            # }
+            try {
+                Write-Log -Message "Attempting to create role assignment [$($roleName)] in target.. "
+                $role = @{
+                    roleName = $roleAssignment.identity.name
+                    uniqueName = $roleAssignment.identity.uniqueName
+                    userId = $roleAssignment.identity.id
+                }
+                New-RoleAssignment -OrgName $TargetOrgName -IdentityId $roleAssignment.identity.id -EndpointId $EndpointId -Role $role -Headers $TargetHeaders
+                Write-Log -Message "Done!" -LogLevel SUCCESS
+            }
+            catch {
+                Write-Log -Message "FAILED!" -LogLevel ERROR
+                Write-Log -Message $_.Exception -LogLevel ERROR
+                Write-Log -Message $_ -LogLevel ERROR
+                Write-Log -Message " "
+            }
         }
     }
 }
@@ -209,4 +213,14 @@ function Get-RoleAssignments([string]$OrgName, [string] $ProjectId, [string] $En
     $results = Invoke-RestMethod -ContentType "application/json" -Method Get -uri $url -Headers $Headers 
     
     return , $results.value
+}
+
+function New-RoleAssignment([string]$OrgName, [string] $IdentityId, [string] $EndpointId, $Role, $Headers) {
+    $url = "https://dev.azure.com/{0}/_apis/securityroles/scopes/distributedtask.serviceendpointrole/roleassignments/resources/{1}/{2}?api-version=7.0-preview.1" -f $OrgName, $EndpointId, $IdentityId
+    
+    $body = $Role | ConvertTo-Json -Depth 32
+
+    $results = Invoke-RestMethod -ContentType "application/json" -Method Put -uri $url -Headers $Headers -Body $body 
+    
+    return $results
 }
