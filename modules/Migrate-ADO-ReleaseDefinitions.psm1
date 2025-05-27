@@ -52,13 +52,13 @@ function Start-ADOReleaseDefinitionsMigration {
                 $environment.badgeUrl = ""
                 forEach($phase in $environment.deployPhases) {
                     #TODO: Need to locate the target deployment group id by name from the target deployment groups, NOT build agent pools
-                    $agentPoolName = $sourceAgentPools | Where-Object {$_.id -eq $phase.deploymentInput.queueId} | Select-Object -ExpandProperty name
-                    if($agentPoolName -eq $null) {
-                        Write-Log "Could not locate the desired agent pool for this release pipeline in the source project. Using 'Azure Pipelines' instead."
-                        $agentPoolName = "Azure Pipelines"
-                    }
-                    $targetQueue = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
-                    $phase.deploymentInput.queueId = $targetQueue.id
+                    # $deploymentGroupName = $sourceDeploymentGroups | Where-Object {$_.id -eq $phase.deploymentInput.queueId} | Select-Object -ExpandProperty name
+                    # if($agentPoolName -eq $null) {
+                        # Write-Log "Could not locate the desired deployment group for this release pipeline in the source project. Using 'Azure Pipelines' instead."
+                        # $agentPoolName = "Azure Pipelines"
+                    # }
+                    # $targetDeploymentGroup = $targetDeploymentGroup | Where-Object {$_.name -eq $deploymentGroupName}
+                    # $phase.deploymentInput.queueId = $targetDeploymentGroup.id
                     forEach($workflowTask in $phase.workflowTasks) {
                         if($workflowTask.name -like "Azure Logic Apps Standard Release*" -OR 
                           $workflowTask.name -like "Restart App Service" -OR 
