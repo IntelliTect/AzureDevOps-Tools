@@ -63,7 +63,7 @@ function Start-ADOReleaseDefinitionsMigration {
                           $workflowTask.name -like "Restart App Service" -OR 
                           $workflowTask.name -like "Azure App Service Deploy*" -OR 
                           $workflowTask.name -like  "VsTest - testAssemblies"){
-                            $targetServiceConnectionId = Get-TargetServiceConnectionId -SourceEndpoints $sourceEndpoints -TargetEndpoints $targetEndpoint -SourceServiceConnectionId $($workflowTask.inputs.connectedServiceName)
+                            $targetServiceConnectionId = Get-TargetServiceConnectionId -SourceEndpoints $sourceEndpoints -TargetEndpoints $targetEndpoints -SourceServiceConnectionId $($workflowTask.inputs.connectedServiceName)
                             $workflowTask.inputs.connectedServiceName = $targetServiceConnectionId
                         
                         }
@@ -214,8 +214,8 @@ function Migrate-DeploymentGroups {
 
     forEach($deploymentGroup in $sourceDeploymentGroups.value) {
         $poolId = $deploymentGroup.pool.id
-        $poolUrl = "https://dev.azure.com/$sourceOrgName/_apis/distributedtask/pools/$poolId?api-version=7.1"
-        $pool = Invoke-RestMethod -Method GET -uri $poolsUrl -Headers $sourceHeaders
+        $poolUrl = "https://dev.azure.com/$sourceOrgName/_apis/distributedtask/pools/$($poolId)?api-version=7.1"
+        $pool = Invoke-RestMethod -Method GET -uri $poolUrl -Headers $sourceHeaders
         $targetPool = $targetDeploymentGroups.value | Where-Object { $_.name -eq $pool.name}
         if($targetPool -ne $null) {
             Write-Log "Attempting to migrate deployment group $($deploymentGroup.name)"
@@ -223,9 +223,15 @@ function Migrate-DeploymentGroups {
             $url = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
             $deploymentGroup.project.id = $targetProjectId
             $deploymentGroup.project.name = $TargetProjectName
-            Invoke-RestMethod -Method POST -Uri $url -Headers $TargetHeaders
+            $newDeploymentGroup = Invoke-RestMethod -Method POST -Uri $url -Headers $TargetHeaders
+            if($newDeploymentGroup -ne $null){
+                Write-Log "Deployment group $($deploymentGroup.name) migrated successfully."
+
+            } else {
+                Write-Log "Deployment group $($deploymentGroup.name) failed to migrate."
+            }
         } else {
-            Write-Host "Deployment group $($deploymentGroup.name) could not be migrated due to no corresponding agent pool being present. Please migrate manually."
+            Write-Log "Deployment group $($deploymentGroup.name) could not be migrated due to no corresponding agent pool being present. Please migrate manually."
         }
 
     }
