@@ -59,16 +59,15 @@ function Start-ADOReleaseDefinitionsMigration {
                     $targetQueue = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
                     $phase.deploymentInput.queueId = $targetQueue.id
                     forEach($workflowTask in $phase.workflowTasks) {
-                        if($workflowTask.name -like "Azure Logic Apps Standard Release*"){
+                        if($workflowTask.name -like "Azure Logic Apps Standard Release*" -OR 
+                          $workflowTask.name -like "Restart App Service" -OR 
+                          $workflowTask.name -like "Azure App Service Deploy*" -OR 
+                          $workflowTask.name -like  "VsTest - testAssemblies"){
                             $targetServiceConnectionId = Get-TargetServiceConnectionId -SourceEndpoints $sourceEndpoints -TargetEndpoints $targetEndpoint -SourceServiceConnectionId $($workflowTask.inputs.connectedServiceName)
                             $workflowTask.inputs.connectedServiceName = $targetServiceConnectionId
-                        } elseif($workflowTask.name -like "Restart App Service" -OR $workflowTask.name -like "Azure App Service Deploy*" -OR $workflowTask.name -like  "VsTest - testAssemblies") {
-                            $targetServiceConnectionId = Get-TargetServiceConnectionId -SourceEndpoints $sourceEndpoints -TargetEndpoints $targetEndpoint -SourceServiceConnectionId $($workflowTask.inputs.connectedServiceName)
-                            $workflowTask.inputs.connectedServiceName = $targetServiceConnectionId
-                        } else if($workflowTask.name -like  "VsTest - testAssemblies"){
+                        
                         }
                     }
-
 
                 }
                 if($environment.variableGroups -ne $null -AND $environment.variableGroups.Count -gt 0) {
