@@ -34,12 +34,14 @@ function Start-ADOReleaseDefinitionsMigration {
         $sourceVariableGroups = Get-VariableGroups -projectName $SourceProjectName -orgName $SourceOrgName -headers $SourceHeaders
         $targetVariableGroups = Get-VariableGroups -projectName $TargetProjectName -orgName $TargetOrgName -headers $TargetHeaders
 
-        $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
+        $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $SourceHeaders
         $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $TargetHeaders
 
         Write-Log "Attempting to migrate $($releasesToMigrate.count) releases"
         $CreatedPipelinesCount = 0 
         $FailedPipelinesCount = 0
+
+        Migrate-DeploymentGroups -SourceProjectName $SourceProjectName -SourceOrgName $SourceOrgName -SourceHeaders $SourceHeaders -TargetProjectName $TargetProjectName -TargetOrgName $TargetOrgName -TargetHeaders $TargetHeaders -TargetProjectId $($targetProject.id)
 
         ForEach($release in $releasesToMigrate) {
             Write-Log "Migrating Release Pipeline: $($release.name)"
@@ -49,19 +51,21 @@ function Start-ADOReleaseDefinitionsMigration {
                 $environment.currentRelease.url = $environment.currentRelease.url.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
                 $environment.badgeUrl = ""
                 forEach($phase in $environment.deployPhases) {
-                    $agentPoolName = $sourceAgentPools | Where-Object {$_.id -eq $phase.deploymentInput.queueId}
+                    $agentPoolName = $sourceAgentPools | Where-Object {$_.id -eq $phase.deploymentInput.queueId} | Select-Object -ExpandProperty name
                     if($agentPoolName -eq $null) {
                         Write-Log "Could not locate the desired agent pool for this release pipeline in the source project. Using 'Azure Pipelines' instead."
                         $agentPoolName = "Azure Pipelines"
                     }
-                    $targetQueueId = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
-                    $phase.deploymentInput.queueId = $targetQueueId
+                    $targetQueue = $targetAgentPools | Where-Object {$_.name -eq $agentPoolName}
+                    $phase.deploymentInput.queueId = $targetQueue.id
                     forEach($workflowTask in $phase.workflowTasks) {
                         if($workflowTask.name -like "Azure Logic Apps Standard Release*"){
-                            $sourceServiceConnectionId = $workflowTask.inputs.connectedServiceName
-                            $serviceConnectionName = $sourceEndpoints.value | Where-Object { $_.id -eq $sourceServiceConnectionId } | Select-Object -ExpandProperty name
-                            $targetServiceConnectionId = $targetEndpoints.value | Where-Object { $_.name -eq $serviceConnectionName } | Select-Object -ExpandProperty id
+                            $targetServiceConnectionId = Get-TargetServiceConnectionId -SourceEndpoints $sourceEndpoints -TargetEndpoints $targetEndpoint -SourceServiceConnectionId $($workflowTask.inputs.connectedServiceName)
                             $workflowTask.inputs.connectedServiceName = $targetServiceConnectionId
+                        } elseif($workflowTask.name -like "Restart App Service" -OR $workflowTask.name -like "Azure App Service Deploy*" -OR $workflowTask.name -like  "VsTest - testAssemblies") {
+                            $targetServiceConnectionId = Get-TargetServiceConnectionId -SourceEndpoints $sourceEndpoints -TargetEndpoints $targetEndpoint -SourceServiceConnectionId $($workflowTask.inputs.connectedServiceName)
+                            $workflowTask.inputs.connectedServiceName = $targetServiceConnectionId
+                        } else if($workflowTask.name -like  "VsTest - testAssemblies"){
                         }
                     }
 
@@ -146,7 +150,7 @@ function Get-ReleaseDefinition {
 }
 
 function Create-ReleaseDefinition {
-     param(
+    param(
         [Parameter (Mandatory = $TRUE)]
         [String]$ProjectName,
 
@@ -165,4 +169,68 @@ function Create-ReleaseDefinition {
     $response = Invoke-WebRequest -Uri $url -Method POST -Header $Headers -Body $body -ContentType "application/json"
     return $response
 }
+
+function Get-TargetServiceConnectionId {
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String[]]$SourceEndpoints,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String[]]$TargetEndpoints,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$SourceServiceConnectionId
+    )
+        $serviceConnectionName = $SourceEndpoints | Where-Object { $_.id -eq $SourceServiceConnectionId } | Select-Object -ExpandProperty name
+        $targetServiceConnectionId = $TargetEndpoints | Where-Object { $_.name -eq $serviceConnectionName } | Select-Object -ExpandProperty id
+        return $targetServiceConnectionId
+}
+
+function Migrate-DeploymentGroups {
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [String]$SourceOrgName, 
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$SourceProjectName, 
+        [Parameter (Mandatory = $TRUE)] [Hashtable]$SourceHeaders,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$TargetOrgName, 
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$TargetProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$TargetHeaders,
+
+        [Parameter (Mandatory = $TRUE)]
+        [string]$TargetProjectId
+    )
+     $sourceDeploymentGroupsUrl = "https://dev.azure.com/$SourceOrgName/$SourceProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
+     $sourceDeploymentGroups = Invoke-RestMethod -Method GET -uri $sourceDeploymentGroupsUrl -Headers $SourceHeaders 
+
+     $targetDeploymentGroupsUrl = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
+     $targetDeploymentGroups = Invoke-RestMethod -Method GET -uri $targetDeploymentGroupsUrl -Headers $TargetHeaders 
+
+    forEach($deploymentGroup in $sourceDeploymentGroups.value) {
+        $poolId = $deploymentGroup.pool.id
+        $poolUrl = "https://dev.azure.com/$sourceOrgName/_apis/distributedtask/pools/$poolId?api-version=7.1"
+        $pool = Invoke-RestMethod -Method GET -uri $poolsUrl -Headers $sourceHeaders
+        $targetPool = $targetDeploymentGroups.value | Where-Object { $_.name -eq $pool.name}
+        if($targetPool -ne $null) {
+            Write-Log "Attempting to migrate deployment group $($deploymentGroup.name)"
+            $deploymentGroup.pool.id = $targetPool.id
+            $url = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
+            $deploymentGroup.project.id = $targetProjectId
+            $deploymentGroup.project.name = $TargetProjectName
+            Invoke-RestMethod -Method POST -Uri $url -Headers $TargetHeaders
+        } else {
+            Write-Host "Deployment group $($deploymentGroup.name) could not be migrated due to no corresponding agent pool being present. Please migrate manually."
+        }
+
+    }
+}
+
+     
 
