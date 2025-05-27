@@ -51,6 +51,7 @@ function Start-ADOReleaseDefinitionsMigration {
                 $environment.currentRelease.url = $environment.currentRelease.url.Replace($SourceOrgName,$TargetOrgName).Replace($sourceProject.id,$targetProject.id)
                 $environment.badgeUrl = ""
                 forEach($phase in $environment.deployPhases) {
+                    #TODO: Need to locate the target deployment group id by name from the target deployment groups, NOT build agent pools
                     $agentPoolName = $sourceAgentPools | Where-Object {$_.id -eq $phase.deploymentInput.queueId} | Select-Object -ExpandProperty name
                     if($agentPoolName -eq $null) {
                         Write-Log "Could not locate the desired agent pool for this release pipeline in the source project. Using 'Azure Pipelines' instead."
@@ -210,13 +211,17 @@ function Migrate-DeploymentGroups {
      $sourceDeploymentGroups = Invoke-RestMethod -Method GET -uri $sourceDeploymentGroupsUrl -Headers $SourceHeaders 
 
      $targetDeploymentGroupsUrl = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
+     
      $targetDeploymentGroups = Invoke-RestMethod -Method GET -uri $targetDeploymentGroupsUrl -Headers $TargetHeaders 
+
+     $targetPoolsUrl = "https://dev.azure.com/$TargetOrgName/_apis/distributedtask/pools?api-version=7.1"
+     $targetAgentPools = Invoke-RestMethod -Method GET -uri $targetPoolsUrl -Headers $TargetHeaders
 
     forEach($deploymentGroup in $sourceDeploymentGroups.value) {
         $poolId = $deploymentGroup.pool.id
         $poolUrl = "https://dev.azure.com/$sourceOrgName/_apis/distributedtask/pools/$($poolId)?api-version=7.1"
         $pool = Invoke-RestMethod -Method GET -uri $poolUrl -Headers $sourceHeaders
-        $targetPool = $targetDeploymentGroups.value | Where-Object { $_.name -eq $pool.name}
+        $targetPool = $targetAgentPools.value | Where-Object { $_.name -eq $pool.name}
         if($targetPool -ne $null) {
             Write-Log "Attempting to migrate deployment group $($deploymentGroup.name)"
             $deploymentGroup.pool.id = $targetPool.id
