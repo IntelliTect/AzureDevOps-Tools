@@ -214,6 +214,22 @@ function Get-RoleAssignments([string]$OrgName, [string] $ProjectId, [string] $En
     return , $results.value
 }
 
+function Get-RoleDefinitions {
+    param (
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $OrgName,
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $Headers
+    )
+    $url = "https://dev.azure.com/$OrgName/_apis/securityroles/scopes/distributedtask.serviceendpointrole/roledefinitions?api-version=7.2-preview.1" 
+
+    $results = Invoke-RestMethod -ContentType "application/json" -Method Get -uri $url -Headers $Headers 
+    
+    return , $results.value
+}
+
 function New-RoleAssignment([string]$OrgName, [string] $IdentityId, [string] $EndpointId, $Role, $Headers) {
     $url = "https://dev.azure.com/{0}/_apis/securityroles/scopes/distributedtask.serviceendpointrole/roleassignments/resources/{1}/{2}?api-version=7.0-preview.1" -f $OrgName, $EndpointId, $IdentityId
     
