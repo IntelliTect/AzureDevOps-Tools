@@ -24,34 +24,51 @@ Migration script steps
 
 
 
-Migration Step Order 
+Migration Step Order (Full Migration)
 --------------------
-Teams
-Area And Iterations
-Groups
-Test Variables
-Test Configurations
-Test Plans And Suites
-Work Item Queries
-Shared Queries
-Repos
-Wikis
-Task Groups
-Variable Groups
-Service Connections
-Build Queues
-Build Pipelines
-Release Pipelines
-Service Hooks
-Policies
-Dashboards
-Custom Field For Work Item Migration
-WorkItems
-Artifacts
+- Build Queues (Project Agent Pools)
+- Build Environments done with Build Queues
+- Repositories
+- Wikis
+- Service Connections
+- Areas and Iterations
+- Teams
+- Work Item Querys
+- Variable Groups
+- Build Pipelines
+- Release Pipelines
+- Task Groups
+- Work Items
+- Test Cases
+- Groups and Teams
+- Test Configurations
+- Test Variables
+- Test Plans, Suites, and Cases
+- Service Hooks
+- Policies
+- Dashboards
+- Delivery Plans 
+- Artifacts
 
-
-
-
+Partial Migrations Execution Order
+--------------------
+- Service Connections
+- Areas and Iterations
+- Teams
+- Work Item Querys
+- Variable Groups
+- Build Pipelines & Task Groups
+- Release Pipelines 
+- Work-Items 
+- Groups
+- Test Configurations
+- Test Variables
+- Test Plans, Suites, and Cases
+- Service Hooks
+- Policies   (this will delete polices, then re-migrate them )
+- Dashboards
+- Delivery Plans
+- Artifacts
 
 
 
