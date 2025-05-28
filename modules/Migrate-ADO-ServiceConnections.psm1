@@ -184,7 +184,7 @@ function Start-ADOServiceConnectionRolesMigration([string] $SourceProjectId, [st
     foreach ($roleAssignment in $sourceRoleAssignments) {
         $roleName = $roleAssignment.identity.uniqueName
 
-        if ($roleName -notlike "[$SourceProjectName]\*") {
+        if ($False -eq $roleName.StartsWith("[$SourceProjectName]\")) {
             
             try {
                 Write-Log -Message "Attempting to create role assignment [$($roleName)] in target.. "
