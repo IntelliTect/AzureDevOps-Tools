@@ -184,14 +184,14 @@ function Start-ADOServiceConnectionRolesMigration([string] $SourceProjectId, [st
     foreach ($roleAssignment in $sourceRoleAssignments) {
         $roleName = $roleAssignment.identity.uniqueName
 
-        if($roleName -notlike "*Endpoint Administrators") {
+        if ($roleName -notlike "*Endpoint Administrators") {
             
             try {
                 Write-Log -Message "Attempting to create role assignment [$($roleName)] in target.. "
                 $role = @{
-                    roleName = $roleAssignment.identity.name
+                    roleName   = $roleAssignment.identity.name
                     uniqueName = $roleAssignment.identity.uniqueName
-                    userId = $roleAssignment.identity.id
+                    userId     = $roleAssignment.identity.id
                 }
                 New-RoleAssignment -OrgName $TargetOrgName -IdentityId $roleAssignment.identity.id -EndpointId $EndpointId -Role $role -Headers $TargetHeaders
                 Write-Log -Message "Done!" -LogLevel SUCCESS
@@ -222,4 +222,40 @@ function New-RoleAssignment([string]$OrgName, [string] $IdentityId, [string] $En
     $results = Invoke-RestMethod -ContentType "application/json" -Method Put -uri $url -Headers $Headers -Body $body 
     
     return $results
+}
+
+function Remove-ServiceConnections {
+    param (
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $OrgName,
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $ProjectName,
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $ProjectId,
+        [Parameter(Mandatory = $TRUE)]
+        $Headers        
+    )
+    
+    $endpoints = Get-ServiceEndpoints -OrgName $OrgName `
+        -ProjectName $ProjectName -Headers $TargetHeaders
+
+    foreach ($ep in $endpoints) {
+        try {
+            $url = "https://dev.azure.com/$OrgName/_apis/serviceendpoint" `
+                + "/endpoints/$($ep.id)?projectIds=$($ProjectId)" `
+                + "&api-version=7.2-preview.4"  
+    
+            Invoke-RestMethod -Uri $url -Method Delete `
+                -Headers $Headers 
+
+            Write-Log "Service Connection $($ep.id) removed."
+        }
+        catch {
+            Write-Log "Unable to remove service endpoint $($ep.id)"
+            Write-Log "$($_)"
+        }
+    }
 }

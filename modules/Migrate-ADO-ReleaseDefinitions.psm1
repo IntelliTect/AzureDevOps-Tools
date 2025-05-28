@@ -214,37 +214,72 @@ function Migrate-DeploymentGroups {
 
     $targetDeploymentGroupsUrl = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
      
-    $targetDeploymentGroups = Invoke-RestMethod -Method GET -uri $targetDeploymentGroupsUrl -Headers $TargetHeaders 
+    # $targetDeploymentGroups = Invoke-RestMethod -Method GET -uri $targetDeploymentGroupsUrl -Headers $TargetHeaders 
 
     $targetPoolsUrl = "https://dev.azure.com/$TargetOrgName/_apis/distributedtask/pools?api-version=7.1"
     $targetAgentPools = Invoke-RestMethod -Method GET -uri $targetPoolsUrl -Headers $TargetHeaders
 
     forEach ($deploymentGroup in $sourceDeploymentGroups.value) {
-        $poolId = $deploymentGroup.pool.id
-        $poolUrl = "https://dev.azure.com/$sourceOrgName/_apis/distributedtask/pools/$($poolId)?api-version=7.1"
-        $pool = Invoke-RestMethod -Method GET -uri $poolUrl -Headers $sourceHeaders
-        $targetPool = $targetAgentPools.value | Where-Object { $_.name -eq $pool.name }
-        if ($null -ne $targetPool) {
+        try {
+            $poolId = $deploymentGroup.pool.id
+            $poolUrl = "https://dev.azure.com/$sourceOrgName/_apis/distributedtask/pools/$($poolId)?api-version=7.1"
+            $pool = Invoke-RestMethod -Method GET -uri $poolUrl -Headers $sourceHeaders
+            $targetPool = $targetAgentPools.value | Where-Object { $_.name -eq $pool.name }
+            if ($targetPool.Count -eq 0) {
+                $newPool = New-Pool -TargetOrgName $TargetOrgName -TargetHeaders $TargetHeaders -Pool $pool -TargetProjectName $TargetProjectName
+
+                $deploymentGroup.pool.id = $newPool.id
+            }
+            else {
+                $deploymentGroup.pool.id = $targetPool.id
+            }
+            
             Write-Log "Attempting to migrate deployment group $($deploymentGroup.name)"
-            $deploymentGroup.pool.id = $targetPool.id
             $url = "https://dev.azure.com/$TargetOrgName/$TargetProjectName/_apis/distributedtask/deploymentgroups?api-version=7.1"
             $deploymentGroup.project.id = $targetProjectId
             $deploymentGroup.project.name = $TargetProjectName
-            $newDeploymentGroup = Invoke-RestMethod -Method POST -Uri $url -Headers $TargetHeaders
+            $newDeploymentGroup = Invoke-RestMethod -Method POST -Uri $url -Headers $TargetHeaders `
+                -ContentType "application/json"
             if ($null -ne $newDeploymentGroup) {
                 Write-Log "Deployment group $($deploymentGroup.name) migrated successfully."
-
             }
             else {
                 Write-Log "Deployment group $($deploymentGroup.name) failed to migrate."
             }
         }
-        else {
-            Write-Log "Deployment group $($deploymentGroup.name) could not be migrated due to no corresponding agent pool being present. Please migrate manually."
+        catch {
+            Write-Log "Catch!"
+            Write-Log "Failed to migrate deployment group $($deploymentGroup.name)"
+            $FailedPipelinesCount += 1
+            Write-Log "$($_)"
         }
-
     }
 }
+
+function New-Pool {
+    param (
+        [Parameter (Mandatory = $TRUE)]
+        [String]$TargetOrgName, 
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$TargetProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$TargetHeaders,
+
+        [Parameter(Mandatory = $TRUE)]
+        $Pool
+    )
+    $url = "https://dev.azure.com/$TargetOrgName/_apis/distributedtask/pools?api-version=7.2-preview.1"
+    
+    $body = $Pool | ConvertTo-Json -Depth 32
+
+    $newPool = Invoke-RestMethod -Method Post -Uri $url -Headers $TargetHeaders `
+        -Body $body -ContentType "application/json"
+
+    return $newPool
+}
+
 
      
 
