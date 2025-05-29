@@ -184,7 +184,7 @@ function Start-ADOServiceConnectionRolesMigration([string] $SourceProjectId, [st
     foreach ($roleAssignment in $sourceRoleAssignments) {
         $roleName = $roleAssignment.identity.uniqueName
 
-        if ($roleName -notlike "*Endpoint Administrators") {
+        if ($False -eq $roleName.StartsWith("[$SourceProjectName]\")) {
             
             try {
                 Write-Log -Message "Attempting to create role assignment [$($roleName)] in target.. "
@@ -208,6 +208,22 @@ function Start-ADOServiceConnectionRolesMigration([string] $SourceProjectId, [st
 
 function Get-RoleAssignments([string]$OrgName, [string] $ProjectId, [string] $EndpointId, $Headers) {
     $url = "https://dev.azure.com/$OrgName/_apis/securityroles/scopes/distributedtask.serviceendpointrole/roleassignments/resources/{0}_{1}" -f $ProjectId, $EndpointId
+
+    $results = Invoke-RestMethod -ContentType "application/json" -Method Get -uri $url -Headers $Headers 
+    
+    return , $results.value
+}
+
+function Get-RoleDefinitions {
+    param (
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $OrgName,
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $Headers
+    )
+    $url = "https://dev.azure.com/$OrgName/_apis/securityroles/scopes/distributedtask.serviceendpointrole/roledefinitions?api-version=7.2-preview.1" 
 
     $results = Invoke-RestMethod -ContentType "application/json" -Method Get -uri $url -Headers $Headers 
     
