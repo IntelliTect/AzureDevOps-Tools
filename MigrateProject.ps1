@@ -236,27 +236,12 @@ foreach ($processor in $martinConfiguration.MigrationTools.Processors) {
     }
     elseif ($processor.ProcessorType -eq "AzureDevOpsPipelineProcessor") {
         # MigrateBuildPipelines
-        $migratingPipeline = $FALSE
         if (($processor.MigrateBuildPipelines -ne !$SkipMigrateBuildPipelines)) {
             $processor.MigrateBuildPipelines = !$SkipMigrateBuildPipelines
         }
 
-        if ($processor.MigrateBuildPipelines -eq $TRUE) {
-            $migratingPipeline = $TRUE
-        }
-
-        # MigrateVariableGroups
-        if (($processor.MigrateVariableGroups -ne !$SkipMigrateVariableGroups) -and (!$migratingPipeline)) {
-            $processor.MigrateVariableGroups = !$SkipMigrateVariableGroups
-        }
-
-        $SkipAzureDevOpsPipelineProcessorOptions = (  `
-                $SkipMigrateBuildPipelines -and `
-                $SkipMigrateVariableGroups 
-        )
-
-        if (($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions) -or (!$SkipAzureDevOpsPipelineProcessorOptions)) {
-            $processor.Enabled = !$SkipAzureDevOpsPipelineProcessorOptions
+        if (($processor.Enabled -ne !$SkipMigrateBuildPipelines) -or (!$SkipMigrateBuildPipelines)) {
+            $processor.Enabled = !$SkipMigrateBuildPipelines
 
             # RepositoryNameMaps
             if ($processor.Enabled -eq $TRUE) {
@@ -267,15 +252,12 @@ foreach ($processor in $martinConfiguration.MigrationTools.Processors) {
             else {
                 $processor.RepositoryNameMaps = $NULL
             }
-
-            
         }
     }
     elseif (($processor.ProcessorType -eq "TfsWorkItemMigrationProcessor") -or ($processor.ProcessorType -eq "WorkItemTrackingProcessorOptions")) {
         if (($processor.Enabled -ne !$SkipMigrateWorkItems) -or ($processor.WIQLQuery -ne $WorkItemQueryBit)) {
             $processor.Enabled = !$SkipMigrateWorkItems
             $processor.WIQLQuery = $WorkItemQueryBit
-            
         }
     }
 }
@@ -286,7 +268,7 @@ $SkipAzureDevOpsMigrationTool = (  `
         $SkipMigrateTestConfigurations -and `
         $SkipMigrateTestPlansAndSuites -and `
         $SkipMigrateWorkItemQuerys -and `
-        $SkipMigrateVariableGroups -and `
+        $SkipMigrateBuildPipelines -and `
         $SkipMigrateWorkItems
 )
 

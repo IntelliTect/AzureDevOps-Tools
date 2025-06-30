@@ -112,6 +112,11 @@ function Start-ADORepoMigration {
                                 -ImportRequestId $request.importRequestId
 
                             Write-Log -Message "-- Import status: $($status.status)"
+
+                            if ($status.status -eq "failed") {
+                                throw "Import of $($newRepo.name) failed"
+                            }
+
                             $isRunning = $status.status -ne "completed"
 
                             if ($isRunning) {

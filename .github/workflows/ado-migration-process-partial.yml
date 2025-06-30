@@ -1,5 +1,5 @@
 name: Partial ADO Project Migration
-run-name: "${{ github.event.inputs.SourceOrganizationName }}/${{ github.event.inputs.SourceProjectName }}=>${{ github.event.inputs.TargetOrganizationName }}/${{ github.event.inputs.TargetProjectName }} [${{ github.event.inputs.MigrationSelection }}]"
+run-name: "[${{ github.event.inputs.MigrationSelection }}] ${{ github.event.inputs.SourceOrganizationName }}/${{ github.event.inputs.SourceProjectName }}=>${{ github.event.inputs.TargetOrganizationName }}/${{ github.event.inputs.TargetProjectName }}"
 
 on:
   workflow_dispatch: # Allows manual triggering via the GitHub Actions UI

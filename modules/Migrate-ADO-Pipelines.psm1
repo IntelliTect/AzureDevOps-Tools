@@ -216,6 +216,7 @@ function New-Pipeline {
         jobCancelTimeoutInMinutes = $PipelineDefinition.jobCancelTimeoutInMinutes
         jobTimeoutInMinutes       = $PipelineDefinition.jobTimeoutInMinutes
         createdDate               = $PipelineDefinition.createdDate
+        triggers                  = $PipelineDefinition.triggers
     }
 
     $url = "https://dev.azure.com/$($OrgName)/$($ProjectName)/_apis/build/definitions?api-version=7.1"
@@ -525,4 +526,48 @@ function Get-TargetTaskId {
     }
 
     return $result
+}
+
+function Remove-AllBuildDefinitions {
+    param (
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers
+    )
+    
+    $buildDefinitions = Get-BuildDefinition -OrgName $OrgName -ProjectName $ProjectName -Headers `
+        $Headers
+
+    foreach ($bd in $buildDefinitions.value) {
+        Remove-BuildDefinition -OrgName $OrgName -ProjectName $ProjectName -Headers `
+            $Headers -BuildDefinitionId $bd.id
+
+        Write-Log -Message "Build definition $($bd.name) removed."
+    }
+}
+
+function Remove-BuildDefinition {
+    param (
+        [Parameter (Mandatory = $TRUE)]
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$ProjectName,
+
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)]
+        [String]$BuildDefinitionId
+    )
+    
+    $url = "https://dev.azure.com/$($OrgName)/$($ProjectName)/_apis/build/definitions" `
+        + "/$($BuildDefinitionId)?api-version=7.1"
+
+    Invoke-RestMethod -Method Delete -Uri $url -Headers $Headers
 }
