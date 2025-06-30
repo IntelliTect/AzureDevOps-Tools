@@ -1,5 +1,5 @@
 name: Partial ADO Project Migration
-run-name: Partial ADO Project Migration - "${{ github.event.inputs.MigrationSelection }}"
+run-name: "${{ github.event.inputs.SourceOrganizationName }}/${{ github.event.inputs.SourceProjectName }}=>${{ github.event.inputs.TargetOrganizationName }}/${{ github.event.inputs.TargetProjectName }} [${{ github.event.inputs.MigrationSelection }}]"
 
 on:
   workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
@@ -7,19 +7,19 @@ on:
       SourceOrganizationName:
         description: "Name of the Source Organization"
         required: true
-        default: "AIZ-GL"
+        default: "AIZ-Global"
       SourceProjectName:
         description: "Name of the Source Project"
         required: true
-        default: "GL.CL-Elita"
+        default: "GH.Lending-Digital"
       TargetOrganizationName:
         description: "Name of the Target Organization"
         required: true
-        default: "AIZ-Global"
+        default: "AIZ-SSP"
       TargetProjectName:
         description: "Name of the Target Project"
         required: true
-        default: "GL.CL-Elita-migrated"
+        default: "GH.AppDev-SSP-Backup-POC-V2"
       MigrationSelection:
         description: "Migration Selection"
         required: true
@@ -29,7 +29,7 @@ on:
           - Select an area to migrate
           - Areas and Iterations
           - Artifacts
-          - Build Pipelines
+          - Build Pipelines & Task Groups
           - Build Queues & Build Environments
           - Dashboards
           - Delivery Plans
@@ -39,10 +39,9 @@ on:
           - Repositories
           - Service Connections
           - Service Hooks
-          - Task Groups
           - Teams
           - Test Configurations
-          - Test Plans and Suites
+          - Test Plans, Suites, and Cases
           - Test Variables
           - Variable Groups
           - Wikis
@@ -78,7 +77,7 @@ jobs:
       - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
         run: |
-          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}/logs" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
         shell: pwsh
@@ -99,7 +98,7 @@ jobs:
           $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
-          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}"
           $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
@@ -124,8 +123,8 @@ jobs:
                   { & .\MigrateProject.ps1 -SkipMigrateTfsAreaAndIterations $WhatIf }
               "Artifacts" 
                   { & .\MigrateProject.ps1 -SkipMigrateArtifacts $WhatIf }
-              "Build Pipelines" 
-                  { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf }  
+              "Build Pipelines & Task Groups" 
+                  { & .\MigrateProject.ps1 -SkipMigrateBuildPipelines $WhatIf  }  
               "Build Queues & Build Environments" 
                   { & .\MigrateProject.ps1 -SkipMigrateBuildQueues $WhatIf }
               "Dashboards" 
@@ -135,39 +134,28 @@ jobs:
               "Groups" 
                   { & .\MigrateProject.ps1 -SkipMigrateGroups $WhatIf }
               "Policies" 
-                  { 
-                    & .\helper-scripts\ADODeletePolicies.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
-                    & .\MigrateProject.ps1 -SkipMigratePolicies $WhatIf
-                  }
+                  { & .\MigrateProject.ps1 -SkipMigratePolicies $WhatIf }
               "Release Pipelines" 
                   { & .\MigrateProject.ps1 -SkipMigrateReleasePipelines $WhatIf }
               "Repositories" 
-                  { 
-                    & .\helper-scripts\ADODeleteRepos.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
-                    & .\MigrateProject.ps1 -SkipMigrateRepos $WhatIf
-                  } 
+                  { & .\MigrateProject.ps1 -SkipMigrateRepos $WhatIf } 
               "Service Connections" 
                   { & .\MigrateProject.ps1 -SkipMigrateServiceConnections $WhatIf }
               "Service Hooks" 
                   { & .\MigrateProject.ps1 -SkipMigrateServiceHooks $WhatIf }
-              "Task Groups"
-                  { & .\MigrateProject.ps1 -SkipMigrateTaskGroups $WhatIf }
               "Teams"
                   { & .\MigrateProject.ps1 -SkipMigrateTeams $WhatIf } 
               "Test Configurations" 
                   { & .\MigrateProject.ps1 -SkipMigrateTestConfigurations $WhatIf }
-              "Test Plans and Suites" 
-                  { & .\MigrateProject.ps1 -SkipMigrateTestPlansAndSuites $WhatIf }
+              "Test Plans, Suites, and Cases" 
+                  { & .\MigrateProject.ps1 -SkipMigrateTestPlansAndSuites $WhatIf -SkipMigrateWorkItems $WhatIf -SkipAddReflectedWorkItemIdField $WhatIf -WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] IN ('Test Case')"}
               "Test Variables" 
                   { & .\MigrateProject.ps1 -SkipMigrateTestVariables $WhatIf }
               "Variable Groups" 
-                  { 
-                    & .\helper-scripts\ADODeleteVariableGroups.ps1 -OrgName ${{ github.event.inputs.TargetOrganizationName }} -ProjectName ${{ github.event.inputs.TargetProjectName }} -PAT $env:AZURE_DEVOPS_MIGRATION_PAT -DoDelete (-not $WhatIf)
-                    & .\MigrateProject.ps1 -SkipMigrateVariableGroups $WhatIf
-                  }
+                  { & .\MigrateProject.ps1 -SkipMigrateVariableGroups $WhatIf }
               "Wikis"
               { & .\MigrateProject.ps1 -SkipMigrateWikis $WhatIf }
-              "Work Item Queries" 
+              "Work Item Queries"
                   { & .\MigrateProject.ps1 -SkipMigrateWorkItemQuerys $WhatIf }
               "Work-Items (Including 'Test Cases')"  
                 { & .\Step_3_Migrate_Project.ps1 -WhatIf $WhatIf}

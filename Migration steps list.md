@@ -1,57 +1,50 @@
+Migration Step Order (Full Migration)
+---------------------------------------
 
-Migration script steps
-- [ ] Migrate Teams
-- [ ] Migrate Area And Iterations
-- [ ] Migrate Groups
-- [ ] Migrate Test Variables
-- [ ] Migrate Test Configurations
-- [ ] Migrate Test Plans And Suites
-- [ ] Migrate Work Item Querys
-- [ ] Shared Queries
-- [ ] Migrate Repos
-- [ ] Migrate Wikis
-- [ ] Migrate Task Groups
-- [ ] Migrate Variable Groups
-- [ ] Migrate Service Connections
-- [ ] Migrate Build Queues (Agent Pools in UI)
-- [ ] Migrate Build Pipelines
-- [ ] Migrate Release Pipelines
-- [ ] Migrate Service Hookss
-- [ ] Migrate Policies
-- [ ] Migrate Dashboards
-- [ ] Migrate WorkItems
-- [ ] Artifacts
+- Build Queues (Project Agent Pools)
+- Build Environments done with Build Queues
+- Repositories
+- Wikis
+- Service Connections
+- Areas and Iterations
+- Teams
+- Work Item Querys
+- Variable Groups
+- Build Pipelines
+- Release Pipelines
+- Task Groups
+- Work Items
+- Test Cases
+- Test Configurations
+- Test Variables
+- Test Plans, Suites, and Cases
+- Service Hooks
+- Policies
+- Dashboards
+- Delivery Plans 
+- Artifacts
 
-
-
-Migration Step Order 
---------------------
-Teams
-Area And Iterations
-Groups
-Test Variables
-Test Configurations
-Test Plans And Suites
-Work Item Queries
-Shared Queries
-Repos
-Wikis
-Task Groups
-Variable Groups
-Service Connections
-Build Queues
-Build Pipelines
-Release Pipelines
-Service Hooks
-Policies
-Dashboards
-Custom Field For Work Item Migration
-WorkItems
-Artifacts
-
-
-
-
+Partial Migrations Execution Order
+---------------------------------
+- Repositories 
+- Service Connections
+- Wikis
+- Areas and Iterations
+- Teams
+- Work Item Querys
+- Variable Groups
+- Build Pipelines & Task Groups
+- Release Pipelines 
+- Work-Items 
+- Groups
+- Test Configurations
+- Test Variables
+- Test Plans, Suites, and Cases
+- Service Hooks
+- Policies   (this will delete polices, then re-migrate them )
+- Dashboards
+- Delivery Plans
+- Artifacts
 
 
 

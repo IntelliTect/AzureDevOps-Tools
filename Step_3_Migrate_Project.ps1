@@ -39,7 +39,8 @@ Write-Host "Migrate Work Items with Created Date between 0 days ago and 100 days
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 100 AND [System.CreatedDate] <= @Today - 0 "
+-SkipAddReflectedWorkItemIdField $WhatIf `
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 100 AND [System.CreatedDate] <= @Today - 0 "
 
 
 Write-Host " "
@@ -47,7 +48,7 @@ Write-Host "Migrate Work Items with Created Date between 100 days ago and 200 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 200 AND [System.CreatedDate] <= @Today - 100 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 200 AND [System.CreatedDate] <= @Today - 100 "
 
 
 Write-Host " "
@@ -55,7 +56,7 @@ Write-Host "Migrate Work Items with Created Date between 200 days ago and 300 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 300 AND [System.CreatedDate] <= @Today - 200 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 300 AND [System.CreatedDate] <= @Today - 200 "
 
 
 Write-Host " "
@@ -63,7 +64,7 @@ Write-Host "Migrate Work Items with Created Date between 300 days ago and 400 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 400 AND [System.CreatedDate] <= @Today - 300 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 400 AND [System.CreatedDate] <= @Today - 300 "
 
 
 Write-Host " "
@@ -71,7 +72,7 @@ Write-Host "Migrate Work Items with Created Date between 400 days ago and 500 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 500 AND [System.CreatedDate] <= @Today - 400 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 500 AND [System.CreatedDate] <= @Today - 400 "
 
 
 Write-Host " "
@@ -79,7 +80,7 @@ Write-Host "Migrate Work Items with Created Date between 500 days ago and 600 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 600 AND [System.CreatedDate] <= @Today - 500 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 600 AND [System.CreatedDate] <= @Today - 500 "
 
 
 Write-Host " "
@@ -87,7 +88,7 @@ Write-Host "Migrate Work Items with Created Date between 600 days ago and 700 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 700 AND [System.CreatedDate] <= @Today - 600 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 700 AND [System.CreatedDate] <= @Today - 600 "
 
 
 Write-Host " "
@@ -95,7 +96,7 @@ Write-Host "Migrate Work Items with Created Date between 700 days ago and 800 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 800 AND [System.CreatedDate] <= @Today - 700 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 800 AND [System.CreatedDate] <= @Today - 700 "
 
 
 Write-Host " "
@@ -103,7 +104,7 @@ Write-Host "Migrate Work Items with Created Date between 800 days ago and 900 da
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 900 AND [System.CreatedDate] <= @Today - 800 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 900 AND [System.CreatedDate] <= @Today - 800 "
 
 
 Write-Host " "
@@ -111,7 +112,7 @@ Write-Host "Migrate Work Items with Created Date between 900 days ago and 1000 d
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1000 AND [System.CreatedDate] <= @Today - 900 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1000 AND [System.CreatedDate] <= @Today - 900 "
 
 
 Write-Host " "
@@ -119,7 +120,7 @@ Write-Host "Migrate Work Items with Created Date between 1000 days ago and 1100 
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1100 AND [System.CreatedDate] <= @Today - 1000 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1100 AND [System.CreatedDate] <= @Today - 1000 "
 
 
 Write-Host " "
@@ -127,7 +128,7 @@ Write-Host "Migrate Work Items with Created Date between 1100 days ago and 1200 
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1200 AND [System.CreatedDate] <= @Today - 1100 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1200 AND [System.CreatedDate] <= @Today - 1100 "
 
 
 Write-Host " "
@@ -135,7 +136,7 @@ Write-Host "Migrate Work Items with Created Date between 1200 days ago and 1300 
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1300 AND [System.CreatedDate] <= @Today - 1200 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1300 AND [System.CreatedDate] <= @Today - 1200 "
 
 
 Write-Host " "
@@ -143,21 +144,21 @@ Write-Host "Migrate Work Items with Created Date between 1300 days ago and 1500 
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1500 AND [System.CreatedDate] <= @Today - 1300 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 1500 AND [System.CreatedDate] <= @Today - 1300 "
 
 Write-Host " "
 Write-Host "Migrate Work Items with Created Date between 1500 days ago and 3000 days ago"
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 3000 AND [System.CreatedDate] <= @Today - 1500 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] > @Today - 3000 AND [System.CreatedDate] <= @Today - 1500 "
 
 Write-Host " "
 Write-Host "Migrate Work Items with Created Date less than 3000 days ago"
 Write-Host " "
 & .\MigrateProject.ps1 `
 -SkipMigrateWorkItems $WhatIf `
--WorkItemQueryBit "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] <= @Today - 3000 "
+-WorkItemQueryBit "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') AND [System.CreatedDate] <= @Today - 3000 "
 
 
 

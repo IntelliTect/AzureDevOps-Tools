@@ -19,7 +19,7 @@ Write-Host " "
 Write-Host "Migrate Work Items with Changed Date between 0 days Today and 'Number of Days Changed' ago"
 Write-Host " "
 
-$queryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
+$queryBit = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
 
 if($NumberOfDays -ne "") {
         $queryBit += "AND [System.ChangedDate] >= @Today - $($NumberOfDays) "
@@ -32,6 +32,7 @@ if($NumberOfDays -ne "") {
 if($ItemType -ne "") {
         $queryBit += "AND [System.WorkItemType] = '$($ItemType)' "
 }
+$queryBit += "ORDER BY [System.ChangedDate] DESC"
 
 & .\MigrateProject.ps1 -SkipMigrateWorkItems $WhatIf -WorkItemQueryBit $queryBit
 

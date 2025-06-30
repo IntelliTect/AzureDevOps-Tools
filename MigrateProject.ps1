@@ -1,40 +1,40 @@
 
 Param (
-        # -------------- What parts of the migration should NOT be executed --------------- \
-        # IntelliTect AzureDevOps-Tools Items
-        # Pre-step 
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
+    # -------------- What parts of the migration should NOT be executed --------------- \
+    # IntelliTect AzureDevOps-Tools Items
+    # Pre-step 
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
 
-        # Step 1
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
-        # Step 4
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
-        # Step 5
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
+    # Step 1
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE,
+    # Step 4
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
+    # Step 5
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
 
-        # Azure DevOps Migration Tool Items (Martin's Tool)
-        # Step 2
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTeams = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestVariables = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestConfigurations = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTestPlansAndSuites = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItemQuerys = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildPipelines = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateTaskGroups = $TRUE,
+    # Azure DevOps Migration Tool Items (Martin's Tool)
+    # Step 2
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateTeams = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateTestVariables = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateTestConfigurations = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateTestPlansAndSuites = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateWorkItemQuerys = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateBuildPipelines = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
         
-        # Step 3
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE,
-        [parameter(Mandatory=$FALSE)] [String]$WorkItemQueryBit = "AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') "
+    # Step 3
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateWorkItems = $TRUE,
+    [parameter(Mandatory = $FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE,
+    [parameter(Mandatory = $FALSE)] [String]$WorkItemQueryBit = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @TeamProject AND [System.WorkItemType] NOT IN ('Test Suite','Test Plan','Shared Steps','Shared Parameter','Feedback Request') ORDER BY [System.ChangedDate] DESC"
 )
 
 
@@ -48,6 +48,7 @@ Import-Module .\modules\Migrate-ADO-Groups.psm1
 Import-Module .\modules\Migrate-ADO-BuildQueues.psm1
 Import-Module .\modules\Migrate-ADO-BuildEnvironments.psm1
 Import-Module .\modules\Migrate-ADO-Repos.psm1
+Import-Module .\modules\Migrate-ADO-Retention.psm1
 Import-Module .\modules\Migrate-ADO-Wikis.psm1
 Import-Module .\modules\Migrate-ADO-Common.psm1
 Import-Module .\modules\Migrate-ADO-Pipelines.psm1
@@ -87,7 +88,6 @@ Write-Log -Message "SkipMigrateWorkItemQuerys $($SkipMigrateWorkItemQuerys)"
 Write-Log -Message "SkipMigrateVariableGroups $($SkipMigrateVariableGroups)"
 Write-Log -Message "SkipMigrateBuildPipelines $($SkipMigrateBuildPipelines)"
 Write-Log -Message "SkipMigrateReleasePipelines $($SkipMigrateReleasePipelines)"
-Write-Log -Message "SkipMigrateTaskGroups $($SkipMigrateTaskGroups)"
 Write-Log -Message "SkipMigrateWorkItems $($SkipMigrateWorkItems)"
 Write-Log -Message " "
 Write-Log -Message "WorkItemQueryBit: $($WorkItemQueryBit)"
@@ -104,7 +104,7 @@ $configFile = 'configuration.json'
 $configPath = 'configuration\'
 $filePath = Resolve-Path -Path "$configPath$configFile"
 
-if($NULL -eq $filePath) {
+if ($NULL -eq $filePath) {
     Write-Log -Message 'Unable to locate configuration.json file which is required!' -LogLevel ERROR
     exit
 }
@@ -138,8 +138,8 @@ $env:MIGRATION_LOGS_PATH = $projectPath
 $sourcePat = $env:AZURE_DEVOPS_MIGRATION_SOURCE_PAT
 $targetPat = $env:AZURE_DEVOPS_MIGRATION_TARGET_PAT
 $pat = $env:AZURE_DEVOPS_MIGRATION_PAT
-If ($NULL -eq $sourcePat) {$sourcePat = $pat }
-If ($NULL -eq $targetPat) {$targetPat = $pat }
+If ($NULL -eq $sourcePat) { $sourcePat = $pat }
+If ($NULL -eq $targetPat) { $targetPat = $pat }
 
 
 # ==========================================
@@ -152,219 +152,149 @@ Write-Host "Configure Azure DevOps Migration Tool (Martin's Tool).."
 $martinConfigPath = "$($ProjectDirectory)\$($configPath)$DevOpsMigrationToolConfigurationFile"
 $martinConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
 $martinPreviousConfiguration = [Object](Get-Content $martinConfigPath | Out-String | ConvertFrom-Json -Depth 100)
-$martinConfigFileChanged = $FALSE
 
-# ------------------
-# ----- Source -----
-# ------------------
-# Organization
-if($martinConfiguration.Source.Collection -ne $SourceProject.Organization) {
-    $martinConfiguration.Source.Collection = $SourceProject.Organization
-    $martinConfigFileChanged = $TRUE
-}
-# project
-if($martinConfiguration.Source.Project -ne $SourceProject.ProjectName) {
-    $martinConfiguration.Source.Project = $SourceProject.ProjectName
-    $martinConfigFileChanged = $TRUE
-}
-# personal access token
-if($martinConfiguration.Source.PersonalAccessToken -ne $sourcePat) {
-    $martinConfiguration.Source.PersonalAccessToken = $sourcePat
-    $martinConfigFileChanged = $TRUE
-}
-
-# ------------------
-# ----- Target -----
-# ------------------
-# Organization
-if($martinConfiguration.Target.Collection -ne $TargetProject.Organization) {
-    $martinConfiguration.Target.Collection = $TargetProject.Organization
-    $martinConfigFileChanged = $TRUE
-}
-# project
-if($martinConfiguration.Target.Project -ne $TargetProject.ProjectName) {
-    $martinConfiguration.Target.Project = $TargetProject.ProjectName
-    $martinConfigFileChanged = $TRUE
-}
-# personal access token
-if($martinConfiguration.Target.PersonalAccessToken -ne $targetPat) {
-    $martinConfiguration.Target.PersonalAccessToken = $targetPat
-    $martinConfigFileChanged = $TRUE
-}
 
 # ---------------------------------------
 # -- End Point Source/Target settings  --
 # ---------------------------------------
-$endpointConfigs = @("AzureDevOpsEndpoints", "TfsTeamSettingsEndpoints", "TfsWorkItemEndpoints", "TfsEndpoints")
+$targetOrg = $configuration.TargetProject.OrgName
+Write-Log "targetOrg: $targetOrg"
+$url = "https://dev.azure.com/$($targetOrg)/_apis/wit/fields/ReflectedWorkItemId?api-version=7.1-preview.2"
+$targetHeaders = New-HTTPHeaders -PersonalAccessToken $targetPat
+$DesiredProcessFieldResponse = Invoke-RestMethod -Uri $url -Headers $targetHeaders
 
-foreach($endpointConfig in $martinConfiguration.Endpoints.PSObject.Properties) {
-    if($endpointConfigs.Contains($endpointConfig.Name)) {
-        # Source Organization
-        if($endpointConfig.Value[0].Organisation -ne $SourceProject.Organization) {
-            $endpointConfig.Value[0].Organisation = $SourceProject.Organization
-            $martinConfigFileChanged = $TRUE
-        }
-        # Source project
-        if($endpointConfig.Value[0].Project -ne $SourceProject.ProjectName) {
-            $endpointConfig.Value[0].Project = $SourceProject.ProjectName
-            $martinConfigFileChanged = $TRUE
-        }
-        # Source personal access token
-        if($endpointConfig.Value[0].AccessToken -ne $sourcePat) {
-            $endpointConfig.Value[0].AccessToken = $sourcePat
-            $martinConfigFileChanged = $TRUE
-        }
-        if($endpointConfig.Name -eq "TfsWorkItemEndpoints") {
-             # Source personal access token
-            if($endpointConfig.Value[0].PersonalAccessToken -ne $sourcePat) {
-                $endpointConfig.Value[0].PersonalAccessToken = $sourcePat
-                $martinConfigFileChanged = $TRUE
-            }
-        }
+$AlternateNameFieldForReflectedWorkItemId = ""
+if ($null -ne $DesiredProcessFieldResponse -AND $DesiredProcessFieldResponse.referenceName -ne "Custom.ReflectedWorkItemId") {
+    $AlternateNameFieldForReflectedWorkItemId = $DesiredProcessFieldResponse.referenceName
+    Write-Log "Found existing RefelectedWorkItemId field to be configured in migration-configuration.json"
+}
 
-        # Target Organization
-        if($endpointConfig.Value[1].Organisation -ne $TargetProject.Organization) {
-            $endpointConfig.Value[1].Organisation = $TargetProject.Organization
-            $martinConfigFileChanged = $TRUE
+foreach ($endpoint in $martinConfiguration.MigrationTools.Endpoints.PSObject.Properties) {
+    
+    Write-Host "Name: $($endpoint.Name)"
+    
+    if ($endpoint.Name -like "*Source") {
+        $endpoint.Value.Project = $SourceProject.ProjectName
+        
+        if ($endpoint.Value.EndpointType -eq "AzureDevOpsEndpoint") {
+            $endpoint.Value.Organisation = $SourceProject.Organization
+            $endpoint.Value.AccessToken = $sourcePat
         }
-        # Target project
-        if($endpointConfig.Value[1].Project -ne $TargetProject.ProjectName) {
-            $endpointConfig.Value[1].Project = $TargetProject.ProjectName
-            $martinConfigFileChanged = $TRUE
+        else {
+            $endpoint.Value.Collection = $SourceProject.Organization
+            $endpoint.Value.Authentication.AccessToken = $sourcePat
         }
-        # Target personal access token
-        if($endpointConfig.Value[1].AccessToken -ne $targetPat) {
-            $endpointConfig.Value[1].AccessToken = $targetPat
-            $martinConfigFileChanged = $TRUE
-        }
-        if($endpointConfig.Name -eq "TfsWorkItemEndpoints") {
-            # Source personal access token
-           if($endpointConfig.Value[1].PersonalAccessToken -ne $targetPat) {
-               $endpointConfig.Value[1].PersonalAccessToken = $targetPat
-               $martinConfigFileChanged = $TRUE
-           }
-       }
     }
+    elseif ($endpoint.Name -like "*Target") {
+        $endpoint.Value.Project = $TargetProject.ProjectName
+        if ($endpoint.Value.EndpointType -eq "AzureDevOpsEndpoint") {
+            $endpoint.Value.Organisation = $TargetProject.Organization
+            $endpoint.Value.AccessToken = $targetPat
+        }
+        else {
+            $endpoint.Value.Collection = $TargetProject.Organization
+            $endpoint.Value.Authentication.AccessToken = $targetPat
+        }
+
+        # This replacement only occurs when there is an existing process field named 'ReflectedWorkItemId' which does not have a reference name of Custom.RefelctedWorkItemId
+        if (-not [string]::IsNullOrEmpty($AlternateNameFieldForReflectedWorkItemId)) {
+            $endpoint.Value.ReflectedWorkItemIdField = $AlternateNameFieldForReflectedWorkItemId
+        }
+    }  
+       
 }
 
 # --------------------------------------------------
 # ----- Azure DevOps Migration Tool Processors -----
 # -     enable which processors we execute         -
 # --------------------------------------------------
-foreach($processor in $martinConfiguration.Processors)
-{
-    if($processor.'$type' -eq "TfsAreaAndIterationProcessorOptions") {
-        if(($processor.Enabled -ne !$SkipMigrateTfsAreaAndIterations)){
-            $processor.Enabled = !$SkipMigrateTfsAreaAndIterations
-            $martinConfigFileChanged = $TRUE
+foreach ($processor in $martinConfiguration.MigrationTools.Processors) {
+    if ($processor.ProcessorType -eq "TfsTeamSettingsProcessor") {
+        if (($processor.Enabled -ne !$SkipMigrateTeams)) {
+            $processor.Enabled = !$SkipMigrateTeams            
         }
-    } elseif($processor.'$type' -eq "TfsTeamSettingsProcessorOptions") {
-        if(($processor.Enabled -ne !$SkipMigrateTeams)){
-            $processor.Enabled = !$SkipMigrateTeams
-            $martinConfigFileChanged = $TRUE
+    }
+    elseif ($processor.ProcessorType -eq "TfsTestVariablesMigrationProcessor") {
+        if (($processor.Enabled -ne !$SkipMigrateTestVariables)) {
+            $processor.Enabled = !$SkipMigrateTestVariables            
         }
-    } elseif($processor.'$type' -eq "TestVariablesMigrationConfig") {
-        if(($processor.Enabled -ne !$SkipMigrateTestVariables)){
-            $processor.Enabled = !$SkipMigrateTestVariables
-            $martinConfigFileChanged = $TRUE
+    }
+    elseif ($processor.ProcessorType -eq "TfsTestConfigurationsMigrationProcessor") {
+        if (($processor.Enabled -ne !$SkipMigrateTestConfigurations)) {
+            $processor.Enabled = !$SkipMigrateTestConfigurations            
         }
-    } elseif($processor.'$type' -eq "TestConfigurationsMigrationConfig") {
-        if(($processor.Enabled -ne !$SkipMigrateTestConfigurations)){
-            $processor.Enabled = !$SkipMigrateTestConfigurations
-            $martinConfigFileChanged = $TRUE
+    }
+    elseif ($processor.ProcessorType -eq "TfsTestPlansAndSuitesMigrationProcessor") {
+        if (($processor.Enabled -ne !$SkipMigrateTestPlansAndSuites)) {
+            $processor.Enabled = !$SkipMigrateTestPlansAndSuites            
         }
-    } elseif($processor.'$type' -eq "TestPlansAndSuitesMigrationConfig") {
-        if(($processor.Enabled -ne !$SkipMigrateTestPlansAndSuites)){
-            $processor.Enabled = !$SkipMigrateTestPlansAndSuites
-            $martinConfigFileChanged = $TRUE
+    }
+    elseif ($processor.ProcessorType -eq "TfsSharedQueryProcessor") {
+        if (($processor.Enabled -ne !$SkipMigrateWorkItemQuerys)) {
+            $processor.Enabled = !$SkipMigrateWorkItemQuerys            
         }
-    } elseif($processor.'$type' -eq "TfsSharedQueryProcessorOptions") {
-        if(($processor.Enabled -ne !$SkipMigrateWorkItemQuerys)){
-            $processor.Enabled = !$SkipMigrateWorkItemQuerys
-            $martinConfigFileChanged = $TRUE
-        }
-    } elseif($processor.'$type' -eq "AzureDevOpsPipelineProcessorOptions") {
+    }
+    elseif ($processor.ProcessorType -eq "AzureDevOpsPipelineProcessor") {
         # MigrateBuildPipelines
         $migratingPipeline = $FALSE
-        if(($processor.MigrateBuildPipelines -ne !$SkipMigrateBuildPipelines)){
+        if (($processor.MigrateBuildPipelines -ne !$SkipMigrateBuildPipelines)) {
             $processor.MigrateBuildPipelines = !$SkipMigrateBuildPipelines
         }
-        if($processor.MigrateBuildPipelines -eq $TRUE) {
-            # You need to migrate variable groups before pipelines
-            $processor.MigrateVariableGroups = !$SkipMigrateBuildPipelines
-            $migratingPipeline = $TRUE
-            $SkipMigrateBuildPipelines = $FALSE
-        }
 
-        # MigrateReleasePipelines
-        if(($processor.MigrateReleasePipelines -ne !$SkipMigrateReleasePipelines)){
-            $processor.MigrateReleasePipelines = !$SkipMigrateReleasePipelines
-        }
-        if($processor.MigrateReleasePipelines -eq $TRUE) {
-            # You need to migrate variable groups before pipelines
-            $processor.MigrateVariableGroups = !$SkipMigrateReleasePipelines
+        if ($processor.MigrateBuildPipelines -eq $TRUE) {
             $migratingPipeline = $TRUE
-            $SkipMigrateBuildPipelines = $FALSE
-        }
-
-        # MigrateTaskGroups
-        if(($processor.MigrateTaskGroups -ne !$SkipMigrateTaskGroups)){
-            $processor.MigrateTaskGroups = !$SkipMigrateTaskGroups
         }
 
         # MigrateVariableGroups
-        if(($processor.MigrateVariableGroups -ne !$SkipMigrateVariableGroups) -and (!$migratingPipeline)){
+        if (($processor.MigrateVariableGroups -ne !$SkipMigrateVariableGroups) -and (!$migratingPipeline)) {
             $processor.MigrateVariableGroups = !$SkipMigrateVariableGroups
         }
 
         $SkipAzureDevOpsPipelineProcessorOptions = (  `
-            $SkipMigrateBuildPipelines -and  `
-            $SkipMigrateReleasePipelines -and  `
-            $SkipMigrateVariableGroups -and  `
-            $SkipMigrateTaskGroups
+                $SkipMigrateBuildPipelines -and `
+                $SkipMigrateVariableGroups 
         )
 
-        if(($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions) -or (!$SkipAzureDevOpsPipelineProcessorOptions)){
+        if (($processor.Enabled -ne !$SkipAzureDevOpsPipelineProcessorOptions) -or (!$SkipAzureDevOpsPipelineProcessorOptions)) {
             $processor.Enabled = !$SkipAzureDevOpsPipelineProcessorOptions
 
             # RepositoryNameMaps
-            if($processor.Enabled -eq $TRUE) {
+            if ($processor.Enabled -eq $TRUE) {
                 $processor.RepositoryNameMaps = @{
-                    "$($SourceProject.ProjectName)"= "$($TargetProject.ProjectName)"
+                    "$($SourceProject.ProjectName)" = "$($TargetProject.ProjectName)"
                 }
-            } else {
+            }
+            else {
                 $processor.RepositoryNameMaps = $NULL
             }
 
-            $martinConfigFileChanged = $TRUE
+            
         }
-    } elseif(($processor.'$type' -eq "WorkItemMigrationConfig") -or ($processor.'$type' -eq "WorkItemTrackingProcessorOptions")) {
-        if(($processor.Enabled -ne !$SkipMigrateWorkItems) -or ($processor.WIQLQueryBit -ne $WorkItemQueryBit)){
+    }
+    elseif (($processor.ProcessorType -eq "TfsWorkItemMigrationProcessor") -or ($processor.ProcessorType -eq "WorkItemTrackingProcessorOptions")) {
+        if (($processor.Enabled -ne !$SkipMigrateWorkItems) -or ($processor.WIQLQuery -ne $WorkItemQueryBit)) {
             $processor.Enabled = !$SkipMigrateWorkItems
-            $processor.WIQLQueryBit = $WorkItemQueryBit
-            $martinConfigFileChanged = $TRUE
+            $processor.WIQLQuery = $WorkItemQueryBit
+            
         }
     }
 }
 
 $SkipAzureDevOpsMigrationTool = (  `
-    $SkipMigrateTfsAreaAndIterations -and  `
-    $SkipMigrateTeams -and  `
-    $SkipMigrateTestVariables -and  `
-    $SkipMigrateTestConfigurations -and  `
-    $SkipMigrateTestPlansAndSuites -and  `
-    $SkipMigrateWorkItemQuerys -and  `
-    $SkipMigrateBuildPipelines -and  `
-    $SkipMigrateReleasePipelines -and  `
-    $SkipMigrateTaskGroups -and  `
-    $SkipMigrateVariableGroups -and  `
-    $SkipMigrateWorkItems
+        $SkipMigrateTeams -and `
+        $SkipMigrateTestVariables -and `
+        $SkipMigrateTestConfigurations -and `
+        $SkipMigrateTestPlansAndSuites -and `
+        $SkipMigrateWorkItemQuerys -and `
+        $SkipMigrateVariableGroups -and `
+        $SkipMigrateWorkItems
 )
 
 
-if($martinConfigFileChanged) {
-    $martinConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
-}
+$martinConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
+$configString = $martinConfiguration | ConvertTo-Json -Depth 100
+Write-Host "Configuration after substitution:"
+Write-Host $configString
 #endregion
 
 
@@ -403,12 +333,17 @@ Start-ADOProjectMigration `
     -SkipMigrateArtifacts $SkipMigrateArtifacts `
     -SkipMigrateDeliveryPlans $SkipMigrateDeliveryPlans `
     -SkipAzureDevOpsMigrationTool $SkipAzureDevOpsMigrationTool `
-    -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers
+    -SkipMigrateOrganizationUsers $SkipMigrateOrganizationUsers `
+    -SkipAddReflectedWorkItemIdField $SkipAddReflectedWorkItemIdField `
+    -SkipMigrateVariableGroups $SkipMigrateVariableGroups `
+    -SkipMigrateBuildPipelines $SkipMigrateBuildPipelines `
+    -SkipMigrateReleasePipelines $SkipMigrateReleasePipelines `
+    -SkipMigrateTfsAreaAndIterations $SkipMigrateTfsAreaAndIterations
 #endregion
 
 
 # Clean up old martin's tool Configuration
 Write-Host "Clean up Configuration file for Azure DevOps Migration Tool (Martin's Tool).."
-if($martinConfigFileChanged) {
-    $martinPreviousConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
-}
+
+$martinPreviousConfiguration | ConvertTo-Json -Depth 100 | Set-Content $martinConfigPath
+

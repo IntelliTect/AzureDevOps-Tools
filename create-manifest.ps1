@@ -8,6 +8,7 @@ $IncludedModules = @(
     "$(Get-Location)\modules\Migrate-ADO-BuildQueues.psm1",
     "$(Get-Location)\modules\Migrate-ADO-BuildEnvironments.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Repos.psm1",
+    "$(Get-Location)\modules\Migrate-ADO-Retention.psm1"
     "$(Get-Location)\modules\Migrate-ADO-Wikis.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Common.psm1",
     "$(Get-Location)\modules\Migrate-ADO-Pipelines.psm1",
@@ -28,7 +29,7 @@ $IncludedModules = @(
 # Make sure files are the correct paths
 $validPath = Test-Path $IncludedModules[0]
 
-if(!$validPath){
+if (!$validPath) {
     throw "The file paths appear to be incorrect... `n
     Make sure you are in the repo root directory when running this script."
 }

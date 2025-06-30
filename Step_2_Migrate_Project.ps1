@@ -1,5 +1,5 @@
 Param (
-        [Parameter (Mandatory=$FALSE)] [Boolean]$WhatIf = $TRUE
+        [Parameter (Mandatory = $FALSE)] [Boolean]$WhatIf = $TRUE
 )
 
 Write-Host " "
@@ -16,10 +16,10 @@ Write-Host " "
 
 
 .\MigrateProject.ps1 `
--SkipMigrateTfsAreaAndIterations $WhatIf `
--SkipMigrateTeams $WhatIf `
--SkipMigrateWorkItemQuerys $WhatIf `
--SkipMigrateVariableGroups $WhatIf `
--SkipMigrateBuildPipelines $WhatIf `
--SkipMigrateReleasePipelines $WhatIf `
--SkipMigrateTaskGroups $WhatIf
+        -SkipMigrateTfsAreaAndIterations $WhatIf `
+        -SkipMigrateTeams $WhatIf `
+        -SkipMigrateWorkItemQuerys $WhatIf `
+        -SkipMigrateVariableGroups $WhatIf `
+        -SkipMigrateBuildPipelines $WhatIf `
+        -SkipMigrateReleasePipelines $WhatIf `
+        -SkipMigrateServiceConnections $WhatIf 

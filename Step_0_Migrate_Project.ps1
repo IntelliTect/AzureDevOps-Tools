@@ -13,7 +13,7 @@ Write-Host "-------------------------------------------"
 <#
   Step #1 migrate 
     - Build Queues (Project Agent Pools)
-      - Build Environments done with Build Queues
+    - Build Environments done with Build Queues
     - Repositories
     - Wikis
     - Service Connections 
@@ -34,6 +34,7 @@ Write-Host "-------------------------------------------"
 
 <#
   Step #3 migrate 
+    - Work Item Types belonging to the target process template will have ReflectedWorkItemId field added
     - Work Items (Including 'Test Cases')
       In batches where Created Date Between
              0 -  100
@@ -60,6 +61,7 @@ Write-Host "-------------------------------------------"
 
 <#
   Step #4 migrate 
+    - Test Cases
     - Groups
     - Test Configurations
     - Test Variables

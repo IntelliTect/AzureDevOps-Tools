@@ -506,12 +506,14 @@ function Get-ADOGroupMembers {
         $organization = "https://dev.azure.com/$OrgName/"
         try {
             $members = az devops security group membership list --id $GroupDescriptor --organization $organization --detect $false | ConvertFrom-Json
-        } catch {
+        }
+        catch {
             Write-Log -Message "FAILED!" -LogLevel ERROR
             Write-Log -Message $_.Exception -LogLevel ERROR
             try {
                 Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
-            } catch {}
+            }
+            catch {}
         }
 
         if ($members) {
@@ -597,7 +599,7 @@ function Get-ADOProjectTeams {
 
 
 # Pipelines
-function Get-Pipelines {
+function Get-BuildDefinitions {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
@@ -625,7 +627,7 @@ function Get-Pipelines {
     }
 }
 
-function Get-Pipeline {
+function Get-BuildDefinition {
     [CmdletBinding(SupportsShouldProcess)]
     param(
         [Parameter (Mandatory = $TRUE)]
@@ -669,7 +671,7 @@ function Get-Repo([string]$projectName, [string]$orgName, $headers, $repoId) {
 
     $url = "https://dev.azure.com/$orgName/$projectName/_apis/git/repositories/$repoId"
     
-    $results =  Invoke-RestMethod -Method Get -uri $url -Headers $headers
+    $results = Invoke-RestMethod -Method Get -uri $url -Headers $headers
 
     return , $results
 }
@@ -705,9 +707,31 @@ function New-GitRepository {
     } | ConvertTo-Json
 
     try {
-        Invoke-RestMethod -Method post -uri $url -Headers $Headers -Body $requestBody -ContentType 'application/json'
+        $result = Invoke-RestMethod -Method post -uri $url -Headers $Headers -Body $requestBody -ContentType 'application/json'
     }
     catch {
         Write-Log -Message "Error creating repo $RepoName in project $projectId : $($_.Exception) " 
     }
+
+    return $result
+}
+
+function Get-IdentitiesByName {
+    param (
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $OrgName,
+        [Parameter(Mandatory = $TRUE)]
+        [string]
+        $DisplayName,
+        [Parameter(Mandatory = $TRUE)]
+        $Headers
+    )
+    
+    $url = "https://vssps.dev.azure.com/$OrgName/_apis/identities?searchFilter=General" `
+        + "&filterValue=$([uri]::EscapeDataString($DisplayName))&queryMembership=None&api-version=7.2-preview.1"
+
+    $results = Invoke-RestMethod -Method Get -Uri $url -Headers $Headers
+
+    return $results
 }
