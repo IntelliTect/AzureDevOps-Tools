@@ -26,7 +26,10 @@ function Start-ClassicBuildPipelinesMigration {
         [Parameter (Mandatory = $FALSE)]
         [Boolean]$MigrateOnlyProblematicPipelines = $true
     )
-    if ($PSCmdlet.ShouldProcess($ProjectName)) {
+    if ($PSCmdlet.ShouldProcess(
+            "Project $TargetOrgName/$TargetProjectName",
+            "Migrate Classic Build Pipelines from source project $SourceOrgName/$SourceProjectName")
+    ) {
         
         Write-Log -Message ' '
         Write-Log -Message '-------------------------------------------------------------'

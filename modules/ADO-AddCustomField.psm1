@@ -44,12 +44,18 @@ function Start-ADO_AddCustomField {
         [Parameter (Mandatory = $TRUE)] 
         [String]$ProjectName,
 
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$SourceOrgName,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$SourceProjectName,
+
         [Parameter (Mandatory = $FALSE)] 
         [String]$FieldDefaultValue
     )
     if ($PSCmdlet.ShouldProcess(
             "Project $OrgName/$ProjectName",
-            "Add ADO custom Field from source project $OrgName/$ProjectName")
+            "Add ADO custom Field from source project $SourceOrgName/$SourceProjectName")
     ) {
         Write-Log -Message ' '
         Write-Log -Message '--------------------------------'
