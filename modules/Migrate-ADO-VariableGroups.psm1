@@ -9,7 +9,7 @@ function Start-ADOVariableGroupsMigration {
         [Parameter (Mandatory = $TRUE)] [String]$TargetProjectName, 
         [Parameter (Mandatory = $TRUE)] [Hashtable]$TargetHeaders,
         [Parameter (Mandatory = $FALSE)] [String]$secretsMapPath = "",
-        [Parameter (Mandatory = $FALSE)] [Boolean]$migrateKeyVaultConnectedOnly = $true
+        [Parameter (Mandatory = $FALSE)] [Boolean]$migrateKeyVaultConnectedOnly = $false
 
     )
     if ($PSCmdlet.ShouldProcess(
