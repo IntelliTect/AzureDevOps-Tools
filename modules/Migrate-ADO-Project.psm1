@@ -218,6 +218,8 @@ function Start-ADOProjectMigration {
             -Headers $targetHeaders `
             -OrgName $TargetOrgName `
             -ProjectName $TargetProjectName `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
             -WhatIf: $SkipAddReflectedWorkItemIdField
 
         #endregion
