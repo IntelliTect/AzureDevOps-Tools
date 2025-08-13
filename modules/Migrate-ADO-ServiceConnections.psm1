@@ -68,7 +68,7 @@ function Start-ADOServiceConnectionsMigration {
                             "serviceprincipalId" -MemberValue $endpoint.authorization.parameters.serviceprincipalId
                     }
                     
-                    $endpoint.authorization.scheme = "WorkloadIdentityFederation"
+                    # $endpoint.authorization.scheme = "WorkloadIdentityFederation"
                 }
                 elseif ($endpoint.authorization.scheme -eq "PublishProfile") {
                     Set-Parameters -Authorization $endpoint.authorization -MemberName "tenantid" -MemberValue $endpoint.authorization.tenantId
