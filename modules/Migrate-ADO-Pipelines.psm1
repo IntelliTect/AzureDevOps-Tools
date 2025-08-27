@@ -367,7 +367,7 @@ function Move-BuildEnvironmentPipelinePermissions {
             }
 
             foreach ($pipelinePermission in $sourcePipelinePermissions.Pipelines) {
-                $sourcePipeline = Get-Pipelines -Headers $SourceHeaders -OrgName `
+                $sourcePipeline = Get-BuildDefinition -Headers $SourceHeaders -OrgName `
                     $SourceOrgName -ProjectName $SourceProjectName -DefinitionId `
                     $pipelinePermission.Id
                 $targetPipeline = ($targetPipelines | Where-Object { $_.Name -ceq $sourcePipeline.Name })
