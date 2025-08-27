@@ -51,8 +51,14 @@ function Start-ClassicBuildPipelinesMigration {
         $sourceTaskGroups = Get-TaskGroups -OrgName $SourceOrgName -ProjectName $SourceProjectName `
             -Headers $SourceHeaders
         
-        Move-TaskGroups -SourceTaskGroups $sourceTaskGroups.value -TargetProjectName $TargetProjectName `
-            -TargetOrgName $TargetOrgName -TargetHeaders $TargetHeaders
+        # Check if there are any task groups to migrate
+        if ($sourceTaskGroups.value -and $sourceTaskGroups.value.Count -gt 0) {
+            Move-TaskGroups -SourceTaskGroups $sourceTaskGroups.value -TargetProjectName $TargetProjectName `
+                -TargetOrgName $TargetOrgName -TargetHeaders $TargetHeaders
+        }
+        else {
+            Write-Log -Message "No task groups found in the source project to migrate."
+        }
 
         $targetTaskGroups = Get-TaskGroups -OrgName $TargetOrgName -ProjectName $TargetProjectName `
             -Headers $TargetHeaders
@@ -147,8 +153,11 @@ function Start-ClassicBuildPipelinesMigration {
                         }
 
                         foreach ($step in $phase.steps) {
-                            $step.task.id = Get-TargetTaskId -SourceTaskGroups $sourceTaskGroups.value -TargetTaskGroups `
-                                $targetTaskGroups.value -SourceTaskGroupId $step.task.id
+                            # Only map task IDs if there are source task groups
+                            if ($sourceTaskGroups.value -and $sourceTaskGroups.value.Count -gt 0) {
+                                $step.task.id = Get-TargetTaskId -SourceTaskGroups $sourceTaskGroups.value -TargetTaskGroups `
+                                    $targetTaskGroups.value -SourceTaskGroupId $step.task.id
+                            }
                         }
                     }
     
@@ -507,15 +516,20 @@ function Get-TaskGroups {
 
 function Get-TargetTaskId {
     param (
-        [Parameter (Mandatory = $TRUE)]
-        $SourceTaskGroups,
+        [Parameter (Mandatory = $FALSE)]  # Changed to not mandatory
+        $SourceTaskGroups = @(),
 
-        [Parameter (Mandatory = $TRUE)]
-        $TargetTaskGroups,
+        [Parameter (Mandatory = $FALSE)]  # Changed to not mandatory
+        $TargetTaskGroups = @(),
 
         [Parameter (Mandatory = $TRUE)]
         [string]$SourceTaskGroupId
     )
+    
+    # Return original ID if source task groups are empty
+    if ($null -eq $SourceTaskGroups -or $SourceTaskGroups.Count -eq 0) {
+        return $SourceTaskGroupId
+    }
     
     $stg = $SourceTaskGroups | Where-Object { $_.id -eq $SourceTaskGroupId }
     $result = $SourceTaskGroupId
