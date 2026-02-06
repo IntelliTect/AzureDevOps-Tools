@@ -6,19 +6,19 @@ on:
       SourceOrganizationName:
         description: "Name of the Source Organization"
         required: true
-        default: "AIZ-GL"
+        default: ""
       SourceProjectName:
         description: "Name of the Source Project"
         required: true
-        default: "GL.CL-Elita"
+        default: ""
       TargetOrganizationName:
         description: "Name of the Target Organization"
         required: true
-        default: "AIZ-Global"
+        default: ""
       TargetProjectName:
         description: "Name of the Target Project"
         required: true
-        default: "GL.CL-Elita-migrated"
+        default: ""
       StartDate:
         description: "Start Changed Date (month/day/year)"
         required: true
@@ -65,7 +65,7 @@ on:
 jobs:
   run-powershell-script:
     name: Run PowerShell Script
-    runs-on: 'AEC0WGEMP001'
+    runs-on: "AEC0WGEMP001"
     timeout-minutes: 7200
     env:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
@@ -88,7 +88,7 @@ jobs:
         run: |
           Get-ChildItem "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}/logs" -Recurse | Remove-Item -Recurse
 
-      - name: Set Migration Configuration 
+      - name: Set Migration Configuration
         shell: pwsh
         run: |
           $SourceOrganizationUrl = "https://dev.azure.com/${{ github.event.inputs.SourceOrganizationName }}/"
@@ -98,7 +98,7 @@ jobs:
           $LocalConfigPath = "configuration\configuration.json"
           $filePath = Resolve-Path -Path "$LocalConfigPath"
           Write-Host "FILEPATH: $filePath"   
-          
+
           $configuration = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
           $configuration.SourceProject.Organization = "$SourceOrganizationUrl"
           $configuration.SourceProject.ProjectName = "${{ github.event.inputs.SourceProjectName }}"
@@ -112,7 +112,7 @@ jobs:
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
           $configuration | ConvertTo-Json -Depth 100 | Set-Content $LocalConfigPath
-          
+
           $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
           Write-Host (ConvertTo-Json -Depth 100 $configuration2)
 
@@ -128,7 +128,7 @@ jobs:
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
           $WhatIf = $whatIfDryRun -match "true"
           $format = "MM/dd/yyyy"
-          
+
           echo $selection
           echo $start
           echo $end
@@ -169,4 +169,3 @@ jobs:
         with:
           name: migration-run-logs
           path: "./Projects"
-

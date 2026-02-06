@@ -19,7 +19,7 @@ function Get-ADOWorkItemTypes([string]$ProcessId, [string]$WorkItemType, [string
     $results = $client.GetStringAsync($url)
     $workItemTypes = ($results.Result | convertfrom-json).value
     if ($WorkItemType) {
-        return $workItemTypes | Where-Object {$_.name -ieq $WorkItemType}
+        return $workItemTypes | Where-Object { $_.name -ieq $WorkItemType }
     }
     else {
         return $workItemTypes
@@ -57,7 +57,7 @@ function Get-ADOLists([string]$listName, [string]$org) {
     $results = $client.GetStringAsync($url)
     $lists = ($results.Result | convertfrom-json).value
     if ($listName) {
-        return $lists | Where-Object {$_.name -ieq $listName}
+        return $lists | Where-Object { $_.name -ieq $listName }
     }
     else {
         return $lists
@@ -77,26 +77,26 @@ function Add-ADOProjectFields([string]$project, [string]$witRefName, [string]$cs
         $isPickList = $false
         if ($_.picklist) {
             $pickListName = $_.picklist
-            $list = $lists | Where-Object {$_.name -ieq $pickListName}
+            $list = $lists | Where-Object { $_.name -ieq $pickListName }
             $isPickList = $true
         }
 
         $field = [PSCustomObject]@{
-            _links = $null
-            canSortyBy = $true
-            description = $null
-            isIdentity = ($_.type -ieq "identity")
-            isPicklist = $isPickList
+            _links              = $null
+            canSortyBy          = $true
+            description         = $null
+            isIdentity          = ($_.type -ieq "identity")
+            isPicklist          = $isPickList
             isPicklistSuggested = $false
-            isQueryable = $true
-            name = $_.name
-            picklistId = $list.id
-            readOnly = $false
-            referenceName = $_.refName
+            isQueryable         = $true
+            name                = $_.name
+            picklistId          = $list.id
+            readOnly            = $false
+            referenceName       = $_.refName
             supportedOperations = $null
-            type = $_.type
-            url = $baseUrl + $_.refname
-            usage = "workItem"
+            type                = $_.type
+            url                 = $baseUrl + $_.refname
+            usage               = "workItem"
         }
 
         $fieldjson = $field | convertto-json
@@ -120,26 +120,26 @@ function Add-ADOFields([string]$processId, [string]$witRefName, [string]$csvFile
         $picklist = $null
         if ($_.picklist) {
             $pickListName = $_.picklist
-            $list = $lists | Where-Object {$_.name -ieq $pickListName}
+            $list = $lists | Where-Object { $_.name -ieq $pickListName }
             $picklist = [PSCustomObject]@{
-                id = $list.id
+                id          = $list.id
                 isSuggested = $null
-                Name = $pickListName
-                type = $null
-                url = $null
+                Name        = $pickListName
+                type        = $null
+                url         = $null
             }
         }
 
         $field = [PSCustomObject]@{
             referenceName = $_.refName
-            name = $_.name
-            type = $_.type
-            pickList = $picklist
-            readOnly = $false
-            required = $false
-            defaultValue = $null
-            url = $baseUrl + $_.refName
-            allowGroups = $null
+            name          = $_.name
+            type          = $_.type
+            pickList      = $picklist
+            readOnly      = $false
+            required      = $false
+            defaultValue  = $null
+            url           = $baseUrl + $_.refName
+            allowGroups   = $null
         }
 
         $fieldjson = $field | convertto-json
@@ -157,7 +157,7 @@ function Get-ADOProjectFields([string]$projectName, [string]$org, [string]$pat) 
 
     $headers = (New-HTTPHeaders -pat $pat)
 
-    $url = "$org/_apis/projects/"+$projectName+"?api-version=5.1"
+    $url = "$org/_apis/projects/" + $projectName + "?api-version=5.1"
     try {
         $project = Invoke-RestMethod -Method Get -uri $url -headers $headers
     }
@@ -166,7 +166,7 @@ function Get-ADOProjectFields([string]$projectName, [string]$org, [string]$pat) 
         return
     }
 
-    $fieldsUrl =  "$org/"+$project.id+"/_apis/wit/fields?api-version=5.0-preview.2"
+    $fieldsUrl = "$org/" + $project.id + "/_apis/wit/fields?api-version=5.0-preview.2"
     try {
         $fields = Invoke-RestMethod -Method Get -uri $fieldsUrl -headers $headers
     }
@@ -178,7 +178,7 @@ function Get-ADOProjectFields([string]$projectName, [string]$org, [string]$pat) 
 }
 
 function Delete-ADOWorkItemField([string]$fieldName, [string]$org, [string]$pat) {
-    #DELETE https://dev.azure.com/aiz-test/_apis/wit/fields/Custom.ARCID
+    #DELETE https://dev.azure.com/org-name/_apis/wit/fields/Custom.ARCID
     try {
         $results = Invoke-RestMethod -Method Delete -uri "$org/_apis/wit/fields/$fieldName" -headers (New-HTTPHeaders -pat $pat)
     }
