@@ -1,4 +1,4 @@
-name: Between Dates Work Item Backfill ADO Project Migration
+name: sBetween Dates Work Item Backfill ADO Project Migration
 
 on:
   workflow_dispatch: # Allows manual triggering via the GitHub Actions UI
@@ -6,25 +6,25 @@ on:
       SourceOrganizationName:
         description: "Name of the Source Organization"
         required: true
-        default: ""
+        default: "AIZ-GL"
       SourceProjectName:
         description: "Name of the Source Project"
         required: true
-        default: ""
+        default: "GL.CL-Elita"
       TargetOrganizationName:
         description: "Name of the Target Organization"
         required: true
-        default: ""
+        default: "AIZ-Global"
       TargetProjectName:
         description: "Name of the Target Project"
         required: true
-        default: ""
+        default: "GL.CL-Elita-migrated"
       StartDate:
-        description: "Start Changed Date (dd/mm/yyyy)"
+        description: "Start Changed Date (month/day/year)"
         required: true
         default: "Today"
       EndDate:
-        description: "End Changed Date (dd/mm/yyyy)"
+        description: "End Changed Date (month/day/year)"
         required: false
         default: ""
       WorkItemSelection:
@@ -65,7 +65,7 @@ on:
 jobs:
   run-powershell-script:
     name: Run PowerShell Script
-    runs-on: 'ubuntu-latest'
+    runs-on: 'AEC0WGEMP001'
     timeout-minutes: 7200
     env:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
@@ -81,13 +81,12 @@ jobs:
           az --version
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Clean Azure DevOps Migration Tools Log and Attachments Directory
+      - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
         run: |
-          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
-          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}\\WorkItemAttachmentWorkingFolder" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}/logs" -Recurse | Remove-Item -Recurse
 
       - name: Set Migration Configuration 
         shell: pwsh
@@ -108,7 +107,7 @@ jobs:
           $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
-          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}"
           $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
@@ -117,7 +116,9 @@ jobs:
           $configuration2 = [Object](Get-Content $LocalConfigPath | Out-String | ConvertFrom-Json)
           Write-Host (ConvertTo-Json -Depth 100 $configuration2)
 
-          run: |
+      - name: Run Migrate-Project PowerShell script
+        shell: pwsh
+        run: |
           $selection = "${{ github.event.inputs.WorkItemSelection }}"
           if($selection -eq "Any") {
             $selection = ""
@@ -126,7 +127,7 @@ jobs:
           $end = "${{ github.event.inputs.EndDate }}"
           $whatIfDryRun = "${{ github.event.inputs.WhatIf }}"
           $WhatIf = $whatIfDryRun -match "true"
-          $format = "dd/MM/yyyy"
+          $format = "MM/dd/yyyy"
           
           echo $selection
           echo $start
@@ -158,16 +159,13 @@ jobs:
           $WhatIf = $whatIfDryRun -match "true"
 
           if($isDateStart -and $isDateEnd) {
-            if($startDate -eq $endDate){
-              $startDate = $startDate.addDays(-1)
-            }
             $startDateString = $startDate.ToString($format)
             $endDateString = $endDate.ToString($format)
-            & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate -endDateString -ItemType $selection -WhatIf $WhatIf
+            & .\Work-Item-Backfill_Migrate_Project.ps1 -StartDate $startDateString -EndDate $endDateString -ItemType $selection -WhatIf $WhatIf
           }
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-run-logs
           path: "./Projects"

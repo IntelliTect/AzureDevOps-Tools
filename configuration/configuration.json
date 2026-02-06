@@ -1,17 +1,17 @@
 {
     "SourceProject": {
-        "Organization": "https://dev.azure.com/Sample-Org/",
-        "ProjectName": "Sample-Project",
-        "OrgName": "Sample-Org"
+        "Organization": "",
+        "ProjectName": "",
+        "OrgName": ""
     },
     "TargetProject": {
-        "Organization": "https://dev.azure.com/Sample-Org/",
-        "ProjectName": "Sample-Project",
-        "OrgName": "Sample-Org"
+        "Organization": "",
+        "ProjectName": "",
+        "OrgName": ""
     },
-    "ProjectDirectory": "C:\\Users\\User1\\Working\\MigrationDirectory", 
-    "WorkItemMigratorDirectory": "C:\\tools\\MigrationTool",
-	"RepositoryCloneTempDirectory": "C:\\tools\\RepoCloneTemp",
-    "DevOpsMigrationToolConfigurationFile": "migrator-configuration.json",
-	"ArtifactFeedPackageVersionLimit": 5
+    "ProjectDirectory": "",
+    "WorkItemMigratorDirectory": "",
+    "RepositoryCloneTempDirectory": "",
+    "DevOpsMigrationToolConfigurationFile": "",
+    "ArtifactFeedPackageVersionLimit": -1
 }

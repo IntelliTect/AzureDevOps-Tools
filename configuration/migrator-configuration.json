@@ -123,13 +123,10 @@
       },
       "PipelineSource":{
         "EndpointType": "AzureDevOpsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
+        "Organisation": "https://dev.azure.com/AIZ-GL/",
         "Project": "GL.CL-Elita",
-        "Authentication": {
-          "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
-        },
-        
+        "AccessToken": "",
+        "AuthenticationMode": "AccessToken",
         "ReflectedWorkItemIdField": null,
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -138,12 +135,10 @@
       },
       "PipelineTarget":{
         "EndpointType": "AzureDevOpsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
+        "Organisation": "https://dev.azure.com/AIZ-Global/",
         "Project": "GL.CL-Elita-migrated",
-        "Authentication": {
-          "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
-        },
+        "AccessToken": "",
+        "AuthenticationMode": "AccessToken",
         "ReflectedWorkItemIdField": null,
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -158,9 +153,8 @@
         "MigrateTeamSettings": true,
         "UpdateTeamSettings": false,
         "PrefixProjectToNodes": false,
-        "MigrateTeamCapacities": false,
+        "MigrateTeamCapacities": true,
         "Teams": null,
-        "UseUserMapping": false,
         "SourceName": "TeamSettingsSource",
         "TargetName": "TeamSettingsTarget"
       },
@@ -181,7 +175,7 @@
         "ProcessorType": "TfsTestPlansAndSuitesMigrationProcessor",
         "Enabled": false,
         "OnlyElementsWithTag": "",
-        "TestPlanQuery": null,
+        "TestPlanQuery": "",
         "RemoveAllLinks": false,
         "MigrationDelay": 0,
         "RemoveInvalidTestSuiteLinks": false,
@@ -344,12 +338,12 @@
       "TfsNodeStructureTool": {
         "Enabled": true,
         "Areas": {
-          "Filters": [],
-          "Mappings": {}
+          "Filters": null,
+          "Mappings": {"^\\\\oldproject1(?:\\\\([^\\\\]+))?\\\\([^\\\\]+)$": "TargetProject\\Q1$2"}
         },
         "Iterations": {
-          "Filters": [],
-          "Mappings": {}
+          "Filters": null,
+          "Mappings": {"^\\\\oldproject1(?:\\\\([^\\\\]+))?\\\\([^\\\\]+)$": "TargetProject\\Q1$2"}
         },
         "ShouldCreateMissingRevisionPaths": true,
         "ReplicateAllExistingNodes": false
@@ -357,12 +351,12 @@
       "WorkItemTypeMappingTool": {
         "Enabled": "True",
         "Mappings": {
-          "Source Work Item Type Name": "Target Work Item Type Name"
+          "Product Backlog Item": "User Story"
         }
       },
       "TfsAttachmentTool": {
         "Enabled": "True",
-        "ExportBasePath": "",
+        "ExportBasePath": "c:\\temp\\WorkItemAttachmentWorkingFolder",
         "MaxAttachmentSize": "480000000",
         "RefName": "TfsAttachmentTool"
       },

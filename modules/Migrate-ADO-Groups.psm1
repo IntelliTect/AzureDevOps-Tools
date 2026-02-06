@@ -42,6 +42,9 @@ function Start-ADOGroupsMigration {
             -PersonalAccessToken $SourcePAT `
             -GroupDisplayName $GroupDisplayName
 
+        $sourceGroupNames = $sourceGroups | Select-Object -ExpandProperty name
+        Write-Log "Group Display Name for getting source groups: $GroupDisplayName"
+        Write-Log "Source group names: $($sourceGroupNames -join ',')"
         Write-Log -Message 'Get target ADO Groups'
         $targetGroups = Get-ADOGroups `
             -OrgName $TargetOrgName `
@@ -110,7 +113,8 @@ function Push-ADOGroups {
                 $newGroup = [ADO_Group]::new($result.NewGroup.originId, $result.NewGroup.displayName, $result.NewGroup.principalName, $result.NewGroup.description, $result.NewGroup.descriptor)
                 $targetGroups += $newGroup
                 $processSourceGroups += $group
-            } else {
+            }
+            else {
                 Write-Log -Message "unable to Create New Group [$($group.Name)] in target, it may need to be migrated manually.. "
             }
         }
@@ -156,19 +160,21 @@ function New-ADOGroup {
             -OrgName $OrgName `
             -ProjectName $ProjectName
 
-        $GroupDescription = $GroupDescription.Replace('"',"'")
+        $GroupDescription = $GroupDescription.Replace('"', "'")
 
         if ($Group.Description) {
-            if($VerboseOutput -eq $TRUE) {
+            if ($VerboseOutput -eq $TRUE) {
                 $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false --debug --verbose
-            } else {
+            }
+            else {
                 $result = az devops security group create --name $GroupName --description $GroupDescription --detect $false 
             }
         }
         else {
-            if($VerboseOutput -eq $TRUE) {
+            if ($VerboseOutput -eq $TRUE) {
                 $result = az devops security group create --name $GroupName --detect $false --debug --verbose
-            } else {
+            }
+            else {
                 $result = az devops security group create --name $GroupName --detect $false 
             }
         }
@@ -223,12 +229,14 @@ function Push-GroupMembers {
                 }
             
                 Write-Log -Message "Adding User Member [$($userMember.Name)] in target group [$($SourceGroup.Name)].. "
-                if($VerboseOutput -eq $TRUE) {
+                if ($VerboseOutput -eq $TRUE) {
                     az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false --debug --verbose
-                } else {
+                }
+                else {
                     az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $userMember.PrincipalName --detect $false 
                 }
-            } catch {
+            }
+            catch {
                 Write-Log -Message $_.Exception.Message -LogLevel ERROR
             }
             
@@ -241,6 +249,9 @@ function Push-GroupMembers {
                     -ProjectName $ProjectName `
                     -PersonalAccessToken $PersonalAccessToken `
                     -GroupDisplayName $groupMember.Name
+ 
+                Write-Log "Group on target: $groupOnTarget"                
+                              
 
                 if ($null -ne ($TargetGroup.GroupMembers | Where-Object { $_.Name -ieq $groupMember.Name } )) {
                     Write-Log -Message "Group Member [$($groupMember.Name)] already exists in target group [$($SourceGroup.Name)].. "
@@ -248,12 +259,16 @@ function Push-GroupMembers {
                 }
 
                 Write-Log -Message "Adding Group Member [$($groupMember.Name)] in target group [$($SourceGroup.Name)].. "
-                if($VerboseOutput -eq $TRUE) {
+                if ($VerboseOutput -eq $TRUE) {
+                    Write-Log "Group on target principal name: $($groupOnTarget.PrincipalName)"
                     az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.PrincipalName --detect $false --debug --verbose
-                } else {
-                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.Descriptor --detect $false 
                 }
-            } catch {
+                else {
+                    Write-Log "Group on target Descriptior: $($groupOnTarget.Descriptor)"
+                    az devops security group membership add --group-id $TargetGroup.Descriptor --member-id $groupOnTarget.Descriptor --detect $false                     
+                }
+            }
+            catch {
                 Write-Log -Message $_.Exception.Message -LogLevel ERROR
             }
         }

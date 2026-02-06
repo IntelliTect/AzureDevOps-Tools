@@ -16,18 +16,25 @@ function Start-ADOProjectMigration {
         [Parameter (Mandatory = $TRUE)] [String]$ArtifactFeedPackageVersionLimit,
         
         # -------------- What parts of the migration should NOT be executed --------------- 
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
-        [parameter(Mandatory=$FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateGroups = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateBuildQueues = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateRepos = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateWikis = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateServiceHooks = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigratePolicies = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateDashboards = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateServiceConnections = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateArtifacts = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateDeliveryPlans = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipAzureDevOpsMigrationTool = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateOrganizationUsers = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipAddReflectedWorkItemIdField = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateVariableGroups = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateBuildPipelines = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateReleasePipelines = $TRUE,
+        [parameter(Mandatory = $FALSE)] [Boolean]$SkipMigrateTfsAreaAndIterations = $TRUE
+
+
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrg/$TargetProjectName",
@@ -53,11 +60,11 @@ function Start-ADOProjectMigration {
         # ====== Migrate Users On Org Level ====== 
         #region ==================================    
         Start-ADOUserMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourcePat $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetPAT $TargetPAT `
-        -WhatIf: $SkipMigrateOrganizationUsers
+            -SourceOrgName $SourceOrgName `
+            -SourcePat $SourcePAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetPAT $TargetPAT `
+            -WhatIf: $SkipMigrateOrganizationUsers
         #endregion
 
        
@@ -82,13 +89,36 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-BuildQueues.psm1
         #region ==================================
         Start-ADOBuildQueuesMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateBuildQueues
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateBuildQueues
+        #endregion
+
+        # ========================================
+        # ========= Migrate Build Queues =========
+        #       Migrate-ADO-AreaPaths.psm1
+        #region ==================================
+        Start-ADOAreaPathsMigration `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateTfsAreaAndIterations
+
+        Start-ADOIterationsMigration `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateTfsAreaAndIterations
         #endregion
 
         # ==============================================
@@ -96,36 +126,47 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-BuildEnvironments.psm1
         #region ========================================
         Start-ADOBuildEnvironmentsMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePat $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -ReplacePipelinePermissions $TRUE `
-        -WhatIf:$SkipMigrateBuildQueues
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -SourcePat $SourcePAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -TargetPAT $TargetPAT `
+            -ReplacePipelinePermissions $TRUE `
+            -WhatIf:$SkipMigrateBuildQueues
         #endregion
 
-       
+        # ==============================================
+        # ========= Migrate Retension Policies =========
+        #       Migrate-ADO-Retentions.psm1
+        #region ========================================
+        Start-ADORetentionMigration `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateBuildQueues
+        #endregion
         
-
         # ========================================
         # ============ Migrate Repos =============
         #       Migrate-ADO-Repos.psm1
         #region ==================================
         Start-ADORepoMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourcePat $SourcePAT `
-        -SourceHeaders $sourceHeaders `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetPAT $TargetPAT `
-        -TargetHeaders $targetHeaders `
-        -ReposPath $RepositoryCloneTempDirectory `
-        -WhatIf:$SkipMigrateRepos
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourcePat $SourcePAT `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetPAT $TargetPAT `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateRepos
+        # -ReposPath $RepositoryCloneTempDirectory `
         #endregion
 
         # ========================================
@@ -133,16 +174,16 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-Repos.psm1
         #region ==================================
         Start-ADOWikiMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePat $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -ReposPath $RepositoryCloneTempDirectory `
-        -WhatIf:$SkipMigrateWikis
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -SourcePat $SourcePAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -TargetPAT $TargetPAT `
+            -ReposPath $RepositoryCloneTempDirectory `
+            -WhatIf: $SkipMigrateWikis
         #endregion
         
         # ========================================
@@ -150,16 +191,54 @@ function Start-ADOProjectMigration {
         #   Migrate-ADO-ServiceConnections.psm1
         #region ==================================
         Start-ADOServiceConnectionsMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateServiceConnections
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf: $SkipMigrateServiceConnections
         #endregion
 
-        
+        Start-ADOVariableGroupsMigration `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateVariableGroups
+
+        # ========================================
+        # ===== Add Refelcted WorkItem ID to Test Suites, Plans, and Cases ======
+        #   Migrate-ADO-ServiceConnections.psm1
+        #region ==================================
+
+        Start-ADO_AddCustomField `
+            -Headers $targetHeaders `
+            -OrgName $TargetOrgName `
+            -ProjectName $TargetProjectName `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -WhatIf: $SkipAddReflectedWorkItemIdField
+
+        #endregion
+
+        # ========================================
+        # ===== Add Classic Pipelines (which have service connection IDs as inputs) ======
+        #   Migrate-ADO-Pipelines.psm1
+        #region ==================================
+        Write-Log "SkipMigrateBuildPipelines: $SkipMigrateBuildPipelines"
+        Start-ClassicBuildPipelinesMigration `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf: $SkipMigrateBuildPipelines
+
+        #endregion
 
         # ==========================================
         # ====== Azure DevOps Migration Tool  ======
@@ -178,7 +257,8 @@ function Start-ADOProjectMigration {
             Start-Process -NoNewWindow -Wait -FilePath .\devopsmigration.exe -ArgumentList $arguments
         
             Set-Location -Path $savedpath
-        } else {
+        }
+        else {
             Write-Host "What if: Preforming the operation `"Running Azure DevOps Migration Tool Migration from source project $SourceProjectName`" on target `"Target project $TargetProjectName`""
         }
         #endregion
@@ -188,13 +268,13 @@ function Start-ADOProjectMigration {
         #         Migrate-ADO-Groups.psm1
         #region ==================================
         Start-ADOGroupsMigration `
-        -SourcePAT $SourcePAT `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -TargetPAT $TargetPAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -WhatIf:$SkipMigrateGroups
+            -SourcePAT $SourcePAT `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -TargetPAT $TargetPAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -WhatIf:$SkipMigrateGroups
         #endregion
         
         # ========================================
@@ -204,13 +284,13 @@ function Start-ADOProjectMigration {
         #region ==================================
         # .\migrateServiceHooks.ps1 
         Start-ADOServiceHooksMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateServiceHooks
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateServiceHooks
         # #endregion
 
         # ========================================
@@ -219,15 +299,15 @@ function Start-ADOProjectMigration {
         #region ==================================
         # .\migratePolicies.ps1 
         Start-ADOPoliciesMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePAT $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -WhatIf:$SkipMigratePolicies
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -SourcePAT $SourcePAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -TargetPAT $TargetPAT `
+            -WhatIf:$SkipMigratePolicies
         # #endregion
 
         # ========================================
@@ -236,13 +316,13 @@ function Start-ADOProjectMigration {
         #region ==================================
         # .\migrateDashboards.ps1 
         Start-ADODashboardsMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -WhatIf:$SkipMigrateDashboards
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -WhatIf:$SkipMigrateDashboards
         # #endregion
 
         # ===========================================
@@ -250,15 +330,15 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-DeliveryPlans.psm1
         #region =====================================
         Start-ADODeliveryPlansMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePAT $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -WhatIf:$SkipMigrateDeliveryPlans
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -SourcePAT $SourcePAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -TargetPAT $TargetPAT `
+            -WhatIf:$SkipMigrateDeliveryPlans
         # #endregion
 
         # ========================================
@@ -266,18 +346,31 @@ function Start-ADOProjectMigration {
         #       Migrate-ADO-Artifacts.psm1
         #region ==================================
         Start-ADOArtifactsMigration `
-        -SourceOrgName $SourceOrgName `
-        -SourceProjectName $SourceProjectName `
-        -SourceHeaders $sourceHeaders `
-        -SourcePAT $SourcePAT `
-        -TargetOrgName $TargetOrgName `
-        -TargetProjectName $TargetProjectName `
-        -TargetHeaders $targetHeaders `
-        -TargetPAT $TargetPAT `
-        -ProjectPath $projectPath `
-        -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
-        -WhatIf:$SkipMigrateArtifacts
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -SourceHeaders $sourceHeaders `
+            -SourcePAT $SourcePAT `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -TargetHeaders $targetHeaders `
+            -TargetPAT $TargetPAT `
+            -ArtifactFeedPackageVersionLimit $ArtifactFeedPackageVersionLimit `
+            -WhatIf:$SkipMigrateArtifacts
         # #endregion
+
+        # ========================================
+        # =========== Release Pipelines =============
+        #         Migrate-ADO-ReleaseDefinitions.psm1
+        #region ==================================
+        Start-ADOReleaseDefinitionsMigration `
+            -SourceHeaders $sourceHeaders `
+            -SourceOrgName $SourceOrgName `
+            -SourceProjectName $SourceProjectName `
+            -TargetHeaders $targetHeaders `
+            -TargetOrgName $TargetOrgName `
+            -TargetProjectName $TargetProjectName `
+            -WhatIf:$SkipMigrateReleasePipelines
+        #endregion
 
         # ========================================
         # ========== Migration Finished ========== 
