@@ -7,13 +7,13 @@
     "Endpoints": {
       "ProjectSource": {
         "EndpointType": "TfsTeamProjectEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
-        
+
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -22,11 +22,11 @@
       },
       "ProjectTarget": {
         "EndpointType": "TfsTeamProjectEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
@@ -36,13 +36,13 @@
       },
       "WorkItemSource": {
         "EndpointType": "TfsWorkItemEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
-        
+
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -51,11 +51,11 @@
       },
       "WorkItemTarget": {
         "EndpointType": "TfsWorkItemEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
@@ -65,13 +65,13 @@
       },
       "TeamSettingsSource": {
         "EndpointType": "TfsTeamSettingsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
-        
+
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -80,11 +80,11 @@
       },
       "TeamSettingsTarget": {
         "EndpointType": "TfsTeamSettingsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
@@ -92,28 +92,28 @@
           "IterationPath": "Iteration"
         }
       },
-      "TfsSource":{
+      "TfsSource": {
         "EndpointType": "TfsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
-        
+
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
         }
       },
-      "TfsTarget":{
+      "TfsTarget": {
         "EndpointType": "TfsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
+        "Collection": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
         "Authentication": {
           "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
+          "AuthenticationMode": "AccessToken"
         },
         "ReflectedWorkItemIdField": "Custom.ReflectedWorkItemId",
         "LanguageMaps": {
@@ -121,29 +121,24 @@
           "IterationPath": "Iteration"
         }
       },
-      "PipelineSource":{
+      "PipelineSource": {
         "EndpointType": "AzureDevOpsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-GL/",
-        "Project": "GL.CL-Elita",
-        "Authentication": {
-          "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
-        },
-        
+        "Organisation": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
+        "AccessToken": "",
+        "AuthenticationMode": "AccessToken",
         "ReflectedWorkItemIdField": null,
         "LanguageMaps": {
           "AreaPath": "Area",
           "IterationPath": "Iteration"
         }
       },
-      "PipelineTarget":{
+      "PipelineTarget": {
         "EndpointType": "AzureDevOpsEndpoint",
-        "Collection": "https://dev.azure.com/AIZ-Global/",
-        "Project": "GL.CL-Elita-migrated",
-        "Authentication": {
-          "AccessToken": "",
-          "AuthenticationMode": "AccessToken"          
-        },
+        "Organisation": "https://dev.azure.com/org-name/",
+        "Project": "project-name",
+        "AccessToken": "",
+        "AuthenticationMode": "AccessToken",
         "ReflectedWorkItemIdField": null,
         "LanguageMaps": {
           "AreaPath": "Area",
@@ -158,9 +153,8 @@
         "MigrateTeamSettings": true,
         "UpdateTeamSettings": false,
         "PrefixProjectToNodes": false,
-        "MigrateTeamCapacities": false,
+        "MigrateTeamCapacities": true,
         "Teams": null,
-        "UseUserMapping": false,
         "SourceName": "TeamSettingsSource",
         "TargetName": "TeamSettingsTarget"
       },
@@ -181,7 +175,7 @@
         "ProcessorType": "TfsTestPlansAndSuitesMigrationProcessor",
         "Enabled": false,
         "OnlyElementsWithTag": "",
-        "TestPlanQuery": null,
+        "TestPlanQuery": "",
         "RemoveAllLinks": false,
         "MigrationDelay": 0,
         "RemoveInvalidTestSuiteLinks": false,
@@ -244,29 +238,23 @@
       "FieldMappingTool": {
         "Enabled": true,
         "FieldSkipMap": {
-          "ApplyTo": [
-              "*"
-            ],
+          "ApplyTo": ["*"],
           "targetField": "TfsMigrationTool.ReflectedWorkItemId"
         },
         "MultiValueConditionalMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "sourceFieldsAndValues": {
-              "Field1": "Value1",
-              "Field2": "Value2"
-            },
-            "targetFieldsAndValues": {
-              "Field1": "Value1",
-              "Field2": "Value2"
-            }
+          "ApplyTo": ["*"],
+          "sourceFieldsAndValues": {
+            "Field1": "Value1",
+            "Field2": "Value2"
           },
+          "targetFieldsAndValues": {
+            "Field1": "Value1",
+            "Field2": "Value2"
+          }
+        },
         "FieldMaps": [
           {
-            "ApplyTo": [
-              "*"
-            ],
+            "ApplyTo": ["*"],
             "defaultValue": "New",
             "FieldMapType": "FieldValueMap",
             "sourceField": "System.State",
@@ -280,76 +268,66 @@
               "Done": "Closed",
               "Removed": "Removed"
             }
-          }          
+          }
         ],
         "FieldToFieldMap": {
-          "ApplyTo": [
-              "*"
-            ],
+          "ApplyTo": ["*"],
           "sourceField": "Microsoft.VSTS.Common.BacklogPriority",
           "targetField": "Microsoft.VSTS.Common.StackRank"
         },
         "FieldToFieldMultiMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "SourceToTargetMappings": {
-              "SourceField1": "TargetField1",
-              "SourceField2": "TargetField2"
-            }
-          },
-          "FieldToTagMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "formatExpression": "ScrumState:{0}",
-            "sourceField": "System.State"
-          },
-          "FieldMergeMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "formatExpression": "{0} <br/><br/><h3>Acceptance Criteria</h3>{1}",
-            "sourceFields": [
-              "System.Description",
-              "Microsoft.VSTS.Common.AcceptanceCriteria"
-            ],
-            "targetField": "System.Description"
-          },
-          "RegexFieldMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "pattern": "PRODUCT \\d{4}.(\\d{1})",
-            "replacement": "$1",
-            "sourceField": "COMPANY.PRODUCT.Release",
-            "targetField": "COMPANY.DEVISION.MinorReleaseVersion"
-          },
-          "FieldValueToTagMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "formatExpression": "{0}",
-            "pattern": "Yes",
-            "sourceField": "Microsoft.VSTS.CMMI.Blocked"
-          },
-          "TreeToTagMap": {
-            "ApplyTo": [
-              "*"
-            ],
-            "timeTravel": "1",
-            "toSkip": "3"
+          "ApplyTo": ["*"],
+          "SourceToTargetMappings": {
+            "SourceField1": "TargetField1",
+            "SourceField2": "TargetField2"
           }
+        },
+        "FieldToTagMap": {
+          "ApplyTo": ["*"],
+          "formatExpression": "ScrumState:{0}",
+          "sourceField": "System.State"
+        },
+        "FieldMergeMap": {
+          "ApplyTo": ["*"],
+          "formatExpression": "{0} <br/><br/><h3>Acceptance Criteria</h3>{1}",
+          "sourceFields": [
+            "System.Description",
+            "Microsoft.VSTS.Common.AcceptanceCriteria"
+          ],
+          "targetField": "System.Description"
+        },
+        "RegexFieldMap": {
+          "ApplyTo": ["*"],
+          "pattern": "PRODUCT \\d{4}.(\\d{1})",
+          "replacement": "$1",
+          "sourceField": "COMPANY.PRODUCT.Release",
+          "targetField": "COMPANY.DEVISION.MinorReleaseVersion"
+        },
+        "FieldValueToTagMap": {
+          "ApplyTo": ["*"],
+          "formatExpression": "{0}",
+          "pattern": "Yes",
+          "sourceField": "Microsoft.VSTS.CMMI.Blocked"
+        },
+        "TreeToTagMap": {
+          "ApplyTo": ["*"],
+          "timeTravel": "1",
+          "toSkip": "3"
+        }
       },
       "TfsNodeStructureTool": {
         "Enabled": true,
         "Areas": {
-          "Filters": [],
-          "Mappings": {}
+          "Filters": null,
+          "Mappings": {
+            "^\\\\oldproject1(?:\\\\([^\\\\]+))?\\\\([^\\\\]+)$": "TargetProject\\Q1$2"
+          }
         },
         "Iterations": {
-          "Filters": [],
-          "Mappings": {}
+          "Filters": null,
+          "Mappings": {
+            "^\\\\oldproject1(?:\\\\([^\\\\]+))?\\\\([^\\\\]+)$": "TargetProject\\Q1$2"
+          }
         },
         "ShouldCreateMissingRevisionPaths": true,
         "ReplicateAllExistingNodes": false
@@ -357,12 +335,12 @@
       "WorkItemTypeMappingTool": {
         "Enabled": "True",
         "Mappings": {
-          "Source Work Item Type Name": "Target Work Item Type Name"
+          "Product Backlog Item": "User Story"
         }
       },
       "TfsAttachmentTool": {
         "Enabled": "True",
-        "ExportBasePath": "",
+        "ExportBasePath": "c:\\temp\\WorkItemAttachmentWorkingFolder",
         "MaxAttachmentSize": "480000000",
         "RefName": "TfsAttachmentTool"
       },

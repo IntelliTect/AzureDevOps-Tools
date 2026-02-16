@@ -8,7 +8,9 @@ function Start-ADOVariableGroupsMigration {
         [Parameter (Mandatory = $TRUE)] [String]$TargetOrgName, 
         [Parameter (Mandatory = $TRUE)] [String]$TargetProjectName, 
         [Parameter (Mandatory = $TRUE)] [Hashtable]$TargetHeaders,
-        [Parameter (Mandatory = $FALSE)] [String]$secretsMapPath = ""
+        [Parameter (Mandatory = $FALSE)] [String]$secretsMapPath = "",
+        [Parameter (Mandatory = $FALSE)] [Boolean]$migrateKeyVaultConnectedOnly = $false
+
     )
     if ($PSCmdlet.ShouldProcess(
             "Target project $TargetOrgName/$TargetProjectName",
@@ -41,7 +43,9 @@ function Start-ADOVariableGroupsMigration {
         }
 
         $groups = Get-VariableGroups -projectName $sourceProject.name -orgName $SourceOrgName -headers $sourceHeaders
-
+        if($migrateKeyVaultConnectedOnly) {
+            $groups = $groups | Where-Object {$_.type -eq "AzureKeyVault"}
+        }
         foreach ($groupHeader in $groups) {
 
             if ($null -ne ($targetVariableGroups | Where-Object {$_.name -ieq $groupHeader.name})) {
@@ -55,19 +59,19 @@ function Start-ADOVariableGroupsMigration {
                 $groupObj = (Get-VariableGroup -projectName $sourceProject.name -orgName $SourceOrgName -headers $sourceHeaders -groupId $groupHeader.id)
                 $group = $groupObj | ConvertTo-Hashtable
 
-                if ($null -ne $secretsMap.variableGroups -and $null -ne $secretsMap.variableGroups[$group.name]) {
-                    foreach ($key in $secretsMap.variableGroups[$group.name].Keys) {
-                        if ($null -ne $group.variables[$key]) {
-                            $group.variables[$key].value = $secretsMap.variableGroups[$group.name][$key]
-                        }
-                    }
-                }
+                # if ($null -ne $secretsMap.variableGroups -and $null -ne $secretsMap.variableGroups[$group.name]) {
+                #     foreach ($key in $secretsMap.variableGroups[$group.name].Keys) {
+                #         if ($null -ne $group.variables[$key]) {
+                #             $group.variables[$key].value = $secretsMap.variableGroups[$group.name][$key]
+                #         }
+                #     }
+                # }
 
-                foreach ($key in $group.variables.Keys) {
-                    if ($null -eq $group.variables[$key].value) {
-                        throw "Missing secrets mapped variable '$($varProp.Name)' in variable group '$($group.name)'"
-                    }
-                }
+                # foreach ($key in $group.variables.Keys) {
+                #     if ($null -eq $group.variables[$key].value) {
+                #         throw "Missing secrets mapped variable '$($varProp.Name)' in variable group '$($group.name)'"
+                #     }
+                # }
 
                 foreach ($ref in $groupObj.variableGroupProjectReferences) {
                     $ref.name = $group.name
@@ -76,10 +80,26 @@ function Start-ADOVariableGroupsMigration {
                     $ref.projectReference.name = $targetProject.name
                 }
 
+                $providerData = $group.providerData
+                if($group.providerData -ne $Null) {
+                    $sourceEndpoints = Get-ServiceEndpoints -OrgName $SourceOrgName -ProjectName $SourceProjectName  -Headers $sourceHeaders
+                    $targetEndpoints = Get-ServiceEndpoints -OrgName $TargetOrgName -ProjectName $TargetProjectName  -Headers $targetHeaders
+
+                    $sourceEndpoint = $sourceEndpoints | Where-Object {$_.id -eq $group.providerData.serviceEndpointId}
+                    $targetEndpoint = $targetEndpoints | Where-Object {$_.name -eq $sourceEndpoint.name }
+                    if($targetEndpoint -eq $null -OR $targetEndpoint.Count -gt 1){
+                        Write-Error "There was an issue identitfying the correct service connection to link to variable group $($group.name)" -ErrorAction Continue
+                    }
+                    $providerData = @{
+                        "serviceEndpointId" = $targetEndpoint.id
+                        "vault" = $group.providerData.vault
+                    }
+                }
+
                 $json = @{
                     "description"  = $groupHeader.description
                     "name"         = $group.name
-                    "providerData" = $group.providerData
+                    "providerData" = $providerData
                     "type"         = $group.type
                     "variableGroupProjectReferences" = $groupObj.variableGroupProjectReferences
                     "variables"    = $group.variables

@@ -39,26 +39,23 @@ function Start-ADO_AddCustomField {
         [Hashtable]$Headers,
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$OrgName, 
+        [String]$OrgName,
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$PAT,
+        [String]$ProjectName,
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$ProjectName, 
+        [String]$SourceOrgName,
 
         [Parameter (Mandatory = $TRUE)] 
-        [String]$ProcessId,
-
-        [Parameter (Mandatory = $TRUE)] 
-        [String]$FieldName,
+        [String]$SourceProjectName,
 
         [Parameter (Mandatory = $FALSE)] 
         [String]$FieldDefaultValue
     )
     if ($PSCmdlet.ShouldProcess(
             "Project $OrgName/$ProjectName",
-            "Add ADO custom Field from source project $OrgName/$ProjectName")
+            "Add ADO custom Field from source project $SourceOrgName/$SourceProjectName")
     ) {
         Write-Log -Message ' '
         Write-Log -Message '--------------------------------'
@@ -71,17 +68,31 @@ function Start-ADO_AddCustomField {
             -LocalOrgName $OrgName `
             -LocalProjectName $ProjectName `
             -LocalHeaders $Headers
-        
+        $referenceFieldName = "Custom.ReflectedWorkItemId"
         if($NULL -ne $customFields) {
-            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq $FieldName })) {
-                Write-Log -Message "Creating Custom Field `"$FieldName`" for $OrgName/$ProjectName... "
+            # Checking if the desired field exists (ReflectedWorkItemId). If so creation can be skipped, as the migration-configuration.json file is appropriately modified in MigrateProject.ps1.
+            
+            $url = "https://dev.azure.com/$OrgName/_apis/wit/fields/ReflectedWorkItemId?api-version=7.1-preview.2"
+            Write-log "Url: $url"
+            $response = Invoke-RestMethod -Uri $url -Headers $Headers
+            
+        
+            if ($null -eq ($customFields | Where-Object { $_.referenceName -ieq "ReflectedWorkItemId" }) -AND $null -eq $response) {
+                Write-Log -Message "Creating Custom Field ReflectedWorkItemId for $OrgName/$ProjectName... "
                 # Add a new custom field for this org/project so that it can be added to work item types for the process
                 New-Customfield `
                     -LocalOrgName $OrgName `
-                    -LocalFieldName $FieldName `
+                    -LocalFieldName "Custom.ReflectedWorkItemId" `
                     -LocalHeaders $Headers
+            } elseif ($null -ne $response) {
+                 $referenceFieldName = $response.referenceName
             }
         }
+
+        $ProcessId = Get-ProcessId `
+            -OrgName $OrgName `
+            -ProjectName $ProjectName `
+            -Headers $Headers
         
         # Get the associated work item types for this process by process Id 
         $workitemTypes = Get-ProcessWorkItemTypes `
@@ -102,18 +113,18 @@ function Start-ADO_AddCustomField {
                         -LocalWorkItemType $workitemType
 
                     if($NULL -ne $processDefinitions) {
-                        if ($null -ne ($processDefinitions | Where-Object { $_.referenceName -ieq $FieldName })) {
-                            Write-Log -Message "Custom Field `"$FieldName`" already exists for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
+                        if ($null -ne ($processDefinitions | Where-Object { $_.referenceName -ieq "ReflectedWorkItemId" })) {
+                            Write-Log -Message "Custom Field ReflectedWorkItemId already exists for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
                             continue
                         }
 
-                        Write-Log -Message "ADDing Custom Field `"$FieldName`" for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
+                        Write-Log -Message "ADDing Custom Field ReflectedWorkItemId for $OrgName/$ProjectName Work Item Type [$($workitemType.Id)]... "
                         Add-CustomField `
                             -LocalOrgName $OrgName `
                             -LocalHeaders $Headers `
                             -LocalProcessId $ProcessId `
                             -LocalWorkItemType $workitemType `
-                            -LocalFieldName $FieldName
+                            -LocalFieldName $referenceFieldName
                     }
                 }
             }
@@ -134,7 +145,7 @@ function Get-ProcessWorkItemTypes {
         [Parameter (Mandatory = $TRUE)]
         [String]$LocalProcessId
     )
-    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=7.0"
+    $url = "https://dev.azure.com/$LocalOrgName/_apis/work/processes/$LocalProcessId/workitemtypes?api-version=4.1-preview.1"
 
     $results = Invoke-RestMethod -Method GET -Uri $url -Headers $LocalHeaders
 
@@ -273,10 +284,10 @@ function New-Customfield {
         [String]$LocalFieldName
     )
     $url = "https://dev.azure.com/$LocalOrgName/$ProjectName/_apis/wit/fields?api-version=7.0"
-
+    Write-Host $url
     $body = @"
 {
-    "name": "Custom Work Item Field - ReflectedWorkItemId",
+    "name": "ReflectedWorkItemId",
     "referenceName": "$LocalFieldName",
     "description": "Custom field used by data migration tool.",
     "type": "string",
@@ -299,5 +310,30 @@ function New-Customfield {
     $results = Invoke-RestMethod -Method POST -Uri $url -Body $body -Headers $LocalHeaders -ContentType "application/json"
 
     return $results
+}
+
+function Get-ProcessID {
+    [CmdletBinding(SupportsShouldProcess)]
+    param(
+        [Parameter (Mandatory = $TRUE)]
+        [Hashtable]$Headers,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$OrgName,
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$ProjectName
+    )
+    $ProjectUrl =  "https://dev.azure.com/$OrgName/_apis/projects/$($ProjectName)?api-version=7.0"
+    Write-Log $ProjectUrl
+    $response = Invoke-RestMethod -Uri $ProjectUrl -Method Get -Headers $Headers
+    $ProjectId =  $response.id
+    Write-Log "ProjectId while getting Porcess ID: $ProjectId"
+    $url = "https://dev.azure.com/$OrgName/_apis/projects/$($ProjectId)/properties?api-version=7.0-preview"
+
+    $results = Invoke-RestMethod -Method GET -Uri $url -Headers $Headers
+    $process = $results.value | Where-Object { $_.name -eq "System.ProcessTemplateType" }
+    Write-Log "ProcessId: $($process.value)"
+    return $process.value
 }
 

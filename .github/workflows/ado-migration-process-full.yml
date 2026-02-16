@@ -1,4 +1,5 @@
 name: Full ADO Project Migration
+run-name: "${{ github.event.inputs.SourceOrganizationName }}/${{ github.event.inputs.SourceProjectName }}=>${{ github.event.inputs.TargetOrganizationName }}/${{ github.event.inputs.TargetProjectName }} [Full Migration]"
 
 on:
   workflow_dispatch:
@@ -6,19 +7,19 @@ on:
       SourceOrganizationName:
         description: "Name of the Source Organization"
         required: true
-        default: ""
+        default: "AIZ-GL"
       SourceProjectName:
         description: "Name of the Source Project"
         required: true
-        default: ""
+        default: "GL.CL-Elita"
       TargetOrganizationName:
         description: "Name of the Target Organization"
         required: true
-        default: ""
+        default: "AIZ-Global"
       TargetProjectName:
         description: "Name of the Target Project"
         required: true
-        default: ""
+        default: "GL.CL-Elita-migrated"
       WhatIf:
         type: boolean
         description: "WhatIf: Simulated Run"
@@ -28,7 +29,7 @@ on:
 jobs:
   run-powershell-script:
     name: Run PowerShell Script
-    runs-on: 'ubuntu-latest'
+    runs-on: 'AEC0WGEMP001'
     timeout-minutes: 7200
     env:
       AZURE_DEVOPS_MIGRATION_PAT: ${{ secrets.AZURE_DEVOPS_MIGRATION_PAT }}
@@ -44,13 +45,13 @@ jobs:
           az --version
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Clean Azure DevOps Migration Tools Log and Attachments Directory
+      - name: Clean Azure DevOps Migration Tools Log Directory
         shell: pwsh
         run: |
-          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}/logs" -Recurse | Remove-Item -Recurse
-          Get-ChildItem "${{ vars.WorkItemMigratorDirectory }}\\WorkItemAttachmentWorkingFolder" -Recurse | Remove-Item -Recurse
+          Get-ChildItem "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}/logs" -Recurse | Remove-Item -Recurse
+
       - name: Set Migration Configuration 
         shell: pwsh
         run: |
@@ -70,7 +71,7 @@ jobs:
           $configuration.TargetProject.ProjectName = "${{ github.event.inputs.TargetProjectName }}"
           $configuration.TargetProject.OrgName = "${{ github.event.inputs.TargetOrganizationName }}"
           $configuration.ProjectDirectory = $projectDirectory
-          $configuration.WorkItemMigratorDirectory = "${{ vars.WorkItemMigratorDirectory }}"
+          $configuration.WorkItemMigratorDirectory = "${{ vars.WORKITEMMIGRATORDIRECTORY_V16_0_9 }}"
           $configuration.RepositoryCloneTempDirectory = "${{ vars.RepositoryCloneTempDirectory }}"
           $configuration.DevOpsMigrationToolConfigurationFile = "${{ vars.DevOpsMigrationToolConfigurationFile }}"
           $configuration.ArtifactFeedPackageVersionLimit = ${{ vars.ArtifactFeedPackageVersionLimit }}
@@ -88,7 +89,7 @@ jobs:
           & ./Step_0_Migrate_Project.ps1 -WhatIf $WhatIf
 
       - name: Archive code coverage results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: migration-run-logs
           path: "./Projects"

@@ -28,8 +28,8 @@ function Start-ADOServiceHooksMigration {
         $SourceTeams = Get-ADOProjectTeams -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName
         $TargetTeams = Get-ADOProjectTeams -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
 
-        $SourcePipelines = Get-Pipelines -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName
-        $TargetPipelines = Get-Pipelines -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
+        $SourcePipelines = Get-BuildDefinitions -Headers $SourceHeaders -OrgName $SourceOrgName -ProjectName $SourceProjectName
+        $TargetPipelines = Get-BuildDefinitions -Headers $TargetHeaders -OrgName $TargetOrgName -ProjectName $TargetProjectName
         
 
         $targetRepos = Get-Repos -projectName $targetProject.name -headers $targetHeaders -org $TargetOrgName
@@ -68,7 +68,7 @@ function Start-ADOServiceHooksMigration {
                 if ($null -ne $hook.publisherInputs) {
                     $hook.publisherInputs.projectId = $targetProjectOrg.id
                     
-                    if($null -ne $hook.publisherInputs.repository) {
+                    if ($null -ne $hook.publisherInputs.repository) {
                         $sourceRepo = Get-Repo -headers $sourceHeaders -org $SourceOrgName -repoId $hook.publisherInputs.repository
             
                         #Try to map to target repo - Note this will have issues if target repo is in a different project and either that project's repos have not been migrated
@@ -127,9 +127,9 @@ function Start-ADOServiceHooksMigration {
                 if ($hook.consumerId -eq "teams") {
                     # Take source team ID, get Team name, lookup team in target by name to get id to set subscriberId
                     foreach ($s_team in $SourceTeams) {
-                        if($s_team.id -eq $hook.publisherInputs.subscriberId) {
+                        if ($s_team.id -eq $hook.publisherInputs.subscriberId) {
                             foreach ($t_team in $TargetTeams) {
-                                if($t_team.name -eq $s_team.name){
+                                if ($t_team.name -eq $s_team.name) {
                                     $hook.publisherInputs.subscriberId = $t_team.id
                                     break
                                 }
@@ -141,9 +141,9 @@ function Start-ADOServiceHooksMigration {
                 if (($hook.consumerId -eq "workplaceMessagingApps") -AND ($hook.publisherId -eq "pipelines")) {
                     # Take source team ID, get Team name, lookup team in target by name to get id to set subscriberId
                     foreach ($s_pipeline in $SourcePipelines) {
-                        if($s_pipeline.id -eq $hook.publisherInputs.pipelineId) {
+                        if ($s_pipeline.id -eq $hook.publisherInputs.pipelineId) {
                             foreach ($t_pipeline in $TargetPipelines) {
-                                if($t_pipeline.name -eq $s_pipeline.name){
+                                if ($t_pipeline.name -eq $s_pipeline.name) {
                                     $hook.publisherInputs.pipelineId = $t_pipeline.id
                                     break
                                 }
@@ -172,7 +172,8 @@ function Start-ADOServiceHooksMigration {
                 Write-Log -Message $_.Exception -LogLevel ERROR
                 try {
                     Write-Log -Message ($_ | ConvertFrom-Json).message -LogLevel ERROR
-                } catch {}
+                }
+                catch {}
             }
         }
     }
@@ -208,7 +209,7 @@ function New-ServiceHook([string]$projectName, [string]$orgName, $serviceHook, $
     $url = "https://dev.azure.com/$orgName/_apis/hooks/subscriptions?api-version=7.0"
 
     # Service Hook subscriptions for Release events require the vsrm sub-domain endpoint
-    if($serviceHook.publisherId -eq "rm"){
+    if ($serviceHook.publisherId -eq "rm") {
         $url = "https://vsrm.dev.azure.com/$orgName/_apis/hooks/subscriptions?api-version=7.0"
     }
     
@@ -218,3 +219,49 @@ function New-ServiceHook([string]$projectName, [string]$orgName, $serviceHook, $
     
     return $results
 }
+
+function Remove-AllServiceHooks {
+    param (
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$OrgName, 
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$ProjectName, 
+
+        [Parameter (Mandatory = $TRUE)] 
+        [Hashtable]$Headers
+    )
+    $project = Get-ADOProjects -OrgName $OrgName -ProjectName $ProjectName -Headers $Headers 
+
+    $serviceHooks = Get-ServiceHooks -orgName $OrgName -headers $Headers -projectId $project.id
+
+    foreach ($sh in $serviceHooks) {
+        try {
+            
+        }
+        catch {
+            
+        }
+    }
+}
+
+function Remove-ServiceHook {
+    param (
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$OrgName, 
+
+        [Parameter (Mandatory = $TRUE)] 
+        [String]$ProjectName, 
+
+        [Parameter (Mandatory = $TRUE)] 
+        [Hashtable]$Headers
+    )
+    
+    $url = ""
+
+    $result = Invoke-RestMethod -Method Delete -Uri $url
+
+    return $result
+}
+
+
